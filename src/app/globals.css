@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f3ea;
+  --foreground: #19201c;
+
+  --forest-950: #0a1712;
+  --forest-900: #10231c;
+  --forest-800: #183127;
+  --forest-700: #234536;
+  --forest-600: #315c49;
+
+  --olive-700: #4e5f3f;
+  --olive-600: #627650;
+  --olive-500: #788c64;
+
+  --burgundy-900: #35131b;
+  --burgundy-800: #4b1925;
+  --burgundy-700: #632332;
+
+  --gold-600: #aa8950;
+  --gold-500: #c2a266;
+  --gold-400: #d4b97e;
+
+  --ivory-50: #fcfaf5;
+  --ivory-100: #f7f3ea;
+  --ivory-200: #eee6d7;
+  --ivory-300: #dfd2bd;
+
+  --stone-500: #77786f;
+  --stone-700: #50554f;
+  --stone-900: #252b27;
+
+  --border: rgba(25, 32, 28, 0.14);
+  --ring: rgba(194, 162, 102, 0.55);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-forest-950: var(--forest-950);
+  --color-forest-900: var(--forest-900);
+  --color-forest-800: var(--forest-800);
+  --color-forest-700: var(--forest-700);
+  --color-forest-600: var(--forest-600);
+
+  --color-olive-700: var(--olive-700);
+  --color-olive-600: var(--olive-600);
+  --color-olive-500: var(--olive-500);
+
+  --color-burgundy-900: var(--burgundy-900);
+  --color-burgundy-800: var(--burgundy-800);
+  --color-burgundy-700: var(--burgundy-700);
+
+  --color-gold-600: var(--gold-600);
+  --color-gold-500: var(--gold-500);
+  --color-gold-400: var(--gold-400);
+
+  --color-ivory-50: var(--ivory-50);
+  --color-ivory-100: var(--ivory-100);
+  --color-ivory-200: var(--ivory-200);
+  --color-ivory-300: var(--ivory-300);
+
+  --color-stone-500: var(--stone-500);
+  --color-stone-700: var(--stone-700);
+  --color-stone-900: var(--stone-900);
+
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--gold-500);
+  color: var(--forest-950);
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  text-decoration: none;
+}
+
+img {
+  height: auto;
+  max-width: 100%;
+}
+
+picture,
+video,
+canvas,
+svg {
+  display: block;
+}
+
+section {
+  position: relative;
+}
+
+@media (hover: hover) {
+  .interactive-lift {
+    transition:
+      transform 300ms ease,
+      box-shadow 300ms ease;
+  }
+
+  .interactive-lift:hover {
+    transform: translateY(-4px);
+  }
+}
+
+.font-display {
+  font-family: var(--font-display), serif;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px var(--ring);
+}
+
+.grain-overlay {
+  position: relative;
+  isolation: isolate;
+}
+
+.grain-overlay::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(255, 255, 255, 0.08),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 80% 90%,
+      rgba(194, 162, 102, 0.08),
+      transparent 35%
+    );
+  content: "";
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
