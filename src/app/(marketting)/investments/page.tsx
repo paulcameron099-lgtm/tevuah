@@ -9,12 +9,38 @@ import {
 import { InvestmentMarketplace } from "@/src/components/investments/investment-marketplace";
 import { Container } from "@/src/components/ui/container";
 import { opportunities } from "@/src/data/opportunities";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "Investment Opportunities",
   description:
     "Explore illustrative vineyard, olive estate, AgTech and fine-wine opportunities through the Tevuah Reserve marketplace.",
 };
+
+function MarketplaceLoading() {
+  return (
+    <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]">
+      <aside className="hidden lg:block">
+        <div className="h-135 animate-pulse rounded-3xl border border-forest-900/10 bg-white" />
+      </aside>
+
+      <div>
+        <div className="h-24 animate-pulse rounded-3xl border border-forest-900/10 bg-white" />
+
+        <div className="mt-7 h-10 w-52 animate-pulse rounded-lg bg-forest-900/10" />
+
+        <div className="mt-7 grid gap-7 md:grid-cols-2 2xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-170 animate-pulse rounded-3xl border border-forest-900/10 bg-white"
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function InvestmentsPage() {
   return (
@@ -119,9 +145,9 @@ export default function InvestmentsPage() {
             </p>
           </div>
 
-          <InvestmentMarketplace
-            opportunities={opportunities}
-          />
+          <Suspense fallback={<MarketplaceLoading />}>
+          <InvestmentMarketplace opportunities={opportunities} />
+        </Suspense>
 
           <div className="mt-12 rounded-2xl border border-gold-500/25 bg-gold-500/5 px-6 py-5">
             <p className="text-xs leading-6 text-stone-700">

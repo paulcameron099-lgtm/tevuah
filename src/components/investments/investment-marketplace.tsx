@@ -16,6 +16,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 
+
 import { OpportunityCard } from "@/src/components/marketing/opportunity-card";
 import {
   categoryOptions,
