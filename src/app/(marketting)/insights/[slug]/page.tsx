@@ -58,22 +58,22 @@ export default async function InsightPage({
     <main className="bg-ivory-100 pt-19 lg:pt-22">
       <section className="py-14 sm:py-20 lg:py-24">
         <Container>
-          <Button
+         <Button
             href="/insights"
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="mb-10 px-0 text-forest-950 hover:bg-transparent hover:text-olive-700"
-          >
-            <ArrowLeft className="size-4" />
-            All insights
-          </Button>
+            className="mb-10 w-fit border-forest-900/15 bg-white px-5 text-forest-950 hover:border-forest-900/25 hover:bg-ivory-50 hover:text-forest-950"
+            >
+            <ArrowLeft className="size-4 shrink-0" />
+            <span>All insights</span>
+        </Button>
 
           <div className="max-w-5xl">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
               {article.category}
             </p>
 
-            <h1 className="font-display mt-6 text-balance text-5xl leading-[0.96] font-medium tracking-[-0.04em] text-forest-950 sm:text-6xl lg:text-8xl">
+            <h1 className="font-display mt-6 text-balance text-4xl leading-[0.98] font-medium tracking-[-0.04em] text-forest-950 sm:text-6xl lg:text-8xl">
               {article.title}
             </h1>
 
@@ -100,20 +100,20 @@ export default async function InsightPage({
         </Container>
       </section>
 
-      <Container>
-        <div className="relative aspect-16/8 min-h-90 overflow-hidden rounded-4xl bg-forest-950">
-          <Image
-            src={article.image}
-            alt={article.title}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
+     <Container>
+    <div className="relative aspect-4/3 overflow-hidden rounded-3xl bg-forest-950 sm:aspect-16/10 sm:rounded-4xl lg:aspect-16/8">
+        <Image
+        src={article.image}
+        alt={article.title}
+        fill
+        priority
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 92vw, 1400px"
+        className="object-cover object-[center_45%] sm:object-center"
+        />
 
-          <div className="absolute inset-0 bg-linear-to-t from-forest-950/30 to-transparent" />
-        </div>
-      </Container>
+        <div className="absolute inset-0 bg-linear-to-t from-forest-950/30 to-transparent" />
+    </div>
+    </Container>
 
       <section className="py-16 sm:py-20 lg:py-24">
         <Container>
