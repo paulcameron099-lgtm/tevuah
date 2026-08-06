@@ -27,6 +27,7 @@ export type Opportunity = {
   slug: string;
   title: string;
   location: string;
+  country: string;
   category: InvestmentCategorySlug;
   categoryLabel: string;
   summary: string;
@@ -35,8 +36,10 @@ export type Opportunity = {
   fundedAmount: number;
   minimumInvestment: number;
   duration: string;
+  durationMonths: number;
   riskLevel: RiskLevel;
   status: OpportunityStatus;
   image: string;
   featured: boolean;
+  publishedAt: string;
 };

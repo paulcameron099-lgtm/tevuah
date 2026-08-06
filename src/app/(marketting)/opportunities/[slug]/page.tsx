@@ -14,8 +14,8 @@ import { OpportunityStatusBadge } from "@/src/components/marketing/opportunity-s
 import { Button } from "@/src/components/ui/button";
 import { Container } from "@/src/components/ui/container";
 import {
-  featuredOpportunities,
   getOpportunityBySlug,
+  opportunities,
 } from "@/src/data/opportunities";
 import { formatCurrency } from "@/src/lib/formatters";
 
@@ -26,7 +26,7 @@ type OpportunityPageProps = {
 };
 
 export function generateStaticParams() {
-  return featuredOpportunities.map((opportunity) => ({
+  return opportunities.map((opportunity) => ({
     slug: opportunity.slug,
   }));
 }
