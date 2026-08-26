@@ -28,7 +28,9 @@ export async function getCurrentUser() {
         state,
         postal_code,
         role,
-        avatar_url
+        avatar_url,
+        account_status,
+        onboarding_status
         `,
       )
       .eq("id", userId)

@@ -4,39 +4,63 @@ import type { NextRequest } from "next/server";
 import { createClient } from "@/src/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url);
+  const url = new URL(request.url);
 
-  const code = requestUrl.searchParams.get("code");
-
+  const code = url.searchParams.get("code");
   const next =
-    requestUrl.searchParams.get("next") ??
+    url.searchParams.get("next") ??
     "/dashboard";
 
-  if (code) {
-    const supabase = await createClient();
+  if (!code) {
+    const errorUrl = request.nextUrl.clone();
 
-    const { error } =
-      await supabase.auth.exchangeCodeForSession(code);
+    errorUrl.pathname = "/login";
+    errorUrl.search = "";
+    errorUrl.searchParams.set(
+      "error",
+      "missing_auth_code",
+    );
 
-    if (!error) {
-      const redirectUrl = request.nextUrl.clone();
-
-      redirectUrl.pathname = next;
-      redirectUrl.search = "";
-
-      return NextResponse.redirect(redirectUrl);
-    }
+    return NextResponse.redirect(errorUrl);
   }
 
-  const errorUrl = request.nextUrl.clone();
+  const supabase = await createClient();
 
-  errorUrl.pathname = "/login";
-  errorUrl.search = "";
+  const { error } =
+    await supabase.auth.exchangeCodeForSession(
+      code,
+    );
 
-  errorUrl.searchParams.set(
-    "error",
-    "verification_failed",
+  if (error) {
+    console.error(
+      "Supabase auth callback error:",
+      error,
+    );
+
+    const errorUrl = request.nextUrl.clone();
+
+    errorUrl.pathname = "/login";
+    errorUrl.search = "";
+    errorUrl.searchParams.set(
+      "error",
+      "auth_callback_failed",
+    );
+
+    return NextResponse.redirect(errorUrl);
+  }
+
+  const redirectUrl =
+    request.nextUrl.clone();
+
+  redirectUrl.pathname =
+    next.startsWith("/") &&
+    !next.startsWith("//")
+      ? next
+      : "/dashboard";
+
+  redirectUrl.search = "";
+
+  return NextResponse.redirect(
+    redirectUrl,
   );
-
-  return NextResponse.redirect(errorUrl);
 }

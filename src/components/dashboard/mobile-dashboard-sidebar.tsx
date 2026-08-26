@@ -1,17 +1,25 @@
 "use client";
 
 import Link from "next/link";
+
 import {
   LogOut,
   X,
 } from "lucide-react";
+
 import { usePathname } from "next/navigation";
 
-import { investorDashboardNavigation } from "@/src/config/dashboard-navigation";
+import {
+  adminDashboardNavigation,
+  investorDashboardNavigation,
+  superAdminDashboardNavigation,
+} from "@/src/config/dashboard-navigation";
+
 import { cn } from "@/src/lib/utils";
 
 type MobileDashboardSidebarProps = {
   open: boolean;
+
   onClose: () => void;
 
   user: {
@@ -26,7 +34,37 @@ export function MobileDashboardSidebar({
   onClose,
   user,
 }: MobileDashboardSidebarProps) {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
+
+  /*
+   * Choose navigation according
+   * to the logged-in user's role.
+   */
+  const navigation =
+    user.role === "super_admin"
+      ? superAdminDashboardNavigation
+      : user.role === "admin"
+        ? adminDashboardNavigation
+        : investorDashboardNavigation;
+
+  /*
+   * Mobile portal label.
+   */
+  const portalLabel =
+    user.role === "admin" ||
+    user.role === "super_admin"
+      ? "Administration Portal"
+      : "Investor Portal";
+
+  /*
+   * Navigation section title.
+   */
+  const navigationLabel =
+    user.role === "admin" ||
+    user.role === "super_admin"
+      ? "Administration"
+      : "Portfolio";
 
   return (
     <>
@@ -34,9 +72,14 @@ export function MobileDashboardSidebar({
         type="button"
         onClick={onClose}
         aria-hidden={!open}
-        tabIndex={open ? 0 : -1}
+        tabIndex={
+          open
+            ? 0
+            : -1
+        }
         className={cn(
           "fixed inset-0 z-80 bg-forest-950/60 backdrop-blur-sm transition-opacity lg:hidden",
+
           open
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0",
@@ -46,6 +89,7 @@ export function MobileDashboardSidebar({
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-90 flex w-[min(88%,320px)] flex-col bg-forest-950 text-white shadow-2xl transition-transform duration-300 lg:hidden",
+
           open
             ? "translate-x-0"
             : "-translate-x-full",
@@ -54,16 +98,26 @@ export function MobileDashboardSidebar({
         <div className="flex min-h-19 items-center justify-between border-b border-white/10 px-5">
           <Link
             href="/"
-            onClick={onClose}
+            onClick={
+              onClose
+            }
           >
             <p className="font-display text-xl font-semibold">
               Tevuah Reserve
+            </p>
+
+            <p className="mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.16em] text-gold-400">
+              {
+                portalLabel
+              }
             </p>
           </Link>
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={
+              onClose
+            }
             aria-label="Close navigation"
             className="flex size-10 items-center justify-center rounded-full border border-white/10 text-white"
           >
@@ -72,32 +126,63 @@ export function MobileDashboardSidebar({
         </div>
 
         <nav className="flex-1 overflow-y-auto p-4">
+          <p className="px-3 pb-3 text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white/30">
+            {
+              navigationLabel
+            }
+          </p>
+
           <div className="space-y-1">
-            {investorDashboardNavigation.map(
-              (item) => {
-                const Icon = item.icon;
+            {navigation.map(
+              (
+                item,
+              ) => {
+                const Icon =
+                  item.icon;
 
                 const active =
-                  item.href === "/dashboard"
-                    ? pathname === "/dashboard"
+                  item.href ===
+                  "/dashboard"
+                    ? pathname ===
+                      "/dashboard"
                     : pathname.startsWith(
                         item.href,
                       );
 
                 return (
                   <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={onClose}
+                    key={
+                      item.href
+                    }
+                    href={
+                      item.href
+                    }
+                    onClick={
+                      onClose
+                    }
                     className={cn(
-                      "flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-medium",
+                      "flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-medium transition",
+
                       active
                         ? "bg-white text-forest-950"
-                        : "text-white/60",
+                        : "text-white/60 hover:bg-white/6 hover:text-white",
                     )}
                   >
-                    <Icon className="size-4.5" />
-                    {item.label}
+                    <Icon
+                      className={cn(
+                        "size-4.5 shrink-0",
+
+                        active
+                          ? "text-gold-600"
+                          : "text-white/40",
+                      )}
+                    />
+
+                    <span>
+                      {
+                        item.label
+                      }
+                    </span>
                   </Link>
                 );
               },
@@ -106,25 +191,34 @@ export function MobileDashboardSidebar({
         </nav>
 
         <div className="border-t border-white/10 p-4">
-          <p className="px-3 text-sm font-semibold">
-            {user.first_name}{" "}
-            {user.last_name}
-          </p>
+          <div className="rounded-xl p-3">
+            <p className="text-sm font-semibold text-white">
+              {
+                user.first_name
+              }{" "}
+              {
+                user.last_name
+              }
+            </p>
 
-          <p className="mt-1 px-3 text-[0.62rem] uppercase tracking-[0.12em] text-white/40">
-            {user.role}
-          </p>
+            <p className="mt-1 text-[0.62rem] uppercase tracking-[0.12em] text-white/40">
+              {
+                user.role
+              }
+            </p>
+          </div>
 
           <form
             action="/auth/signout"
             method="post"
-            className="mt-4"
+            className="mt-2"
           >
             <button
               type="submit"
-              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm text-white/60"
+              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm text-white/60 transition hover:bg-red-500/10 hover:text-red-200"
             >
               <LogOut className="size-4" />
+
               Sign out
             </button>
           </form>

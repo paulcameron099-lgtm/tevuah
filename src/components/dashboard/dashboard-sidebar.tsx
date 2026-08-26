@@ -8,7 +8,12 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 
-import { investorDashboardNavigation } from "@/src/config/dashboard-navigation";
+import {
+  adminDashboardNavigation,
+  investorDashboardNavigation,
+  superAdminDashboardNavigation,
+} from "@/src/config/dashboard-navigation";
+
 import { cn } from "@/src/lib/utils";
 
 type DashboardSidebarProps = {
@@ -33,6 +38,34 @@ export function DashboardSidebar({
     .join("")
     .toUpperCase();
 
+  /*
+   * Choose navigation based on role.
+   */
+  const navigation =
+    user.role === "super_admin"
+      ? superAdminDashboardNavigation
+      : user.role === "admin"
+        ? adminDashboardNavigation
+        : investorDashboardNavigation;
+
+  /*
+   * Sidebar section label.
+   */
+  const navigationLabel =
+    user.role === "admin" ||
+    user.role === "super_admin"
+      ? "Administration"
+      : "Portfolio";
+
+  /*
+   * Portal subtitle.
+   */
+  const portalLabel =
+    user.role === "admin" ||
+    user.role === "super_admin"
+      ? "Administration Portal"
+      : "Investor Portal";
+
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-72.5 flex-col border-r border-white/10 bg-forest-950 text-white lg:flex">
       <div className="border-b border-white/10 px-7 py-7">
@@ -45,32 +78,39 @@ export function DashboardSidebar({
           </p>
 
           <p className="mt-1 text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-gold-400">
-            Investor Portal
+            {portalLabel}
           </p>
         </Link>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 py-6">
         <p className="px-3 text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-white/30">
-          Portfolio
+          {navigationLabel}
         </p>
 
         <div className="mt-3 space-y-1">
-          {investorDashboardNavigation.map(
+          {navigation.map(
             (item) => {
-              const Icon = item.icon;
+              const Icon =
+                item.icon;
 
               const active =
-                item.href === "/dashboard"
-                  ? pathname === "/dashboard"
+                item.href ===
+                "/dashboard"
+                  ? pathname ===
+                    "/dashboard"
                   : pathname.startsWith(
                       item.href,
                     );
 
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  key={
+                    item.href
+                  }
+                  href={
+                    item.href
+                  }
                   className={cn(
                     "focus-ring flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-medium transition",
                     active
@@ -87,33 +127,42 @@ export function DashboardSidebar({
                     )}
                   />
 
-                  <span>{item.label}</span>
+                  <span>
+                    {
+                      item.label
+                    }
+                  </span>
                 </Link>
               );
             },
           )}
         </div>
 
-        <div className="mt-8 border-t border-white/10 pt-6">
-          <Link
-            href="/investments"
-            className="group block rounded-[1.25rem] border border-white/10 bg-white/5 p-4 transition hover:bg-white/8"
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-400">
-              Marketplace
-            </p>
+        {user.role !==
+          "admin" &&
+        user.role !==
+          "super_admin" ? (
+          <div className="mt-8 border-t border-white/10 pt-6">
+            <Link
+              href="/investments"
+              className="group block rounded-[1.25rem] border border-white/10 bg-white/5 p-4 transition hover:bg-white/8"
+            >
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-400">
+                Marketplace
+              </p>
 
-            <p className="mt-2 text-sm leading-6 text-white/60">
-              Explore new investment opportunities.
-            </p>
+              <p className="mt-2 text-sm leading-6 text-white/60">
+                Explore new investment opportunities.
+              </p>
 
-            <span className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-white">
-              Browse opportunities
+              <span className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-white">
+                Browse opportunities
 
-              <ArrowUpRight className="size-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </span>
-          </Link>
-        </div>
+                <ArrowUpRight className="size-3.5 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </span>
+            </Link>
+          </div>
+        ) : null}
       </nav>
 
       <div className="border-t border-white/10 p-4">
@@ -121,7 +170,9 @@ export function DashboardSidebar({
           {user.avatar_url ? (
             <div className="relative size-10 shrink-0 overflow-hidden rounded-full">
               <Image
-                src={user.avatar_url}
+                src={
+                  user.avatar_url
+                }
                 alt={`${user.first_name} ${user.last_name}`}
                 fill
                 sizes="40px"
@@ -130,14 +181,19 @@ export function DashboardSidebar({
             </div>
           ) : (
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gold-500 text-xs font-bold text-forest-950">
-              {initials || "TR"}
+              {initials ||
+                "TR"}
             </span>
           )}
 
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-white">
-              {user.first_name}{" "}
-              {user.last_name}
+              {
+                user.first_name
+              }{" "}
+              {
+                user.last_name
+              }
             </p>
 
             <p className="mt-0.5 text-[0.62rem] uppercase tracking-[0.12em] text-white/35">
@@ -156,6 +212,7 @@ export function DashboardSidebar({
             className="focus-ring flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-white/55 transition hover:bg-red-500/10 hover:text-red-200"
           >
             <LogOut className="size-4" />
+
             Sign out
           </button>
         </form>
