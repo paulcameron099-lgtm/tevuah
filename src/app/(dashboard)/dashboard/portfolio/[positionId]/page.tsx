@@ -1,964 +1,541 @@
 import {
   ArrowLeft,
-  Banknote,
+  BarChart3,
   CheckCircle2,
+  CircleDollarSign,
   Clock3,
-  FileCheck2,
-  Landmark,
+  HandCoins,
+  Scale,
   ShieldCheck,
+  TrendingDown,
+  TrendingUp,
   WalletCards,
 } from "lucide-react";
-
 import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 
-import {
-  notFound,
-  redirect,
-} from "next/navigation";
-
-import {
-  checkAccountAccess,
-} from "@/src/lib/auth/account-status";
-
-import {
-  getCurrentUser,
-} from "@/src/lib/auth/get-current-user";
-
-import {
-  createAdminClient,
-} from "@/src/lib/supabase/admin";
+import { checkAccountAccess } from "@/src/lib/auth/account-status";
+import { getCurrentUser } from "@/src/lib/auth/get-current-user";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 
 type PageProps = {
-  params: Promise<{
-    positionId: string;
-  }>;
+  params: Promise<{ positionId: string }>;
 };
 
-export default async function InvestorPositionDetailPage({
-  params,
-}: PageProps) {
-  /*
-   * --------------------------------------------------
-   * 1. AUTHENTICATE INVESTOR
-   * --------------------------------------------------
-   */
-  const user =
-    await getCurrentUser();
+type TimelineItem = {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  amount: number | null;
+  kind: "valuation" | "distribution" | "basis";
+  status?: string | null;
+};
 
-  if (!user) {
-    redirect("/login");
-  }
+export default async function InvestorPositionDetailPage({ params }: PageProps) {
+  const user = await getCurrentUser();
 
-  if (
-    user.role !==
-    "investor"
-  ) {
-    redirect("/dashboard");
-  }
+  if (!user) redirect("/login");
+  if (user.role !== "investor") redirect("/dashboard");
 
-  /*
-   * --------------------------------------------------
-   * 2. ACCOUNT ACCESS
-   * --------------------------------------------------
-   */
-  const accountAccess =
-    await checkAccountAccess(
-      user.id,
-    );
+  const accountAccess = await checkAccountAccess(user.id);
+  if (!accountAccess.allowed) redirect("/account-restricted");
 
-  if (
-    !accountAccess.allowed
-  ) {
-    redirect(
-      "/account-restricted",
-    );
-  }
+  const { positionId } = await params;
+  const admin = createAdminClient();
 
-  const {
-    positionId,
-  } = await params;
-
-  const admin =
-    createAdminClient();
-
-  /*
-   * --------------------------------------------------
-   * 3. LOAD POSITION
-   *
-   * IMPORTANT:
-   *
-   * We filter by BOTH:
-   *
-   * position id
-   * investor id
-   *
-   * so one investor cannot open another investor's
-   * position merely by knowing the UUID.
-   * --------------------------------------------------
-   */
-  const {
-    data: position,
-    error: positionError,
-  } = await admin
-    .from(
-      "investment_positions",
-    )
+  /* ==================================================
+   * POSITION
+   * ================================================== */
+  const { data: position, error: positionError } = await admin
+    .from("investment_positions")
     .select(
       `
       id,
-
       investor_id,
       opportunity_id,
       subscription_id,
       payment_id,
-
       principal_amount,
       currency,
       status,
-
       funded_at,
       created_at,
       updated_at,
-
       opportunity:investment_opportunities!investment_positions_opportunity_id_fkey (
         id,
         slug,
         title,
         short_description,
-        full_description,
         asset_category,
         location,
-
         status,
-
         funding_target,
         total_funded,
         investor_count,
-
         expected_duration_months,
-
         target_return_min,
         target_return_max,
         target_return_note
-      ),
-
-      subscription:investment_subscriptions!investment_positions_subscription_id_fkey (
-        id,
-
-        commitment_amount,
-        status,
-
-        offering_acknowledged,
-        offering_acknowledged_at,
-
-        risk_disclosure_accepted,
-        risk_disclosure_accepted_at,
-
-        electronic_signature,
-        signed_at,
-
-        submitted_at,
-        reviewed_at
-      ),
-
-      payment:investment_payments!investment_positions_payment_id_fkey (
-        id,
-
-        expected_amount,
-        reported_amount,
-        verified_amount,
-
-        currency,
-        payment_method,
-
-        investor_reference,
-        payment_reference,
-
-        status,
-
-        investor_reported_at,
-        verified_at
       )
       `,
     )
-    .eq(
-      "id",
-      positionId,
-    )
-    .eq(
-      "investor_id",
-      user.id,
-    )
+    .eq("id", positionId)
+    .eq("investor_id", user.id)
     .maybeSingle();
 
-  if (
-    positionError ||
-    !position
-  ) {
-    console.error(
-      "Investor position detail load error:",
-      positionError,
-    );
-
+  if (positionError || !position) {
+    console.error("Investor position detail load error:", positionError);
     notFound();
   }
 
-  /*
-   * --------------------------------------------------
-   * 4. NORMALIZE SUPABASE RELATIONS
-   *
-   * Depending on generated relationship metadata,
-   * Supabase may type these as arrays.
-   * --------------------------------------------------
-   */
-  const opportunity =
-    Array.isArray(
-      position.opportunity,
-    )
-      ? position.opportunity[0] ??
-        null
-      : position.opportunity;
+  const opportunity = Array.isArray(position.opportunity)
+    ? position.opportunity[0] ?? null
+    : position.opportunity;
 
-  const subscription =
-    Array.isArray(
-      position.subscription,
-    )
-      ? position.subscription[0] ??
-        null
-      : position.subscription;
+  if (!opportunity) notFound();
 
-  const payment =
-    Array.isArray(
-      position.payment,
+  /* ==================================================
+   * COST BASIS SUMMARY
+   * ================================================== */
+  const { data: basisSummary, error: basisSummaryError } = await admin
+    .from("investment_position_basis_summary")
+    .select(
+      `
+      position_id,
+      investor_id,
+      opportunity_id,
+      original_principal,
+      adjusted_cost_basis,
+      currency,
+      status,
+      funded_at
+      `,
     )
-      ? position.payment[0] ??
-        null
-      : position.payment;
+    .eq("position_id", position.id)
+    .eq("investor_id", user.id)
+    .maybeSingle();
 
-  if (
-    !opportunity ||
-    !subscription ||
-    !payment
-  ) {
-    notFound();
+  if (basisSummaryError) {
+    console.error("Position basis summary load error:", basisSummaryError);
+    throw new Error("Unable to load investment cost basis.");
   }
 
-  /*
-   * --------------------------------------------------
-   * 5. LOAD POSITION / PAYMENT AUDIT HISTORY
-   * --------------------------------------------------
-   *
-   * Right now payment audit contains the funding
-   * lifecycle events such as:
-   *
-   * payment_reported
-   * payment_rejected
-   * payment_resubmitted
-   * payment_verified
-   */
-  const {
-    data: paymentAudit,
-    error: auditError,
-  } = await admin
-    .from(
-      "investment_payment_audit",
-    )
+  const storedPrincipal = Number(position.principal_amount);
+  const originalPrincipal = basisSummary
+    ? Number(basisSummary.original_principal)
+    : storedPrincipal;
+  const adjustedCostBasis = basisSummary
+    ? Math.max(0, Number(basisSummary.adjusted_cost_basis))
+    : originalPrincipal;
+
+  /* ==================================================
+   * BASIS EVENTS
+   * ================================================== */
+  const { data: basisEvents, error: basisEventsError } = await admin
+    .from("investment_position_basis_events")
     .select(
       `
       id,
-      action,
-      metadata,
+      event_type,
+      amount,
+      currency,
+      event_date,
+      description,
+      distribution_id,
+      investor_distribution_id,
       created_at
       `,
     )
-    .eq(
-      "payment_id",
-      payment.id,
-    )
-    .order(
-      "created_at",
-      {
-        ascending:
-          true,
-      },
-    );
+    .eq("position_id", position.id)
+    .eq("investor_id", user.id)
+    .order("event_date", { ascending: false });
 
-  if (auditError) {
-    console.error(
-      "Position payment audit load error:",
-      auditError,
-    );
+  if (basisEventsError) {
+    console.error("Position basis events load error:", basisEventsError);
   }
 
-  /*
-   * --------------------------------------------------
-   * 6. DERIVED VALUES
-   * --------------------------------------------------
-   */
-  const principalAmount =
-    Number(
-      position.principal_amount,
-    );
+  const capitalReturned = (basisEvents ?? []).reduce((total, event) => {
+    if (event.event_type !== "return_of_capital" && event.event_type !== "redemption") {
+      return total;
+    }
+    const amount = Number(event.amount);
+    return total + (amount < 0 ? Math.abs(amount) : 0);
+  }, 0);
 
-  const fundingTarget =
-    Number(
-      opportunity.funding_target,
-    );
+  /* ==================================================
+   * PUBLISHED VALUATIONS
+   * ================================================== */
+  const { data: valuationRows, error: valuationError } = await admin
+    .from("investment_position_valuations")
+    .select(
+      `
+      id,
+      valuation_id,
+      position_id,
+      principal_amount,
+      position_value,
+      unrealized_gain_loss,
+      currency,
+      valuation_date,
+      valuation:investment_valuations!inner (
+        id,
+        status,
+        valuation_type,
+        source_name,
+        methodology,
+        published_at
+      )
+      `,
+    )
+    .eq("position_id", position.id)
+    .eq("investor_id", user.id)
+    .eq("valuation.status", "published")
+    .order("valuation_date", { ascending: false });
 
-  const totalFunded =
-    Number(
-      opportunity.total_funded,
-    );
+  if (valuationError) {
+    console.error("Investor position valuations load error:", valuationError);
+  }
 
-  const fundingProgress =
-    fundingTarget > 0
-      ? Math.min(
-          100,
-          Math.max(
-            0,
-            (
-              totalFunded /
-              fundingTarget
-            ) *
-              100,
-          ),
-        )
-      : 0;
+  const publishedValuations = valuationRows ?? [];
+  const latestValuation = publishedValuations[0] ?? null;
+  const currentValue = latestValuation
+    ? Number(latestValuation.position_value)
+    : storedPrincipal;
 
-  /*
-   * --------------------------------------------------
-   * 7. RENDER
-   * --------------------------------------------------
-   */
+  /* ==================================================
+   * DISTRIBUTIONS
+   * ================================================== */
+  const { data: distributionRows, error: distributionError } = await admin
+    .from("investor_distributions")
+    .select(
+      `
+      id,
+      distribution_id,
+      position_id,
+      gross_amount,
+      withholding_amount,
+      net_amount,
+      currency,
+      status,
+      paid_at,
+      payment_reference,
+      created_at,
+      updated_at,
+      distribution:investment_distributions!investor_distributions_distribution_id_fkey (
+        id,
+        title,
+        distribution_type,
+        record_date,
+        payment_date,
+        status,
+        notes
+      )
+      `,
+    )
+    .eq("position_id", position.id)
+    .eq("investor_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (distributionError) {
+    console.error("Investor position distributions load error:", distributionError);
+  }
+
+  let incomeReceived = 0;
+  let totalPaidCash = 0;
+  let processingAmount = 0;
+  let upcomingAmount = 0;
+  let withholdingPaid = 0;
+
+  for (const allocation of distributionRows ?? []) {
+    const distribution = Array.isArray(allocation.distribution)
+      ? allocation.distribution[0] ?? null
+      : allocation.distribution;
+    const net = Number(allocation.net_amount);
+
+    if (allocation.status === "processing") processingAmount += net;
+    if (allocation.status === "approved") upcomingAmount += net;
+
+    if (allocation.status !== "paid") continue;
+
+    totalPaidCash += net;
+    withholdingPaid += Number(allocation.withholding_amount);
+
+    if (
+      distribution?.distribution_type !== "return_of_capital" &&
+      distribution?.distribution_type !== "redemption"
+    ) {
+      incomeReceived += net;
+    }
+  }
+
+  /* ==================================================
+   * PERFORMANCE
+   * ================================================== */
+  const unrealizedGainOnOriginalPrincipal = currentValue - originalPrincipal;
+  const unrealizedGainOnAdjustedBasis = currentValue - adjustedCostBasis;
+  const reportedEconomicValue = currentValue + totalPaidCash;
+  const economicGain = reportedEconomicValue - originalPrincipal;
+  const totalReturn =
+    originalPrincipal > 0 ? (economicGain / originalPrincipal) * 100 : 0;
+
+  /* ==================================================
+   * TIMELINE
+   * ================================================== */
+  const timeline: TimelineItem[] = [];
+
+  for (const valuation of publishedValuations) {
+    const parent = Array.isArray(valuation.valuation)
+      ? valuation.valuation[0] ?? null
+      : valuation.valuation;
+
+    timeline.push({
+      id: `valuation-${valuation.id}`,
+      title: "Published valuation",
+      description: parent?.source_name
+        ? `Valuation source: ${parent.source_name}.`
+        : "A published valuation updated the reported position value.",
+      date: `${valuation.valuation_date}T00:00:00`,
+      amount: Number(valuation.position_value),
+      kind: "valuation",
+      status: "published",
+    });
+  }
+
+  for (const event of basisEvents ?? []) {
+    if (event.event_type === "original_principal") continue;
+    timeline.push({
+      id: `basis-${event.id}`,
+      title:
+        event.event_type === "return_of_capital"
+          ? "Cost basis reduced — return of capital"
+          : event.event_type === "redemption"
+            ? "Cost basis reduced — redemption"
+            : "Cost basis adjusted",
+      description: event.description ?? "A cost-basis adjustment was recorded.",
+      date: `${event.event_date}T00:00:00`,
+      amount: Number(event.amount),
+      kind: "basis",
+      status: "recorded",
+    });
+  }
+
+  for (const allocation of distributionRows ?? []) {
+    const distribution = Array.isArray(allocation.distribution)
+      ? allocation.distribution[0] ?? null
+      : allocation.distribution;
+
+    timeline.push({
+      id: `distribution-${allocation.id}`,
+      title:
+        allocation.status === "paid"
+          ? "Distribution paid"
+          : allocation.status === "processing"
+            ? "Distribution processing"
+            : "Distribution approved",
+      description: distribution?.title ?? "Investment distribution",
+      date: allocation.paid_at ?? allocation.created_at,
+      amount: Number(allocation.net_amount),
+      kind: "distribution",
+      status: allocation.status,
+    });
+  }
+
+  timeline.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
   return (
     <div className="space-y-8">
-      {/* ==========================================
-          BACK
-      ========================================== */}
-
       <Link
         href="/dashboard/portfolio"
         className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-forest-950"
       >
         <ArrowLeft className="size-4" />
-
         Back to portfolio
       </Link>
 
-      {/* ==========================================
-          HEADER
-      ========================================== */}
-
       <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0">
+        <div className="flex flex-col gap-7 xl:flex-row xl:items-start xl:justify-between">
+          <div>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
-              Funded investment position
+              Investment position
             </p>
-
             <h1 className="font-display mt-4 text-4xl font-semibold tracking-[-0.035em] text-forest-950 sm:text-5xl">
               {opportunity.title}
             </h1>
-
             <div className="mt-5 flex flex-wrap gap-2">
-              <PositionStatusBadge
-                status={
-                  position.status
-                }
-              />
-
-              <span className="rounded-full bg-ivory-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-stone-500">
-                {humanize(
-                  opportunity.asset_category,
-                )}
+              <StatusBadge status={position.status} />
+              {opportunity.asset_category ? (
+                <span className="rounded-full bg-ivory-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-stone-500">
+                  {humanize(opportunity.asset_category)}
+                </span>
+              ) : null}
+              <span className="rounded-full bg-blue-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-blue-700">
+                {latestValuation ? "Valued" : "Principal basis"}
               </span>
             </div>
-
-            {opportunity.location ? (
-              <p className="mt-4 text-sm text-stone-500">
-                {opportunity.location}
-              </p>
-            ) : null}
           </div>
 
-          <div className="rounded-3xl bg-forest-950 p-5 text-white lg:min-w-72">
+          <div className="rounded-3xl bg-forest-950 p-6 text-white xl:min-w-80">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gold-400">
-              Principal invested
+              Current reported value
             </p>
-
-            <p className="font-display mt-2 text-4xl font-semibold">
-              {formatMoney(
-                principalAmount,
-              )}
-            </p>
-
-            <p className="mt-3 text-xs leading-6 text-white/45">
-              Verified funded capital associated
-              with this investment position.
+            <p className="font-display mt-2 text-4xl font-semibold">{formatMoney(currentValue)}</p>
+            <p className="mt-3 text-xs leading-6 text-white/50">
+              {latestValuation
+                ? `Latest published valuation: ${formatValuationDate(latestValuation.valuation_date)}.`
+                : "No published valuation yet; original funded principal is used as the fallback."}
             </p>
           </div>
         </div>
       </section>
 
-      {/* ==========================================
-          MAIN GRID
-      ========================================== */}
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        <Metric icon={CircleDollarSign} label="Current value" value={formatMoney(currentValue)} />
+        <Metric icon={WalletCards} label="Original principal" value={formatMoney(originalPrincipal)} />
+        <Metric icon={Scale} label="Adjusted cost basis" value={formatMoney(adjustedCostBasis)} />
+        <Metric icon={HandCoins} label="Capital returned" value={formatMoney(capitalReturned)} />
+        <Metric icon={HandCoins} label="Income received" value={formatMoney(incomeReceived)} />
+        <Metric
+          icon={economicGain >= 0 ? TrendingUp : TrendingDown}
+          label="Reported total return"
+          value={formatPercent(totalReturn)}
+        />
+      </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-8 xl:grid-cols-[1fr_390px]">
         <div className="space-y-8">
-          {/* ======================================
-              POSITION SUMMARY
-          ====================================== */}
-
           <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-            <WalletCards className="size-5 text-gold-600" />
-
+            <BarChart3 className="size-5 text-gold-600" />
             <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-              Position Summary
+              Position Performance
             </h2>
-
-            <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              <DataPoint
-                label="Principal invested"
-                value={formatMoney(
-                  principalAmount,
-                )}
-              />
-
-              <DataPoint
-                label="Currency"
-                value={
-                  position.currency
-                }
-              />
-
-              <DataPoint
-                label="Position status"
-                value={humanize(
-                  position.status,
-                )}
-              />
-
-              <DataPoint
-                label="Funded date"
-                value={
-                  position.funded_at
-                    ? formatDateTime(
-                        position.funded_at,
-                      )
-                    : "—"
-                }
-              />
-
-              <DataPoint
-                label="Expected duration"
-                value={
-                  opportunity.expected_duration_months !=
-                  null
-                    ? `${opportunity.expected_duration_months} months`
-                    : "—"
-                }
-              />
-
-              <DataPoint
-                label="Target return"
-                value={formatTargetReturn(
-                  opportunity.target_return_min,
-                  opportunity.target_return_max,
-                )}
-              />
-            </div>
-
-            {opportunity.target_return_note ? (
-              <div className="mt-6 rounded-xl border border-forest-900/10 bg-ivory-50 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-400">
-                  Return presentation / disclosure
-                </p>
-
-                <p className="mt-3 whitespace-pre-line text-sm leading-7 text-stone-600">
-                  {
-                    opportunity.target_return_note
-                  }
-                </p>
-              </div>
-            ) : null}
-          </section>
-
-          {/* ======================================
-              OPPORTUNITY
-          ====================================== */}
-
-          <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-            <Landmark className="size-5 text-gold-600" />
-
-            <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-              Investment Opportunity
-            </h2>
-
-            {opportunity.short_description ? (
-              <p className="mt-4 text-sm leading-7 text-stone-600">
-                {
-                  opportunity.short_description
-                }
-              </p>
-            ) : null}
-
             <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              <DataPoint label="Current value" value={formatMoney(currentValue)} />
+              <DataPoint label="Original principal" value={formatMoney(originalPrincipal)} />
+              <DataPoint label="Adjusted cost basis" value={formatMoney(adjustedCostBasis)} />
+              <DataPoint label="Capital returned" value={formatMoney(capitalReturned)} />
+              <DataPoint label="Income received" value={formatMoney(incomeReceived)} />
+              <DataPoint label="Total paid cash" value={formatMoney(totalPaidCash)} />
+              <DataPoint label="Reported economic value" value={formatMoney(reportedEconomicValue)} />
+              <DataPoint label="Economic gain" value={formatSignedMoney(economicGain)} />
               <DataPoint
-                label="Funding target"
-                value={formatMoney(
-                  fundingTarget,
-                )}
+                label="Gain vs original principal"
+                value={formatSignedMoney(unrealizedGainOnOriginalPrincipal)}
               />
-
               <DataPoint
-                label="Total funded"
-                value={formatMoney(
-                  totalFunded,
-                )}
+                label="Value vs adjusted basis"
+                value={formatSignedMoney(unrealizedGainOnAdjustedBasis)}
               />
-
+              <DataPoint label="Reported total return" value={formatPercent(totalReturn)} />
               <DataPoint
-                label="Funded investors"
-                value={String(
-                  opportunity.investor_count ??
-                    0,
-                )}
-              />
-
-              <DataPoint
-                label="Opportunity status"
-                value={humanize(
-                  opportunity.status,
-                )}
+                label="Valuation basis"
+                value={latestValuation ? formatValuationDate(latestValuation.valuation_date) : "Principal fallback"}
               />
             </div>
-
-            <div className="mt-7">
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-400">
-                  Funding progress
-                </p>
-
-                <p className="text-sm font-semibold text-forest-950">
-                  {fundingProgress.toFixed(
-                    1,
-                  )}
-                  %
-                </p>
-              </div>
-
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100">
-                <div
-                  className="h-full rounded-full bg-forest-950"
-                  style={{
-                    width:
-                      `${fundingProgress}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {opportunity.slug ? (
-              <Link
-                href={`/investments/${opportunity.slug}`}
-                className="focus-ring mt-7 inline-flex min-h-10 cursor-pointer items-center rounded-full border border-forest-900/10 bg-white px-4 text-xs font-semibold text-forest-950 transition hover:bg-ivory-50"
-              >
-                View opportunity
-              </Link>
-            ) : null}
           </section>
-
-          {/* ======================================
-              SUBSCRIPTION
-          ====================================== */}
 
           <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-            <FileCheck2 className="size-5 text-gold-600" />
-
+            <HandCoins className="size-5 text-gold-600" />
             <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-              Subscription Record
+              Cash & Distribution Summary
             </h2>
-
-            <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              <DataPoint
-                label="Approved commitment"
-                value={formatMoney(
-                  Number(
-                    subscription.commitment_amount,
-                  ),
-                )}
-              />
-
-              <DataPoint
-                label="Subscription status"
-                value={humanize(
-                  subscription.status,
-                )}
-              />
-
-              <DataPoint
-                label="Submitted"
-                value={
-                  subscription.submitted_at
-                    ? formatDateTime(
-                        subscription.submitted_at,
-                      )
-                    : "—"
-                }
-              />
-
-              <DataPoint
-                label="Reviewed"
-                value={
-                  subscription.reviewed_at
-                    ? formatDateTime(
-                        subscription.reviewed_at,
-                      )
-                    : "—"
-                }
-              />
-
-              <DataPoint
-                label="Electronic signature"
-                value={
-                  subscription.electronic_signature ??
-                  "—"
-                }
-              />
-
-              <DataPoint
-                label="Signed"
-                value={
-                  subscription.signed_at
-                    ? formatDateTime(
-                        subscription.signed_at,
-                      )
-                    : "—"
-                }
-              />
+            <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              <DataPoint label="Income received" value={formatMoney(incomeReceived)} />
+              <DataPoint label="Capital returned" value={formatMoney(capitalReturned)} />
+              <DataPoint label="Total paid cash" value={formatMoney(totalPaidCash)} />
+              <DataPoint label="Withholding" value={formatMoney(withholdingPaid)} />
+              <DataPoint label="Processing" value={formatMoney(processingAmount)} />
+              <DataPoint label="Upcoming" value={formatMoney(upcomingAmount)} />
             </div>
-
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <Acknowledgement
-                label="Offering documents"
-                complete={
-                  Boolean(
-                    subscription.offering_acknowledged,
-                  )
-                }
-                date={
-                  subscription.offering_acknowledged_at
-                }
-              />
-
-              <Acknowledgement
-                label="Risk disclosure"
-                complete={
-                  Boolean(
-                    subscription.risk_disclosure_accepted,
-                  )
-                }
-                date={
-                  subscription.risk_disclosure_accepted_at
-                }
-              />
-            </div>
+            <Link
+              href="/dashboard/distributions"
+              className="focus-ring mt-7 inline-flex min-h-10 cursor-pointer items-center rounded-full border border-forest-900/10 bg-white px-4 text-xs font-semibold text-forest-950 transition hover:bg-ivory-50"
+            >
+              View all distributions
+            </Link>
           </section>
 
-          {/* ======================================
-              PAYMENT
-          ====================================== */}
-
-          <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-            <Banknote className="size-5 text-gold-600" />
-
-            <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-              Funding & Payment Record
-            </h2>
-
-            <div className="mt-7 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              <DataPoint
-                label="Expected amount"
-                value={formatMoney(
-                  Number(
-                    payment.expected_amount,
-                  ),
-                )}
-              />
-
-              <DataPoint
-                label="Reported amount"
-                value={
-                  payment.reported_amount !=
-                  null
-                    ? formatMoney(
-                        Number(
-                          payment.reported_amount,
-                        ),
-                      )
-                    : "—"
-                }
-              />
-
-              <DataPoint
-                label="Verified amount"
-                value={
-                  payment.verified_amount !=
-                  null
-                    ? formatMoney(
-                        Number(
-                          payment.verified_amount,
-                        ),
-                      )
-                    : "—"
-                }
-              />
-
-              <DataPoint
-                label="Payment method"
-                value={humanize(
-                  payment.payment_method,
-                )}
-              />
-
-              <DataPoint
-                label="Tevuah reference"
-                value={
-                  payment.payment_reference ??
-                  "—"
-                }
-              />
-
-              <DataPoint
-                label="Investor transfer reference"
-                value={
-                  payment.investor_reference ??
-                  "—"
-                }
-              />
-
-              <DataPoint
-                label="Payment status"
-                value={humanize(
-                  payment.status,
-                )}
-              />
-
-              <DataPoint
-                label="Reported"
-                value={
-                  payment.investor_reported_at
-                    ? formatDateTime(
-                        payment.investor_reported_at,
-                      )
-                    : "—"
-                }
-              />
-
-              <DataPoint
-                label="Verified"
-                value={
-                  payment.verified_at
-                    ? formatDateTime(
-                        payment.verified_at,
-                      )
-                    : "—"
-                }
-              />
+          <section className="overflow-hidden rounded-[1.75rem] border border-forest-900/10 bg-white">
+            <div className="border-b border-forest-900/10 px-6 py-6 sm:px-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
+                Cost basis ledger
+              </p>
+              <h2 className="font-display mt-3 text-3xl font-semibold text-forest-950">
+                Basis History
+              </h2>
+            </div>
+            <div className="divide-y divide-forest-900/10">
+              {(basisEvents ?? []).map((event) => (
+                <div key={event.id} className="p-6 sm:px-8">
+                  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                    <DataPoint label="Event" value={humanize(event.event_type)} />
+                    <DataPoint label="Amount" value={formatSignedMoney(Number(event.amount))} />
+                    <DataPoint label="Date" value={formatValuationDate(event.event_date)} />
+                    <DataPoint label="Description" value={event.description ?? "—"} />
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
-
-          {/* ======================================
-              INVESTMENT TIMELINE
-          ====================================== */}
 
           <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
             <ShieldCheck className="size-5 text-gold-600" />
-
             <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-              Investment Timeline
+              Performance Timeline
             </h2>
-
-            <div className="mt-7 space-y-0">
-              <TimelineEvent
-                title="Subscription submitted"
-                description="Your investment subscription was submitted for review."
-                date={
-                  subscription.submitted_at
-                }
-                complete={
-                  Boolean(
-                    subscription.submitted_at,
-                  )
-                }
-              />
-
-              <TimelineEvent
-                title="Subscription approved"
-                description="Tevuah Reserve approved your capital commitment."
-                date={
-                  subscription.reviewed_at
-                }
-                complete={
-                  subscription.status ===
-                    "approved" ||
-                  position.status ===
-                    "active"
-                }
-              />
-
-              <TimelineEvent
-                title="Payment reported"
-                description="Your payment information and proof were submitted for verification."
-                date={
-                  payment.investor_reported_at
-                }
-                complete={
-                  Boolean(
-                    payment.investor_reported_at,
-                  )
-                }
-              />
-
-              <TimelineEvent
-                title="Payment verified"
-                description="Receipt of the investment capital was verified."
-                date={
-                  payment.verified_at
-                }
-                complete={
-                  payment.status ===
-                  "verified"
-                }
-              />
-
-              <TimelineEvent
-                title="Investment position activated"
-                description="Your funded investment position was created."
-                date={
-                  position.funded_at
-                }
-                complete={
-                  position.status ===
-                    "active" ||
-                  position.status ===
-                    "matured" ||
-                  position.status ===
-                    "redeemed"
-                }
-                last={
-                  (paymentAudit ??
-                    []).length ===
-                  0
-                }
-              />
-
-              {(paymentAudit ??
-                []).map(
-                (
-                  event,
-                  index,
-                ) => (
-                  <TimelineEvent
-                    key={
-                      event.id
-                    }
-                    title={humanize(
-                      event.action,
-                    )}
-                    description={auditDescription(
-                      event.action,
-                    )}
-                    date={
-                      event.created_at
-                    }
-                    complete
-                    last={
-                      index ===
-                      (
-                        paymentAudit ??
-                        []
-                      ).length -
-                        1
-                    }
-                  />
-                ),
-              )}
-            </div>
+            {timeline.length === 0 ? (
+              <p className="mt-6 text-sm text-stone-500">No performance activity recorded yet.</p>
+            ) : (
+              <div className="mt-7 space-y-3">
+                {timeline.map((item) => (
+                  <div key={item.id} className="rounded-xl border border-forest-900/10 bg-ivory-50 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-forest-950">{item.title}</p>
+                        <p className="mt-1 text-xs leading-6 text-stone-500">{item.description}</p>
+                        <p className="mt-2 text-[0.7rem] text-stone-400">{formatDateTime(item.date)}</p>
+                      </div>
+                      {item.amount != null ? (
+                        <p className="text-sm font-semibold text-forest-950">
+                          {item.kind === "basis"
+                            ? formatSignedMoney(item.amount)
+                            : formatMoney(item.amount)}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         </div>
 
-        {/* ==========================================
-            SIDEBAR
-        ========================================== */}
-
         <aside className="space-y-6 xl:sticky xl:top-28 xl:self-start">
           <section className="rounded-[1.75rem] bg-forest-950 p-7 text-white">
-            <ShieldCheck className="size-6 text-gold-400" />
-
+            <Scale className="size-6 text-gold-400" />
             <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-gold-400">
-              Position status
+              Cost basis
             </p>
-
             <h2 className="font-display mt-3 text-3xl font-semibold">
-              {humanize(
-                position.status,
-              )}
+              {formatMoney(adjustedCostBasis)}
             </h2>
-
-            <p className="mt-4 text-sm leading-7 text-white/60">
-              This position represents verified
-              funded capital and is separate from
-              your original subscription request.
-            </p>
-
             <div className="mt-7 space-y-5 border-t border-white/10 pt-6">
-              <SideData
-                label="Principal"
-                value={formatMoney(
-                  principalAmount,
-                )}
-              />
-
-              <SideData
-                label="Funded"
-                value={
-                  position.funded_at
-                    ? formatDate(
-                        position.funded_at,
-                      )
-                    : "—"
-                }
-              />
-
-              <SideData
-                label="Payment"
-                value={humanize(
-                  payment.status,
-                )}
-              />
-
-              <SideData
-                label="Subscription"
-                value={humanize(
-                  subscription.status,
-                )}
-              />
+              <SideData label="Original principal" value={formatMoney(originalPrincipal)} />
+              <SideData label="Capital returned" value={formatMoney(capitalReturned)} />
+              <SideData label="Adjusted basis" value={formatMoney(adjustedCostBasis)} />
+              <SideData label="Current value" value={formatMoney(currentValue)} />
+              <SideData label="Income received" value={formatMoney(incomeReceived)} />
             </div>
           </section>
 
           <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">
-              Important
+              Accounting note
             </p>
-
             <p className="mt-3 text-sm leading-7 text-stone-600">
-              Target-return information is an
-              investment presentation and is not a
-              guarantee of future performance.
-              Investment outcomes may differ from
-              projections.
+              Original principal is immutable. Adjusted cost basis comes from the basis-event
+              ledger. Capital returned is based on recorded negative basis events, while income
+              received excludes return-of-capital and redemption distributions.
             </p>
           </section>
         </aside>
@@ -967,394 +544,87 @@ export default async function InvestorPositionDetailPage({
   );
 }
 
-/*
- * ==================================================
- * DATA POINT
- * ==================================================
- */
+function Metric({ icon: Icon, label, value }: { icon: typeof WalletCards; label: string; value: string }) {
+  return (
+    <div className="rounded-3xl border border-forest-900/10 bg-white p-5">
+      <div className="flex size-10 items-center justify-center rounded-full bg-ivory-50">
+        <Icon className="size-4.5 text-gold-600" />
+      </div>
+      <p className="mt-5 text-xs font-semibold uppercase tracking-[0.12em] text-stone-400">{label}</p>
+      <p className="font-display mt-2 text-3xl font-semibold text-forest-950">{value}</p>
+    </div>
+  );
+}
 
-function DataPoint({
-  label,
-  value,
-}: {
-  label: string;
-
-  value: string;
-}) {
+function DataPoint({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-stone-400">
-        {label}
-      </p>
-
-      <p className="mt-1 wrap-break-word text-sm font-semibold text-forest-950">
-        {value}
-      </p>
+      <p className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-stone-400">{label}</p>
+      <p className="mt-1 wrap-break-word text-sm font-semibold text-forest-950">{value}</p>
     </div>
   );
 }
 
-/*
- * ==================================================
- * SIDE DATA
- * ==================================================
- */
-
-function SideData({
-  label,
-  value,
-}: {
-  label: string;
-
-  value: string;
-}) {
+function SideData({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-b border-white/10 pb-4 last:border-b-0 last:pb-0">
-      <p className="text-xs text-white/40">
-        {label}
-      </p>
-
-      <p className="mt-1 wrap-break-word text-sm font-semibold text-white">
-        {value}
-      </p>
+      <p className="text-xs text-white/40">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-white">{value}</p>
     </div>
   );
 }
 
-/*
- * ==================================================
- * ACKNOWLEDGEMENT
- * ==================================================
- */
-
-function Acknowledgement({
-  label,
-  complete,
-  date,
-}: {
-  label: string;
-
-  complete: boolean;
-
-  date:
-    | string
-    | null;
-}) {
-  return (
-    <div
-      className={`rounded-xl border p-4 ${
-        complete
-          ? "border-emerald-200 bg-emerald-50"
-          : "border-stone-200 bg-stone-50"
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        {complete ? (
-          <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-700" />
-        ) : (
-          <Clock3 className="mt-0.5 size-4 shrink-0 text-stone-400" />
-        )}
-
-        <div>
-          <p
-            className={`text-sm font-semibold ${
-              complete
-                ? "text-emerald-900"
-                : "text-stone-700"
-            }`}
-          >
-            {label}
-          </p>
-
-          <p className="mt-1 text-xs text-stone-500">
-            {complete
-              ? date
-                ? formatDateTime(
-                    date,
-                  )
-                : "Completed"
-              : "Not completed"}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/*
- * ==================================================
- * TIMELINE
- * ==================================================
- */
-
-function TimelineEvent({
-  title,
-  description,
-  date,
-  complete,
-  last = false,
-}: {
-  title: string;
-
-  description: string;
-
-  date:
-    | string
-    | null;
-
-  complete: boolean;
-
-  last?: boolean;
-}) {
-  return (
-    <div className="relative flex gap-4">
-      <div className="flex w-5 shrink-0 flex-col items-center">
-        <span
-          className={`z-10 mt-1 flex size-5 items-center justify-center rounded-full ${
-            complete
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-stone-100 text-stone-400"
-          }`}
-        >
-          {complete ? (
-            <CheckCircle2 className="size-3.5" />
-          ) : (
-            <Clock3 className="size-3" />
-          )}
-        </span>
-
-        {!last ? (
-          <span className="h-full min-h-14 w-px bg-forest-900/10" />
-        ) : null}
-      </div>
-
-      <div className="pb-7">
-        <p className="text-sm font-semibold text-forest-950">
-          {title}
-        </p>
-
-        <p className="mt-1 text-xs leading-6 text-stone-500">
-          {description}
-        </p>
-
-        <p className="mt-2 text-[0.7rem] font-medium text-stone-400">
-          {date
-            ? formatDateTime(
-                date,
-              )
-            : "Pending"}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/*
- * ==================================================
- * STATUS BADGE
- * ==================================================
- */
-
-function PositionStatusBadge({
-  status,
-}: {
-  status: string;
-}) {
-  const active =
-    status ===
-    "active";
-
-  const matured =
-    status ===
-    "matured";
-
-  const redeemed =
-    status ===
-    "redeemed";
-
+function StatusBadge({ status }: { status: string }) {
+  const active = status === "active";
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest ${
-        active
-          ? "bg-emerald-50 text-emerald-700"
-          : matured
-            ? "bg-blue-50 text-blue-700"
-            : redeemed
-              ? "bg-stone-100 text-stone-700"
-              : "bg-red-50 text-red-700"
+        active ? "bg-emerald-50 text-emerald-700" : "bg-stone-100 text-stone-600"
       }`}
     >
-      {active ? (
-        <CheckCircle2 className="size-3" />
-      ) : (
-        <Clock3 className="size-3" />
-      )}
-
-      {humanize(
-        status,
-      )}
+      {active ? <CheckCircle2 className="size-3" /> : <Clock3 className="size-3" />}
+      {humanize(status)}
     </span>
   );
 }
 
-/*
- * ==================================================
- * HELPERS
- * ==================================================
- */
-
-function auditDescription(
-  action: string,
-) {
-  switch (action) {
-    case "payment_reported":
-      return "Payment details were submitted for verification.";
-
-    case "payment_rejected":
-      return "Payment verification required corrective action.";
-
-    case "payment_resubmitted":
-      return "Updated payment information was submitted for another review.";
-
-    case "payment_verified":
-      return "Tevuah Reserve verified receipt of the investment capital.";
-
-    default:
-      return "Investment funding activity was recorded.";
-  }
+function humanize(value: string) {
+  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function humanize(
-  value: string,
-) {
-  return value
-    .replaceAll(
-      "_",
-      " ",
-    )
-    .replace(
-      /\b\w/g,
-      (letter) =>
-        letter.toUpperCase(),
-    );
+function formatMoney(cents: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
 }
 
-function formatMoney(
-  cents: number,
-) {
-  return new Intl.NumberFormat(
-    "en-US",
-    {
-      style:
-        "currency",
-
-      currency:
-        "USD",
-
-      maximumFractionDigits:
-        0,
-    },
-  ).format(
-    cents / 100,
-  );
+function formatSignedMoney(cents: number) {
+  const amount = formatMoney(Math.abs(cents));
+  if (cents > 0) return `+${amount}`;
+  if (cents < 0) return `-${amount}`;
+  return amount;
 }
 
-function formatDate(
-  value: string,
-) {
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      year:
-        "numeric",
-
-      month:
-        "short",
-
-      day:
-        "numeric",
-    },
-  ).format(
-    new Date(
-      value,
-    ),
-  );
+function formatPercent(value: number) {
+  return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
-function formatDateTime(
-  value: string,
-) {
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      year:
-        "numeric",
-
-      month:
-        "short",
-
-      day:
-        "numeric",
-
-      hour:
-        "numeric",
-
-      minute:
-        "2-digit",
-    },
-  ).format(
-    new Date(
-      value,
-    ),
-  );
+function formatValuationDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(`${value}T00:00:00`));
 }
 
-function formatTargetReturn(
-  minimum:
-    | number
-    | null
-    | undefined,
-
-  maximum:
-    | number
-    | null
-    | undefined,
-) {
-  if (
-    minimum != null &&
-    maximum != null
-  ) {
-    if (
-      Number(minimum) ===
-      Number(maximum)
-    ) {
-      return `${Number(
-        minimum,
-      )}%`;
-    }
-
-    return `${Number(
-      minimum,
-    )}% – ${Number(
-      maximum,
-    )}%`;
-  }
-
-  if (
-    minimum != null
-  ) {
-    return `${Number(
-      minimum,
-    )}%`;
-  }
-
-  if (
-    maximum != null
-  ) {
-    return `Up to ${Number(
-      maximum,
-    )}%`;
-  }
-
-  return "—";
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
 }

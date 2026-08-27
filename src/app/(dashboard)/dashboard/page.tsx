@@ -1,92 +1,65 @@
-import type {
-  LucideIcon,
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import {
   ArrowRight,
-  BriefcaseBusiness,
+  CalendarDays,
   CheckCircle2,
   CircleDollarSign,
   Clock3,
+  FileText,
+  HandCoins,
+  History,
+  Scale,
   TrendingDown,
   TrendingUp,
   WalletCards,
 } from "lucide-react";
-
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-import {
-  redirect,
-} from "next/navigation";
-
-import {
-  checkAccountAccess,
-} from "@/src/lib/auth/account-status";
-
-import {
-  getCurrentUser,
-} from "@/src/lib/auth/get-current-user";
-
-import {
-  createAdminClient,
-} from "@/src/lib/supabase/admin";
+import { checkAccountAccess } from "@/src/lib/auth/account-status";
+import { getCurrentUser } from "@/src/lib/auth/get-current-user";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 
 type LatestValuation = {
   positionValue: number;
-
-  unrealizedGainLoss: number;
-
   valuationDate: string;
 };
 
+type BasisSummary = {
+  originalPrincipal: number;
+  adjustedCostBasis: number;
+};
+
+type CashSummary = {
+  incomeReceived: number;
+  totalPaidCash: number;
+};
+
 export default async function InvestorDashboardPage() {
-  /*
-   * ==================================================
-   * 1. AUTH
-   * ==================================================
-   */
-  const user =
-    await getCurrentUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  if (
-    user.role === "admin" ||
-    user.role === "super_admin"
-  ) {
+  if (user.role === "admin" || user.role === "super_admin") {
     redirect("/admin");
   }
 
-  const accountAccess =
-    await checkAccountAccess(
-      user.id,
-    );
+  const accountAccess = await checkAccountAccess(user.id);
 
-  if (
-    !accountAccess.allowed
-  ) {
-    redirect(
-      "/account-restricted",
-    );
+  if (!accountAccess.allowed) {
+    redirect("/account-restricted");
   }
 
-  const admin =
-    createAdminClient();
+  const admin = createAdminClient();
 
-  /*
-   * ==================================================
-   * 2. FUNDED POSITIONS
-   * ==================================================
-   */
-  const {
-    data: positions,
-    error: positionsError,
-  } = await admin
-    .from(
-      "investment_positions",
-    )
+  /* ==================================================
+   * FUNDED POSITIONS
+   * ================================================== */
+  const { data: positions, error: positionsError } = await admin
+    .from("investment_positions")
     .select(
       `
       id,
@@ -94,15 +67,12 @@ export default async function InvestorDashboardPage() {
       opportunity_id,
       subscription_id,
       payment_id,
-
       principal_amount,
       currency,
       status,
-
       funded_at,
       created_at,
       updated_at,
-
       opportunity:investment_opportunities!investment_positions_opportunity_id_fkey (
         id,
         slug,
@@ -116,57 +86,27 @@ export default async function InvestorDashboardPage() {
       )
       `,
     )
-    .eq(
-      "investor_id",
-      user.id,
-    )
-    .order(
-      "funded_at",
-      {
-        ascending:
-          false,
-      },
-    );
+    .eq("investor_id", user.id)
+    .order("funded_at", { ascending: false });
 
   if (positionsError) {
-    console.error(
-      "Investor dashboard positions load error:",
-      positionsError,
-    );
-
-    throw new Error(
-      "Unable to load your investment portfolio.",
-    );
+    console.error("Investor dashboard positions load error:", positionsError);
+    throw new Error("Unable to load your investment portfolio.");
   }
 
-  const positionRecords =
-    positions ?? [];
+  const positionRecords = positions ?? [];
 
-  /*
-   * ==================================================
-   * 3. PUBLISHED POSITION VALUATIONS
-   * ==================================================
-   *
-   * !inner means we only accept position valuations
-   * connected to a valuation record whose status
-   * is published.
-   */
-  const {
-    data: valuationRows,
-    error: valuationsError,
-  } = await admin
-    .from(
-      "investment_position_valuations",
-    )
+  /* ==================================================
+   * LATEST PUBLISHED VALUATIONS
+   * ================================================== */
+  const { data: valuationRows, error: valuationsError } = await admin
+    .from("investment_position_valuations")
     .select(
       `
       id,
       position_id,
-      principal_amount,
       position_value,
-      unrealized_gain_loss,
       valuation_date,
-
       valuation:investment_valuations!inner (
         id,
         status,
@@ -174,365 +114,314 @@ export default async function InvestorDashboardPage() {
       )
       `,
     )
-    .eq(
-      "investor_id",
-      user.id,
-    )
-    .eq(
-      "valuation.status",
-      "published",
-    )
-    .order(
-      "valuation_date",
-      {
-        ascending:
-          false,
-      },
-    );
+    .eq("investor_id", user.id)
+    .eq("valuation.status", "published")
+    .order("valuation_date", { ascending: false });
 
   if (valuationsError) {
-    console.error(
-      "Investor dashboard valuations load error:",
-      valuationsError,
+    console.error("Investor dashboard valuations load error:", valuationsError);
+  }
+
+  const latestValuationByPosition = new Map<string, LatestValuation>();
+
+  for (const valuation of valuationRows ?? []) {
+    if (latestValuationByPosition.has(valuation.position_id)) continue;
+
+    latestValuationByPosition.set(valuation.position_id, {
+      positionValue: Number(valuation.position_value),
+      valuationDate: valuation.valuation_date,
+    });
+  }
+
+  /* ==================================================
+   * COST BASIS SUMMARY
+   * ================================================== */
+  const { data: basisRows, error: basisError } = await admin
+    .from("investment_position_basis_summary")
+    .select(
+      `
+      position_id,
+      investor_id,
+      original_principal,
+      adjusted_cost_basis
+      `,
+    )
+    .eq("investor_id", user.id);
+
+  if (basisError) {
+    console.error("Dashboard basis summary load error:", basisError);
+    throw new Error("Unable to load investment cost basis.");
+  }
+
+  const basisByPosition = new Map<string, BasisSummary>();
+
+  for (const basis of basisRows ?? []) {
+    basisByPosition.set(basis.position_id, {
+      originalPrincipal: Number(basis.original_principal),
+      adjustedCostBasis: Math.max(0, Number(basis.adjusted_cost_basis)),
+    });
+  }
+
+  /* ==================================================
+   * BASIS EVENTS
+   * Capital returned is the absolute value of actual
+   * negative basis events, not merely distribution cash.
+   * ================================================== */
+  const { data: basisEvents, error: basisEventsError } = await admin
+    .from("investment_position_basis_events")
+    .select(
+      `
+      id,
+      position_id,
+      event_type,
+      amount,
+      event_date
+      `,
+    )
+    .eq("investor_id", user.id)
+    .in("event_type", ["return_of_capital", "redemption"]);
+
+  if (basisEventsError) {
+    console.error("Dashboard basis events load error:", basisEventsError);
+  }
+
+  const capitalReturnedByPosition = new Map<string, number>();
+
+  for (const event of basisEvents ?? []) {
+    const amount = Number(event.amount);
+    const reduction = amount < 0 ? Math.abs(amount) : 0;
+    capitalReturnedByPosition.set(
+      event.position_id,
+      (capitalReturnedByPosition.get(event.position_id) ?? 0) + reduction,
     );
   }
 
-  /*
-   * ==================================================
-   * 4. BUILD LATEST VALUATION MAP
-   * ==================================================
-   *
-   * Rows are ordered newest first.
-   *
-   * The first valuation encountered for a position
-   * is therefore its latest published valuation.
-   */
-  const latestValuationByPosition =
-    new Map<
-      string,
-      LatestValuation
-    >();
-
-  for (
-    const valuation of
-      valuationRows ?? []
-  ) {
-    if (
-      latestValuationByPosition.has(
-        valuation.position_id,
+  /* ==================================================
+   * PAID DISTRIBUTIONS
+   * Income excludes return-of-capital/redemption.
+   * totalPaidCash includes every completed cash payment.
+   * ================================================== */
+  const { data: distributionRows, error: distributionsError } = await admin
+    .from("investor_distributions")
+    .select(
+      `
+      id,
+      position_id,
+      net_amount,
+      status,
+      paid_at,
+      distribution:investment_distributions!investor_distributions_distribution_id_fkey (
+        id,
+        distribution_type
       )
+      `,
+    )
+    .eq("investor_id", user.id)
+    .eq("status", "paid");
+
+  if (distributionsError) {
+    console.error("Dashboard distributions load error:", distributionsError);
+  }
+
+  const cashByPosition = new Map<string, CashSummary>();
+
+  for (const allocation of distributionRows ?? []) {
+    const distribution = Array.isArray(allocation.distribution)
+      ? allocation.distribution[0] ?? null
+      : allocation.distribution;
+
+    const amount = Number(allocation.net_amount);
+    const current = cashByPosition.get(allocation.position_id) ?? {
+      incomeReceived: 0,
+      totalPaidCash: 0,
+    };
+
+    current.totalPaidCash += amount;
+
+    if (
+      distribution?.distribution_type !== "return_of_capital" &&
+      distribution?.distribution_type !== "redemption"
     ) {
-      continue;
+      current.incomeReceived += amount;
     }
 
-    latestValuationByPosition.set(
-      valuation.position_id,
-      {
-        positionValue:
-          Number(
-            valuation.position_value,
-          ),
-
-        unrealizedGainLoss:
-          Number(
-            valuation.unrealized_gain_loss,
-          ),
-
-        valuationDate:
-          valuation.valuation_date,
-      },
-    );
+    cashByPosition.set(allocation.position_id, current);
   }
 
-  /*
+  /* ==================================================
+   * ENRICH POSITIONS
+   * ================================================== */
+  const portfolioPositions = positionRecords.map((position) => {
+    const storedPrincipal = Number(position.principal_amount);
+    const basis = basisByPosition.get(position.id);
+    const originalPrincipal = basis?.originalPrincipal ?? storedPrincipal;
+    const adjustedCostBasis = basis?.adjustedCostBasis ?? originalPrincipal;
+    const latestValuation = latestValuationByPosition.get(position.id);
+    const currentValue = latestValuation?.positionValue ?? storedPrincipal;
+    const cash = cashByPosition.get(position.id) ?? {
+      incomeReceived: 0,
+      totalPaidCash: 0,
+    };
+    const capitalReturned = capitalReturnedByPosition.get(position.id) ?? 0;
+
+    const reportedEconomicValue = currentValue + cash.totalPaidCash;
+    const economicGain = reportedEconomicValue - originalPrincipal;
+    const totalReturn =
+      originalPrincipal > 0 ? (economicGain / originalPrincipal) * 100 : 0;
+
+    return {
+      ...position,
+      originalPrincipal,
+      adjustedCostBasis,
+      capitalReturned,
+      incomeReceived: cash.incomeReceived,
+      totalPaidCash: cash.totalPaidCash,
+      currentValue,
+      reportedEconomicValue,
+      economicGain,
+      totalReturn,
+      latestValuationDate: latestValuation?.valuationDate ?? null,
+      hasPublishedValuation: Boolean(latestValuation),
+    };
+  });
+
+  /* ==================================================
+   * SUBSCRIPTIONS + PAYMENTS FOR PIPELINE
+   * ================================================== */
+  const [{ data: subscriptions }, { data: payments }] = await Promise.all([
+    admin
+      .from("investment_subscriptions")
+      .select("id,status,created_at")
+      .eq("investor_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10),
+    admin
+      .from("investment_payments")
+      .select("id,status,created_at")
+      .eq("investor_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
+
+  const pendingSubscriptions = (subscriptions ?? []).filter((subscription) =>
+    ["submitted", "under_review", "action_required", "approved"].includes(
+      subscription.status,
+    ),
+  );
+
+  const pendingPayments = (payments ?? []).filter((payment) =>
+    ["awaiting_payment", "payment_reported", "pending_verification", "rejected"].includes(
+      payment.status,
+    ),
+  );
+
+  /* ==================================================
+   * RECENT PUBLISHED STATEMENTS
    * ==================================================
-   * 5. ENRICH POSITIONS
-   * ==================================================
-   */
-  const portfolioPositions =
-    positionRecords.map(
-      (
-        position,
-      ) => {
-        const principal =
-          Number(
-            position.principal_amount,
-          );
-
-        const latestValuation =
-          latestValuationByPosition.get(
-            position.id,
-          );
-
-        const currentValue =
-          latestValuation
-            ?.positionValue ??
-          principal;
-
-        const unrealizedGainLoss =
-          latestValuation
-            ?.unrealizedGainLoss ??
-          currentValue -
-            principal;
-
-        const unrealizedReturn =
-          principal > 0
-            ? (
-                unrealizedGainLoss /
-                principal
-              ) *
-              100
-            : 0;
-
-        return {
-          ...position,
-
-          principal,
-
-          currentValue,
-
-          unrealizedGainLoss,
-
-          unrealizedReturn,
-
-          latestValuationDate:
-            latestValuation
-              ?.valuationDate ??
-            null,
-
-          hasPublishedValuation:
-            Boolean(
-              latestValuation,
-            ),
-        };
-      },
-    );
-
-  /*
-   * ==================================================
-   * 6. SUBSCRIPTIONS
-   * ==================================================
-   */
-  const {
-    data: subscriptions,
-    error: subscriptionsError,
-  } = await admin
-    .from(
-      "investment_subscriptions",
-    )
-    .select(
-      `
-      id,
-      opportunity_id,
-      commitment_amount,
-      status,
-      submitted_at,
-      reviewed_at,
-      created_at
-      `,
-    )
-    .eq(
-      "investor_id",
-      user.id,
-    )
-    .order(
-      "created_at",
-      {
-        ascending:
-          false,
-      },
-    )
-    .limit(10);
-
-  if (subscriptionsError) {
-    console.error(
-      "Dashboard subscriptions load error:",
-      subscriptionsError,
-    );
-  }
-
-  const subscriptionRecords =
-    subscriptions ?? [];
-
-  /*
-   * ==================================================
-   * 7. PAYMENTS
-   * ==================================================
-   */
-  const {
-    data: payments,
-    error: paymentsError,
-  } = await admin
-    .from(
-      "investment_payments",
-    )
-    .select(
-      `
-      id,
-      subscription_id,
-      opportunity_id,
-      expected_amount,
-      reported_amount,
-      verified_amount,
-      status,
-      investor_reported_at,
-      verified_at,
-      created_at
-      `,
-    )
-    .eq(
-      "investor_id",
-      user.id,
-    )
-    .order(
-      "created_at",
-      {
-        ascending:
-          false,
-      },
-    )
-    .limit(10);
-
-  if (paymentsError) {
-    console.error(
-      "Dashboard payments load error:",
-      paymentsError,
-    );
-  }
-
-  const paymentRecords =
-    payments ?? [];
-
-  /*
-   * ==================================================
-   * 8. PORTFOLIO METRICS
-   * ==================================================
-   */
-
-  /*
-   * Current reported portfolio value.
    *
-   * Latest published valuation if available.
-   * Otherwise principal.
-   */
-  const portfolioValue =
-    portfolioPositions
-      .filter(
-        (position) =>
-          position.status !==
-          "cancelled",
-      )
-      .reduce(
-        (
-          total,
-          position,
-        ) =>
-          total +
-          position.currentValue,
-        0,
-      );
+   * Investor dashboard rules:
+   * - signed-in investor only
+   * - published only
+   * - latest 3 only
+   *
+   * Draft and void statements never appear here.
+   * A reinstated statement automatically returns because
+   * its status becomes published again.
+   * ================================================== */
+  const {
+    data: statementRows,
+    error: statementsError,
+  } = await admin
+    .from("investor_statements")
+    .select(
+      `
+      id,
+      period_start,
+      period_end,
+      statement_type,
+      currency,
+      closing_portfolio_value,
+      total_return_percent,
+      reconstructed_from_legacy,
+      historical_published_at,
+      published_at,
+      status
+      `,
+    )
+    .eq("investor_id", user.id)
+    .eq("status", "published")
+    .order("period_end", { ascending: false })
+    .order("published_at", { ascending: false })
+    .limit(3);
 
-  /*
-   * Original money invested.
-   */
-  const totalFundedCapital =
-    portfolioPositions
-      .filter(
-        (position) =>
-          position.status !==
-          "cancelled",
-      )
-      .reduce(
-        (
-          total,
-          position,
-        ) =>
-          total +
-          position.principal,
-        0,
-      );
-
-  /*
-   * Difference between current reported value
-   * and original principal.
-   */
-  const totalUnrealizedGainLoss =
-    portfolioValue -
-    totalFundedCapital;
-
-  const totalUnrealizedReturn =
-    totalFundedCapital >
-    0
-      ? (
-          totalUnrealizedGainLoss /
-          totalFundedCapital
-        ) *
-        100
-      : 0;
-
-  const activePositions =
-    portfolioPositions.filter(
-      (position) =>
-        position.status ===
-        "active",
+  if (statementsError) {
+    console.error(
+      "Investor dashboard recent statements load error:",
+      statementsError,
     );
+  }
 
-  const pendingSubscriptions =
-    subscriptionRecords.filter(
-      (subscription) =>
-        [
-          "submitted",
-          "under_review",
-          "action_required",
-          "approved",
-        ].includes(
-          subscription.status,
-        ),
-    );
+  const recentStatements = statementRows ?? [];
 
-  const pendingPayments =
-    paymentRecords.filter(
-      (payment) =>
-        [
-          "awaiting_payment",
-          "payment_reported",
-          "pending_verification",
-          "rejected",
-        ].includes(
-          payment.status,
-        ),
-    );
+  /* ==================================================
+   * PORTFOLIO TOTALS
+   * ================================================== */
+  const includedPositions = portfolioPositions.filter(
+    (position) => position.status !== "cancelled",
+  );
 
-  const recentPositions =
-    portfolioPositions.slice(
-      0,
-      5,
-    );
+  const portfolioValue = includedPositions.reduce(
+    (total, position) => total + position.currentValue,
+    0,
+  );
 
-  const investorName =
-    user.first_name?.trim() ||
-    "Investor";
+  const originalPrincipal = includedPositions.reduce(
+    (total, position) => total + position.originalPrincipal,
+    0,
+  );
+
+  const adjustedCostBasis = includedPositions.reduce(
+    (total, position) => total + position.adjustedCostBasis,
+    0,
+  );
+
+  const capitalReturned = includedPositions.reduce(
+    (total, position) => total + position.capitalReturned,
+    0,
+  );
+
+  const incomeReceived = includedPositions.reduce(
+    (total, position) => total + position.incomeReceived,
+    0,
+  );
+
+  const totalPaidCash = includedPositions.reduce(
+    (total, position) => total + position.totalPaidCash,
+    0,
+  );
+
+  const reportedEconomicValue = portfolioValue + totalPaidCash;
+  const economicGain = reportedEconomicValue - originalPrincipal;
+  const totalReturn =
+    originalPrincipal > 0 ? (economicGain / originalPrincipal) * 100 : 0;
+
+  const recentPositions = portfolioPositions.slice(0, 5);
+  const investorName = user.first_name?.trim() || "Investor";
 
   return (
     <div className="space-y-8">
-      {/* ==========================================
-          WELCOME
-      ========================================== */}
-
       <section className="rounded-[1.75rem] bg-forest-950 p-7 text-white sm:p-9">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-400">
           Investor dashboard
         </p>
 
         <h1 className="font-display mt-4 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">
-          Welcome back,{" "}
-          {investorName}.
+          Welcome back, {investorName}.
         </h1>
 
         <p className="mt-4 max-w-3xl text-sm leading-7 text-white/60">
-          Review your current portfolio value,
-          funded capital and investment performance
-          across Tevuah Reserve.
+          Review current value, adjusted cost basis, capital returned and cash income across
+          your funded investments.
         </p>
 
         <div className="mt-7 flex flex-wrap gap-3">
@@ -541,93 +430,215 @@ export default async function InvestorDashboardPage() {
             className="focus-ring inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-gold-400 px-5 text-sm font-semibold text-forest-950 transition hover:bg-gold-300"
           >
             View portfolio
-
             <ArrowRight className="size-4" />
           </Link>
 
           <Link
-            href="/investments"
+            href="/dashboard/distributions"
             className="focus-ring inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
           >
-            Explore opportunities
-
+            View distributions
             <ArrowRight className="size-4" />
           </Link>
         </div>
       </section>
 
-      {/* ==========================================
-          METRICS
-      ========================================== */}
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         <MetricCard
-          icon={
-            CircleDollarSign
-          }
-          label="Portfolio value"
-          value={formatMoney(
-            portfolioValue,
-          )}
-          description="Latest reported investment value"
+          icon={CircleDollarSign}
+          label="Current value"
+          value={formatMoney(portfolioValue)}
+          description="Latest published valuation or principal fallback"
         />
 
         <MetricCard
-          icon={
-            WalletCards
-          }
-          label="Funded capital"
-          value={formatMoney(
-            totalFundedCapital,
-          )}
-          description="Original verified principal"
+          icon={WalletCards}
+          label="Original principal"
+          value={formatMoney(originalPrincipal)}
+          description="Original verified funded capital"
         />
 
         <MetricCard
-          icon={
-            totalUnrealizedGainLoss >=
-            0
-              ? TrendingUp
-              : TrendingDown
-          }
-          label={
-            totalUnrealizedGainLoss >=
-            0
-              ? "Unrealized gain"
-              : "Unrealized loss"
-          }
-          value={formatSignedMoney(
-            totalUnrealizedGainLoss,
-          )}
-          description={formatPercent(
-            totalUnrealizedReturn,
-          )}
+          icon={Scale}
+          label="Adjusted cost basis"
+          value={formatMoney(adjustedCostBasis)}
+          description="Principal after recorded basis reductions"
         />
 
         <MetricCard
-          icon={
-            BriefcaseBusiness
-          }
-          label="Active investments"
-          value={String(
-            activePositions.length,
-          )}
-          description="Currently active funded positions"
+          icon={HandCoins}
+          label="Capital returned"
+          value={formatMoney(capitalReturned)}
+          description="Basis reductions from ROC/redemption"
+        />
+
+        <MetricCard
+          icon={HandCoins}
+          label="Income received"
+          value={formatMoney(incomeReceived)}
+          description="Paid income distributions only"
+        />
+
+        <MetricCard
+          icon={economicGain >= 0 ? TrendingUp : TrendingDown}
+          label="Reported total return"
+          value={formatSignedMoney(economicGain)}
+          description={formatPercent(totalReturn)}
         />
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1fr_380px]">
-        {/* ==========================================
-            RECENT POSITIONS
-        ========================================== */}
+      <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
+        <div className="grid gap-5 sm:grid-cols-3">
+          <MiniData label="Reported economic value" value={formatMoney(reportedEconomicValue)} />
+          <MiniData label="Total paid cash" value={formatMoney(totalPaidCash)} />
+          <MiniData label="Funded positions" value={String(portfolioPositions.length)} />
+        </div>
+      </section>
 
+      {/* ==================================================
+          RECENT STATEMENTS
+      ================================================== */}
+      <section className="overflow-hidden rounded-[1.75rem] border border-forest-900/10 bg-white">
+        <div className="flex flex-col gap-4 border-b border-forest-900/10 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
+              Investor reporting
+            </p>
+
+            <h2 className="font-display mt-3 text-3xl font-semibold text-forest-950">
+              Recent Statements
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-500">
+              Your latest published portfolio statements and historical reporting records.
+            </p>
+          </div>
+
+          <Link
+            href="/dashboard/statements"
+            className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-forest-950"
+          >
+            View all statements
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+
+        {recentStatements.length === 0 ? (
+          <div className="px-6 py-12 text-center sm:px-8">
+            <FileText className="mx-auto size-7 text-stone-300" />
+
+            <h3 className="font-display mt-4 text-2xl font-semibold text-forest-950">
+              No published statements yet.
+            </h3>
+
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-stone-500">
+              Published investor statements will appear here when they become available.
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-forest-900/10">
+            {recentStatements.map((statement) => {
+              const statementDate =
+                statement.reconstructed_from_legacy &&
+                statement.historical_published_at
+                  ? statement.historical_published_at.slice(0, 10)
+                  : statement.published_at
+                    ? statement.published_at.slice(0, 10)
+                    : statement.period_end;
+
+              return (
+                <article
+                  key={statement.id}
+                  className="p-6 sm:px-8"
+                >
+                  <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-widest text-emerald-700">
+                          <CheckCircle2 className="size-3" />
+                          Published
+                        </span>
+
+                        <span className="rounded-full bg-ivory-50 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-widest text-stone-500">
+                          {humanize(statement.statement_type)}
+                        </span>
+
+                        {statement.reconstructed_from_legacy ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-widest text-blue-700">
+                            <History className="size-3" />
+                            Historical
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <CalendarDays className="size-4 text-gold-600" />
+
+                        <h3 className="font-display text-xl font-semibold text-forest-950">
+                          {formatDate(statement.period_start)}
+                          {" — "}
+                          {formatDate(statement.period_end)}
+                        </h3>
+                      </div>
+
+                      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                        <MiniData
+                          label="Closing value"
+                          value={formatMoney(
+                            Number(statement.closing_portfolio_value),
+                          )}
+                        />
+
+                        <MiniData
+                          label="Total return"
+                          value={
+                            statement.total_return_percent != null
+                              ? formatPercent(
+                                  Number(statement.total_return_percent),
+                                )
+                              : "—"
+                          }
+                        />
+
+                        <MiniData
+                          label="Statement date"
+                          value={formatDate(statementDate)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 flex-wrap gap-3">
+                      <Link
+                        href={`/dashboard/statements/${statement.id}`}
+                        className="focus-ring inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full border border-forest-900/10 bg-white px-4 text-xs font-semibold text-forest-950 transition hover:bg-ivory-50"
+                      >
+                        View statement
+                        <ArrowRight className="size-3.5" />
+                      </Link>
+
+                      <Link
+                        href={`/api/statements/${statement.id}/pdf`}
+                        className="focus-ring inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-forest-950 px-4 text-xs font-semibold text-white transition hover:bg-forest-800"
+                      >
+                        Download PDF
+                        <FileText className="size-3.5" />
+                      </Link>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <div className="grid gap-8 xl:grid-cols-[1fr_380px]">
         <section className="overflow-hidden rounded-[1.75rem] border border-forest-900/10 bg-white">
-          <div className="flex flex-col gap-4 border-b border-forest-900/10 px-6 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+          <div className="flex items-center justify-between border-b border-forest-900/10 px-6 py-6 sm:px-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
                 Portfolio activity
               </p>
-
               <h2 className="font-display mt-3 text-3xl font-semibold text-forest-950">
                 Recent Investments
               </h2>
@@ -638,252 +649,101 @@ export default async function InvestorDashboardPage() {
               className="inline-flex cursor-pointer items-center gap-2 text-xs font-semibold text-forest-950"
             >
               View all
-
               <ArrowRight className="size-3.5" />
             </Link>
           </div>
 
-          {recentPositions.length ===
-          0 ? (
+          {recentPositions.length === 0 ? (
             <div className="px-6 py-14 text-center sm:px-8">
               <WalletCards className="mx-auto size-7 text-stone-300" />
-
               <h3 className="font-display mt-4 text-2xl font-semibold text-forest-950">
                 No funded positions yet.
               </h3>
-
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-stone-500">
-                Investments appear here after funding
-                has been verified and a funded position
-                has been created.
-              </p>
             </div>
           ) : (
             <div className="divide-y divide-forest-900/10">
-              {recentPositions.map(
-                (
-                  position,
-                ) => {
-                  const opportunity =
-                    Array.isArray(
-                      position.opportunity,
-                    )
-                      ? position
-                          .opportunity[0] ??
-                        null
-                      : position.opportunity;
+              {recentPositions.map((position) => {
+                const opportunity = Array.isArray(position.opportunity)
+                  ? position.opportunity[0] ?? null
+                  : position.opportunity;
 
-                  return (
-                    <article
-                      key={
-                        position.id
-                      }
-                      className="p-6 sm:px-8"
-                    >
-                      <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <PositionBadge
-                              status={
-                                position.status
-                              }
-                            />
-
-                            {position.hasPublishedValuation ? (
-                              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-widest text-blue-700">
-                                Valued
-                              </span>
-                            ) : (
-                              <span className="rounded-full bg-stone-100 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-widest text-stone-600">
-                                Principal basis
-                              </span>
-                            )}
-                          </div>
-
-                          <h3 className="font-display mt-3 text-xl font-semibold text-forest-950">
-                            {opportunity
-                              ?.title ??
-                              "Investment position"}
-                          </h3>
-
-                          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-                            <MiniData
-                              label="Current value"
-                              value={formatMoney(
-                                position.currentValue,
-                              )}
-                            />
-
-                            <MiniData
-                              label="Principal"
-                              value={formatMoney(
-                                position.principal,
-                              )}
-                            />
-
-                            <MiniData
-                              label="Gain / loss"
-                              value={formatSignedMoney(
-                                position.unrealizedGainLoss,
-                              )}
-                            />
-                          </div>
-
-                          {position.latestValuationDate ? (
-                            <p className="mt-3 text-xs text-stone-400">
-                              Latest valuation:{" "}
-                              {formatValuationDate(
-                                position.latestValuationDate,
-                              )}
-                            </p>
-                          ) : (
-                            <p className="mt-3 text-xs text-stone-400">
-                              No published valuation yet.
-                              Current value falls back to
-                              funded principal.
-                            </p>
-                          )}
+                return (
+                  <article key={position.id} className="p-6 sm:px-8">
+                    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <PositionBadge status={position.status} />
+                          <span className="rounded-full bg-ivory-50 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-widest text-stone-500">
+                            {position.hasPublishedValuation ? "Valued" : "Principal basis"}
+                          </span>
                         </div>
 
-                        <Link
-                          href={`/dashboard/portfolio/${position.id}`}
-                          className="focus-ring inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-full border border-forest-900/10 bg-white px-4 text-xs font-semibold text-forest-950 transition hover:bg-ivory-50"
-                        >
-                          View position
+                        <h3 className="font-display mt-3 text-xl font-semibold text-forest-950">
+                          {opportunity?.title ?? "Investment position"}
+                        </h3>
 
-                          <ArrowRight className="size-3.5" />
-                        </Link>
+                        <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                          <MiniData label="Current value" value={formatMoney(position.currentValue)} />
+                          <MiniData label="Original principal" value={formatMoney(position.originalPrincipal)} />
+                          <MiniData label="Adjusted basis" value={formatMoney(position.adjustedCostBasis)} />
+                          <MiniData label="Capital returned" value={formatMoney(position.capitalReturned)} />
+                          <MiniData label="Income received" value={formatMoney(position.incomeReceived)} />
+                        </div>
                       </div>
-                    </article>
-                  );
-                },
-              )}
+
+                      <Link
+                        href={`/dashboard/portfolio/${position.id}`}
+                        className="focus-ring inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2 rounded-full border border-forest-900/10 bg-white px-4 text-xs font-semibold text-forest-950 transition hover:bg-ivory-50"
+                      >
+                        View position
+                        <ArrowRight className="size-3.5" />
+                      </Link>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
 
-        {/* ==========================================
-            PIPELINE
-        ========================================== */}
-
         <aside className="space-y-5">
           <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6">
             <Clock3 className="size-5 text-gold-600" />
-
             <p className="mt-5 text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">
               Investment pipeline
             </p>
-
-            <h2 className="font-display mt-3 text-2xl font-semibold text-forest-950">
-              Current Activity
-            </h2>
-
             <div className="mt-6 space-y-3">
-              <PipelineRow
-                label="Pending subscriptions"
-                value={
-                  pendingSubscriptions.length
-                }
-              />
-
-              <PipelineRow
-                label="Payments in progress"
-                value={
-                  pendingPayments.length
-                }
-              />
-
-              <PipelineRow
-                label="Funded positions"
-                value={
-                  portfolioPositions.length
-                }
-              />
+              <PipelineRow label="Pending subscriptions" value={pendingSubscriptions.length} />
+              <PipelineRow label="Payments in progress" value={pendingPayments.length} />
+              <PipelineRow label="Funded positions" value={portfolioPositions.length} />
             </div>
-
-            <Link
-              href="/dashboard/investments"
-              className="focus-ring mt-6 inline-flex min-h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-4 text-xs font-semibold text-white transition hover:bg-forest-800"
-            >
-              Manage investments
-
-              <ArrowRight className="size-3.5" />
-            </Link>
           </section>
 
-          {pendingPayments.some(
-            (payment) =>
-              payment.status ===
-              "rejected",
-          ) ||
-          pendingSubscriptions.some(
-            (subscription) =>
-              subscription.status ===
-              "action_required",
-          ) ? (
-            <section className="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-6">
-              <Clock3 className="size-5 text-amber-700" />
-
-              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
-                Action required
-              </p>
-
-              <h2 className="font-display mt-3 text-2xl font-semibold text-amber-950">
-                An investment needs your attention.
-              </h2>
-
-              <Link
-                href="/dashboard/investments"
-                className="focus-ring mt-5 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-full bg-amber-900 px-4 text-xs font-semibold text-white"
-              >
-                Review action items
-
-                <ArrowRight className="size-3.5" />
-              </Link>
-            </section>
-          ) : null}
+          <section className="rounded-[1.75rem] bg-forest-950 p-6 text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-400">
+              Basis methodology
+            </p>
+            <p className="mt-3 text-sm leading-7 text-white/60">
+              Original principal never changes. Adjusted cost basis comes from the immutable
+              basis ledger. Return-of-capital and redemption basis reductions are shown as
+              capital returned, while ordinary paid distributions are shown as income.
+            </p>
+          </section>
         </aside>
       </div>
-
-      {/* ==========================================
-          VALUATION NOTICE
-      ========================================== */}
-
-      <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-600">
-          Portfolio methodology
-        </p>
-
-        <h2 className="font-display mt-3 text-3xl font-semibold text-forest-950">
-          Latest published valuation.
-        </h2>
-
-        <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
-          Current portfolio value uses the latest
-          published valuation for each funded position.
-          If a position has not yet received a published
-          valuation, its funded principal is used as the
-          fallback value.
-        </p>
-      </section>
     </div>
   );
 }
 
 function MetricCard({
-  icon:
-    Icon,
+  icon: Icon,
   label,
   value,
   description,
 }: {
-  icon:
-    LucideIcon;
-
+  icon: LucideIcon;
   label: string;
-
   value: string;
-
   description: string;
 }) {
   return (
@@ -891,36 +751,30 @@ function MetricCard({
       <div className="flex size-10 items-center justify-center rounded-full bg-ivory-50">
         <Icon className="size-4.5 text-gold-600" />
       </div>
-
       <p className="mt-5 text-xs font-semibold uppercase tracking-[0.12em] text-stone-400">
         {label}
       </p>
-
-      <p className="font-display mt-2 text-3xl font-semibold text-forest-950">
-        {value}
-      </p>
-
-      <p className="mt-2 text-xs leading-5 text-stone-500">
-        {description}
-      </p>
+      <p className="font-display mt-2 text-3xl font-semibold text-forest-950">{value}</p>
+      <p className="mt-2 text-xs leading-5 text-stone-500">{description}</p>
     </div>
   );
 }
 
-function PipelineRow({
-  label,
-  value,
-}: {
-  label: string;
-
-  value: number;
-}) {
+function MiniData({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl bg-ivory-50 px-4 py-3">
-      <p className="text-sm text-stone-600">
+    <div>
+      <p className="text-[0.62rem] font-semibold uppercase tracking-widest text-stone-400">
         {label}
       </p>
+      <p className="mt-1 text-sm font-semibold text-forest-950">{value}</p>
+    </div>
+  );
+}
 
+function PipelineRow({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl bg-ivory-50 px-4 py-3">
+      <p className="text-sm text-stone-600">{label}</p>
       <span className="flex size-8 items-center justify-center rounded-full bg-white text-xs font-bold text-forest-950">
         {value}
       </span>
@@ -928,143 +782,47 @@ function PipelineRow({
   );
 }
 
-function MiniData({
-  label,
-  value,
-}: {
-  label: string;
-
-  value: string;
-}) {
-  return (
-    <div>
-      <p className="text-[0.62rem] font-semibold uppercase tracking-widest text-stone-400">
-        {label}
-      </p>
-
-      <p className="mt-1 text-sm font-semibold text-forest-950">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function PositionBadge({
-  status,
-}: {
-  status: string;
-}) {
-  const active =
-    status ===
-    "active";
-
+function PositionBadge({ status }: { status: string }) {
+  const active = status === "active";
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-widest ${
-        active
-          ? "bg-emerald-50 text-emerald-700"
-          : "bg-stone-100 text-stone-600"
+        active ? "bg-emerald-50 text-emerald-700" : "bg-stone-100 text-stone-600"
       }`}
     >
-      {active ? (
-        <CheckCircle2 className="size-3" />
-      ) : (
-        <Clock3 className="size-3" />
-      )}
-
-      {humanize(
-        status,
-      )}
+      {active ? <CheckCircle2 className="size-3" /> : <Clock3 className="size-3" />}
+      {humanize(status)}
     </span>
   );
 }
 
-function humanize(
-  value: string,
-) {
-  return value
-    .replaceAll(
-      "_",
-      " ",
-    )
-    .replace(
-      /\b\w/g,
-      (letter) =>
-        letter.toUpperCase(),
-    );
+function humanize(value: string) {
+  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function formatMoney(
-  cents: number,
-) {
-  return new Intl.NumberFormat(
-    "en-US",
-    {
-      style:
-        "currency",
-
-      currency:
-        "USD",
-
-      maximumFractionDigits:
-        0,
-    },
-  ).format(
-    cents / 100,
-  );
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(`${value}T00:00:00`));
 }
 
-function formatSignedMoney(
-  cents: number,
-) {
-  const amount =
-    formatMoney(
-      Math.abs(
-        cents,
-      ),
-    );
+function formatMoney(cents: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
 
-  if (cents > 0) {
-    return `+${amount}`;
-  }
-
-  if (cents < 0) {
-    return `-${amount}`;
-  }
-
+function formatSignedMoney(cents: number) {
+  const amount = formatMoney(Math.abs(cents));
+  if (cents > 0) return `+${amount}`;
+  if (cents < 0) return `-${amount}`;
   return amount;
 }
 
-function formatPercent(
-  value: number,
-) {
-  return `${
-    value > 0
-      ? "+"
-      : ""
-  }${value.toFixed(
-    2,
-  )}%`;
-}
-
-function formatValuationDate(
-  value: string,
-) {
-  return new Intl.DateTimeFormat(
-    "en-US",
-    {
-      year:
-        "numeric",
-
-      month:
-        "short",
-
-      day:
-        "numeric",
-    },
-  ).format(
-    new Date(
-      `${value}T00:00:00`,
-    ),
-  );
+function formatPercent(value: number) {
+  return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }

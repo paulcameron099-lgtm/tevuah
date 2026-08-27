@@ -7,7 +7,7 @@ import { createClient } from "@/src/lib/supabase/server";
 
 import {
   sendMail,
-} from "@/src/lib/mail/mailer";
+} from "@/src/lib/email/mailer";
 
 import {
   recordComplianceAudit,
@@ -15,7 +15,7 @@ import {
 
 import {
   verificationApprovedEmail,
-} from "@/src/lib/mail/templates";
+} from "@/src/lib/email/templates";
 
 type RouteContext = {
   params: Promise<{

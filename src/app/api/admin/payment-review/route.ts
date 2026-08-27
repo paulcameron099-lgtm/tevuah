@@ -7,11 +7,11 @@ import { createAdminClient } from "@/src/lib/supabase/admin";
 
 import {
   investmentActivatedEmail,
-} from "@/src/lib/mail/templates";
+} from "@/src/lib/email/templates";
 
 import {
   sendMail,
-} from "@/src/lib/mail/mailer";
+} from "@/src/lib/email/mailer";
 
 type ReviewPayload = {
   paymentId?: string;

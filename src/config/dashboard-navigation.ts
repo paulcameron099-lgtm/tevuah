@@ -12,6 +12,7 @@ import {
   WalletCards,
   ClipboardCheck,
   Landmark,
+  HandCoins,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,6 +46,17 @@ export const investorDashboardNavigation: DashboardNavigationItem[] = [
     href: "/dashboard/portfolio",
     icon: WalletCards,
   },
+
+    {
+    label: "Distributions",
+    href: "/dashboard/distributions",
+    icon: HandCoins,
+  },
+  {
+  label: "Statements",
+  href: "/dashboard/statements",
+  icon: FileText,
+},
 
   {
     label: "Documents",
@@ -119,11 +131,17 @@ export const adminDashboardNavigation: DashboardNavigationItem[] = [
   icon: BarChart3,
 },
 
-  {
-    label: "Documents",
-    href: "/dashboard/documents",
-    icon: FileText,
-  },
+{
+  label: "Distributions",
+  href: "/admin/distributions",
+  icon: HandCoins,
+},
+
+{
+  label: "Statements",
+  href: "/admin/statements",
+  icon: FileText,
+},
 
   {
     label: "Notifications",

@@ -8,11 +8,11 @@ import {
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { createClient } from "@/src/lib/supabase/server";
 
-import { sendMail } from "@/src/lib/mail/mailer";
+import { sendMail } from "@/src/lib/email/mailer";
 
 import {
   verificationSubmittedEmail,
-} from "@/src/lib/mail/templates";
+} from "@/src/lib/email/templates";
 import {
   checkAccountAccess,
 } from "@/src/lib/auth/account-status";

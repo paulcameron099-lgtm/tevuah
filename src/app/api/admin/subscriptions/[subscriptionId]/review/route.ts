@@ -6,11 +6,11 @@ import {
   subscriptionApprovedEmail,
   subscriptionInformationRequestedEmail,
   subscriptionRejectedEmail,
-} from "@/src/lib/mail/templates";
+} from "@/src/lib/email/templates";
 
 import {
   sendMail,
-} from "@/src/lib/mail/mailer";
+} from "@/src/lib/email/mailer";
 
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";

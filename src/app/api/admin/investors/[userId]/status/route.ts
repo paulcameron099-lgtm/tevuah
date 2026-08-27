@@ -11,11 +11,11 @@ import { createClient } from "@/src/lib/supabase/server";
 import {
   investorAccountReactivatedEmail,
   investorAccountSuspendedEmail,
-} from "@/src/lib/mail/templates";
+} from "@/src/lib/email/templates";
 
 import {
   sendMail,
-} from "@/src/lib/mail/mailer";
+} from "@/src/lib/email/mailer";
 
 type RouteContext = {
   params: Promise<{
