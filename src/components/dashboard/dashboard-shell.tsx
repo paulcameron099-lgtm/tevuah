@@ -3,15 +3,17 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import {
-  Bell,
   Menu,
 } from "lucide-react";
 
 import { DashboardSidebar } from "@/src/components/dashboard/dashboard-sidebar";
 import { MobileDashboardSidebar } from "@/src/components/dashboard/mobile-dashboard-sidebar";
+import { NotificationBell } from "@/src/components/notifications/notification-bell";
+import { useUnreadNotificationCount } from "@/src/hooks/use-unread-notification-count";
 
 type DashboardShellProps = {
   children: ReactNode;
+  unreadNotificationCount: number;
 
   user: {
     first_name: string;
@@ -24,22 +26,36 @@ type DashboardShellProps = {
 export function DashboardShell({
   children,
   user,
+  unreadNotificationCount,
 }: DashboardShellProps) {
   const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
 
+    const {
+    count: liveUnreadNotificationCount,
+  } = useUnreadNotificationCount(
+    unreadNotificationCount,
+  );
+
   return (
     <div className="min-h-screen bg-ivory-100">
-      <DashboardSidebar user={user} />
+    <DashboardSidebar
+  user={user}
+  unreadNotificationCount={
+    liveUnreadNotificationCount
+  }
+/>
 
       <MobileDashboardSidebar
-        open={mobileMenuOpen}
-        onClose={() =>
-          setMobileMenuOpen(false)
-        }
-        user={user}
-      />
-
+  open={mobileMenuOpen}
+  onClose={() =>
+    setMobileMenuOpen(false)
+  }
+  user={user}
+  unreadNotificationCount={
+    liveUnreadNotificationCount
+  }
+/>
       <div className="min-h-screen lg:pl-72.5">
         <header className="sticky top-0 z-30 border-b border-forest-900/10 bg-ivory-100/90 backdrop-blur-xl">
           <div className="flex min-h-19 items-center justify-between gap-5 px-5 sm:px-7 lg:min-h-22 lg:px-10 xl:px-12">
@@ -50,7 +66,7 @@ export function DashboardShell({
                   setMobileMenuOpen(true)
                 }
                 aria-label="Open navigation"
-                className="focus-ring flex size-11 items-center justify-center rounded-full border border-forest-900/10 bg-white text-forest-950 lg:hidden"
+                className="focus-ring flex size-11 cursor-pointer items-center justify-center rounded-full border border-forest-900/10 bg-white text-forest-950 lg:hidden"
               >
                 <Menu className="size-5" />
               </button>
@@ -70,15 +86,11 @@ export function DashboardShell({
               </div>
             </div>
 
-            <button
-              type="button"
-              aria-label="Notifications"
-              className="focus-ring relative flex size-11 items-center justify-center rounded-full border border-forest-900/10 bg-white text-forest-950"
-            >
-              <Bell className="size-4.5" />
-
-              <span className="absolute right-2.5 top-2.5 size-2 rounded-full border-2 border-white bg-gold-500" />
-            </button>
+            <NotificationBell
+            count={
+              liveUnreadNotificationCount
+            }
+          />
           </div>
         </header>
 

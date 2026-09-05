@@ -18,6 +18,7 @@ import {
   notFound,
 } from "next/navigation";
 
+import { AdminInvestorCashAccountButton } from "@/src/components/admin/investors/admin-investor-cash-account-button";
 import { InvestorAccountActions } from "@/src/components/admin/investors/investor-account-actions";
 import { requireAdmin } from "@/src/lib/auth/require-admin";
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -386,6 +387,10 @@ export default async function AdminInvestorDetailPage({
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
+            <AdminInvestorCashAccountButton
+              investorId={profile.id}
+            />
+
             <Link
               href={`/admin/compliance/${userId}`}
               className="focus-ring inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-forest-900/10 bg-white px-5 text-sm font-semibold text-forest-950 transition hover:bg-ivory-50"

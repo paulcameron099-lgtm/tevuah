@@ -14,9 +14,12 @@ import {
   superAdminDashboardNavigation,
 } from "@/src/config/dashboard-navigation";
 
+// import { useUnreadNotificationCount } from "@/src/hooks/use-unread-notification-count";
 import { cn } from "@/src/lib/utils";
 
 type DashboardSidebarProps = {
+  unreadNotificationCount?: number;
+
   user: {
     first_name: string;
     last_name: string;
@@ -27,8 +30,16 @@ type DashboardSidebarProps = {
 
 export function DashboardSidebar({
   user,
+  unreadNotificationCount = 0,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+
+  /*
+   * Keep the notification count live.
+   *
+   * The initial value comes from the server,
+   * then the hook refreshes it automatically.
+   */
 
   const initials = [
     user.first_name?.[0],
@@ -71,7 +82,7 @@ export function DashboardSidebar({
       <div className="border-b border-white/10 px-7 py-7">
         <Link
           href="/"
-          className="focus-ring block rounded-md"
+          className="focus-ring block cursor-pointer rounded-md"
         >
           <p className="font-display text-2xl font-semibold">
             Tevuah Reserve
@@ -103,6 +114,19 @@ export function DashboardSidebar({
                       item.href,
                     );
 
+              /*
+               * Only the investor
+               * Notifications navigation item
+               * should display the unread badge.
+               */
+              const isNotificationItem =
+                user.role !==
+                  "admin" &&
+                user.role !==
+                  "super_admin" &&
+                item.href ===
+                  "/dashboard/notifications";
+
               return (
                 <Link
                   key={
@@ -112,7 +136,7 @@ export function DashboardSidebar({
                     item.href
                   }
                   className={cn(
-                    "focus-ring flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-medium transition",
+                    "focus-ring flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-sm font-medium transition",
                     active
                       ? "bg-white text-forest-950"
                       : "text-white/60 hover:bg-white/6 hover:text-white",
@@ -127,11 +151,30 @@ export function DashboardSidebar({
                     )}
                   />
 
-                  <span>
+                  <span className="min-w-0 flex-1 truncate">
                     {
                       item.label
                     }
                   </span>
+
+                  {isNotificationItem &&
+                  unreadNotificationCount >
+                    0 ? (
+                    <span
+                      aria-label={`${unreadNotificationCount} unread notifications`}
+                      className={cn(
+                        "inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[0.62rem] font-bold leading-none",
+                        active
+                          ? "bg-red-600 text-white"
+                          : "bg-red-600 text-white",
+                      )}
+                    >
+                      {unreadNotificationCount >
+                      99
+                        ? "99+"
+                        : unreadNotificationCount}
+                    </span>
+                  ) : null}
                 </Link>
               );
             },
@@ -145,7 +188,7 @@ export function DashboardSidebar({
           <div className="mt-8 border-t border-white/10 pt-6">
             <Link
               href="/investments"
-              className="group block rounded-[1.25rem] border border-white/10 bg-white/5 p-4 transition hover:bg-white/8"
+              className="group block cursor-pointer rounded-[1.25rem] border border-white/10 bg-white/5 p-4 transition hover:bg-white/8"
             >
               <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gold-400">
                 Marketplace
@@ -209,7 +252,7 @@ export function DashboardSidebar({
         >
           <button
             type="submit"
-            className="focus-ring flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-white/55 transition hover:bg-red-500/10 hover:text-red-200"
+            className="focus-ring flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-sm font-medium text-white/55 transition hover:bg-red-500/10 hover:text-red-200"
           >
             <LogOut className="size-4" />
 

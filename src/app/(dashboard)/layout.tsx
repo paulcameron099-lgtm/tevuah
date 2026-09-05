@@ -9,6 +9,7 @@ import {
 import { DashboardShell } from "@/src/components/dashboard/dashboard-shell";
 import { checkAccountAccess } from "@/src/lib/auth/account-status";
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
+import { getUnreadNotificationCount } from "@/src/lib/notifications/get-unread-notification-count";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -41,6 +42,13 @@ export default async function DashboardLayout({
     user.role === "admin" ||
     user.role === "super_admin";
 
+  const unreadNotificationCount =
+  user.role === "investor"
+    ? await getUnreadNotificationCount(
+        user.id,
+      )
+    : 0;
+
   /*
    * 4. Investors must have an active
    * account before entering the dashboard.
@@ -65,24 +73,27 @@ export default async function DashboardLayout({
    */
   return (
     <DashboardShell
-      user={{
-        first_name:
-          user.first_name ??
-          "",
+  unreadNotificationCount={
+    unreadNotificationCount
+  }
+  user={{
+    first_name:
+      user.first_name ??
+      "",
 
-        last_name:
-          user.last_name ??
-          "",
+    last_name:
+      user.last_name ??
+      "",
 
-        role:
-          user.role ??
-          "investor",
+    role:
+      user.role ??
+      "investor",
 
-        avatar_url:
-          user.avatar_url ??
-          null,
-      }}
-    >
+    avatar_url:
+      user.avatar_url ??
+      null,
+  }}
+>
       {children}
     </DashboardShell>
   );

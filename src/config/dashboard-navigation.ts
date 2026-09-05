@@ -13,6 +13,9 @@ import {
   ClipboardCheck,
   Landmark,
   HandCoins,
+  FileBarChart,
+  FolderOpen,
+  Banknote,
   type LucideIcon,
 } from "lucide-react";
 
@@ -47,21 +50,28 @@ export const investorDashboardNavigation: DashboardNavigationItem[] = [
     icon: WalletCards,
   },
 
-    {
+  {
+    label: "Cash Account",
+    href: "/dashboard/cash-account",
+    icon: Banknote,
+  },
+
+  {
     label: "Distributions",
     href: "/dashboard/distributions",
     icon: HandCoins,
   },
+
   {
-  label: "Statements",
-  href: "/dashboard/statements",
-  icon: FileText,
-},
+    label: "Statements",
+    href: "/dashboard/statements",
+    icon: FileBarChart,
+  },
 
   {
     label: "Documents",
     href: "/dashboard/documents",
-    icon: FileText,
+    icon: FolderOpen,
   },
 
   {
@@ -71,14 +81,8 @@ export const investorDashboardNavigation: DashboardNavigationItem[] = [
   },
 
   {
-    label: "Profile",
-    href: "/dashboard/profile",
-    icon: UserRound,
-  },
-
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
+    label: "Account",
+    href: "/dashboard/account",
     icon: Settings,
   },
 ];
@@ -102,46 +106,47 @@ export const adminDashboardNavigation: DashboardNavigationItem[] = [
     icon: Users,
   },
 
-    {
+  {
     label: "Opportunities",
     href: "/admin/opportunities",
     icon: BriefcaseBusiness,
   },
 
   {
-  label: "Subscriptions",
-  href: "/admin/subscriptions",
-  icon: ClipboardCheck,
+    label: "Subscriptions",
+    href: "/admin/subscriptions",
+    icon: ClipboardCheck,
   },
 
   {
-  label: "Payments",
-  href: "/admin/payments",
-  icon: Landmark,
-},
-{
-  label: "Positions",
-  href: "/admin/positions",
-  icon: WalletCards,
-},
+    label: "Payments",
+    href: "/admin/payments",
+    icon: Landmark,
+  },
 
-{
-  label: "Valuations",
-  href: "/admin/valuations",
-  icon: BarChart3,
-},
+  {
+    label: "Positions",
+    href: "/admin/positions",
+    icon: WalletCards,
+  },
 
-{
-  label: "Distributions",
-  href: "/admin/distributions",
-  icon: HandCoins,
-},
+  {
+    label: "Valuations",
+    href: "/admin/valuations",
+    icon: BarChart3,
+  },
 
-{
-  label: "Statements",
-  href: "/admin/statements",
-  icon: FileText,
-},
+  {
+    label: "Distributions",
+    href: "/admin/distributions",
+    icon: HandCoins,
+  },
+
+  {
+    label: "Statements",
+    href: "/admin/statements",
+    icon: FileText,
+  },
 
   {
     label: "Notifications",

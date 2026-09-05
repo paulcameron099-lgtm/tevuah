@@ -1,13 +1,10 @@
-import type {
-  LucideIcon,
-} from "lucide-react";
-
 import {
   Activity,
   ArrowRight,
   BarChart3,
   CircleDollarSign,
   Clock3,
+  LucideIcon,
   FileText,
   HandCoins,
   Landmark,
@@ -67,6 +64,7 @@ export default async function AdminDashboardPage() {
     positionsResult,
     valuationsResult,
     distributionsResult,
+    investorDistributionsResult,
     statementsResult,
   ] =
     await Promise.all([
@@ -107,7 +105,7 @@ export default async function AdminDashboardPage() {
           `
           id,
           status,
-          investment_amount,
+          commitment_amount,
           created_at
           `,
         ),
@@ -160,7 +158,20 @@ export default async function AdminDashboardPage() {
           `
           id,
           status,
-          total_amount,
+          created_at
+          `,
+        ),
+
+      admin
+        .from(
+          "investor_distributions",
+        )
+        .select(
+          `
+          id,
+          status,
+          net_amount,
+          paid_at,
           created_at
           `,
         ),
@@ -185,24 +196,58 @@ export default async function AdminDashboardPage() {
    * 3. ERROR HANDLING
    * ==================================================
    */
-  const loadErrors = [
-    investorsResult.error,
-    opportunitiesResult.error,
-    subscriptionsResult.error,
-    paymentsResult.error,
-    positionsResult.error,
-    valuationsResult.error,
-    distributionsResult.error,
-    statementsResult.error,
-  ].filter(Boolean);
+  const dashboardErrors = [
+    {
+      source: "profiles",
+      error: investorsResult.error,
+    },
+    {
+      source: "investment_opportunities",
+      error: opportunitiesResult.error,
+    },
+    {
+      source: "investment_subscriptions",
+      error: subscriptionsResult.error,
+    },
+    {
+      source: "investment_payments",
+      error: paymentsResult.error,
+    },
+    {
+      source: "investment_positions",
+      error: positionsResult.error,
+    },
+    {
+      source: "investment_valuations",
+      error: valuationsResult.error,
+    },
+    {
+      source: "investment_distributions",
+      error: distributionsResult.error,
+    },
+    {
+      source: "investor_distributions",
+      error: investorDistributionsResult.error,
+    },
+    {
+      source: "investor_statements",
+      error: statementsResult.error,
+    },
+  ].filter(
+    (
+      item,
+    ) => Boolean(
+      item.error,
+    ),
+  );
 
-  if (
-    loadErrors.length >
-    0
+  for (
+    const item of
+      dashboardErrors
   ) {
     console.error(
-      "Admin dashboard load errors:",
-      loadErrors,
+      `Admin dashboard ${item.source} load error:`,
+      item.error,
     );
   }
 
@@ -232,6 +277,10 @@ export default async function AdminDashboardPage() {
 
   const distributions =
     distributionsResult.data ??
+    [];
+
+  const investorDistributions =
+    investorDistributionsResult.data ??
     [];
 
   const statements =
@@ -450,19 +499,34 @@ export default async function AdminDashboardPage() {
         "paid",
     );
 
+  /*
+   * Cash actually paid to investors.
+   *
+   * Use investor_distributions.net_amount because this
+   * is the proven allocation-level cash field used by
+   * the investor portfolio and distribution pages.
+   */
   const paidDistributionTotal =
-    paidDistributions.reduce(
-      (
-        total,
-        distribution,
-      ) =>
-        total +
-        Number(
-          distribution.total_amount ??
-            0,
-        ),
-      0,
-    );
+    investorDistributions
+      .filter(
+        (
+          allocation,
+        ) =>
+          allocation.status ===
+          "paid",
+      )
+      .reduce(
+        (
+          total,
+          allocation,
+        ) =>
+          total +
+          Number(
+            allocation.net_amount ??
+              0,
+          ),
+        0,
+      );
 
   const draftStatements =
     statements.filter(

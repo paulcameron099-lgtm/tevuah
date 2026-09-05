@@ -15,12 +15,15 @@ import {
   superAdminDashboardNavigation,
 } from "@/src/config/dashboard-navigation";
 
+// import { useUnreadNotificationCount } from "@/src/hooks/use-unread-notification-count";
 import { cn } from "@/src/lib/utils";
 
 type MobileDashboardSidebarProps = {
   open: boolean;
 
   onClose: () => void;
+
+  unreadNotificationCount?: number;
 
   user: {
     first_name: string;
@@ -33,18 +36,22 @@ export function MobileDashboardSidebar({
   open,
   onClose,
   user,
+  unreadNotificationCount = 0,
 }: MobileDashboardSidebarProps) {
   const pathname =
     usePathname();
+
 
   /*
    * Choose navigation according
    * to the logged-in user's role.
    */
   const navigation =
-    user.role === "super_admin"
+    user.role ===
+    "super_admin"
       ? superAdminDashboardNavigation
-      : user.role === "admin"
+      : user.role ===
+          "admin"
         ? adminDashboardNavigation
         : investorDashboardNavigation;
 
@@ -52,8 +59,10 @@ export function MobileDashboardSidebar({
    * Mobile portal label.
    */
   const portalLabel =
-    user.role === "admin" ||
-    user.role === "super_admin"
+    user.role ===
+      "admin" ||
+    user.role ===
+      "super_admin"
       ? "Administration Portal"
       : "Investor Portal";
 
@@ -61,8 +70,10 @@ export function MobileDashboardSidebar({
    * Navigation section title.
    */
   const navigationLabel =
-    user.role === "admin" ||
-    user.role === "super_admin"
+    user.role ===
+      "admin" ||
+    user.role ===
+      "super_admin"
       ? "Administration"
       : "Portfolio";
 
@@ -70,15 +81,19 @@ export function MobileDashboardSidebar({
     <>
       <button
         type="button"
-        onClick={onClose}
-        aria-hidden={!open}
+        onClick={
+          onClose
+        }
+        aria-hidden={
+          !open
+        }
         tabIndex={
           open
             ? 0
             : -1
         }
         className={cn(
-          "fixed inset-0 z-80 bg-forest-950/60 backdrop-blur-sm transition-opacity lg:hidden",
+          "fixed inset-0 z-80 cursor-pointer bg-forest-950/60 backdrop-blur-sm transition-opacity lg:hidden",
 
           open
             ? "pointer-events-auto opacity-100"
@@ -101,6 +116,7 @@ export function MobileDashboardSidebar({
             onClick={
               onClose
             }
+            className="cursor-pointer"
           >
             <p className="font-display text-xl font-semibold">
               Tevuah Reserve
@@ -119,7 +135,7 @@ export function MobileDashboardSidebar({
               onClose
             }
             aria-label="Close navigation"
-            className="flex size-10 items-center justify-center rounded-full border border-white/10 text-white"
+            className="flex size-10 cursor-pointer items-center justify-center rounded-full border border-white/10 text-white"
           >
             <X className="size-5" />
           </button>
@@ -149,6 +165,14 @@ export function MobileDashboardSidebar({
                         item.href,
                       );
 
+                const isNotificationItem =
+                  user.role !==
+                    "admin" &&
+                  user.role !==
+                    "super_admin" &&
+                  item.href ===
+                    "/dashboard/notifications";
+
                 return (
                   <Link
                     key={
@@ -161,7 +185,7 @@ export function MobileDashboardSidebar({
                       onClose
                     }
                     className={cn(
-                      "flex min-h-12 items-center gap-3 rounded-xl px-3.5 text-sm font-medium transition",
+                      "flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-sm font-medium transition",
 
                       active
                         ? "bg-white text-forest-950"
@@ -178,11 +202,25 @@ export function MobileDashboardSidebar({
                       )}
                     />
 
-                    <span>
+                    <span className="min-w-0 flex-1 truncate">
                       {
                         item.label
                       }
                     </span>
+
+                    {isNotificationItem &&
+                    unreadNotificationCount >
+                      0 ? (
+                      <span
+                        aria-label={`${unreadNotificationCount} unread notifications`}
+                        className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-600 px-1.5 text-[0.62rem] font-bold leading-none text-white"
+                      >
+                        {unreadNotificationCount >
+                        99
+                          ? "99+"
+                          : unreadNotificationCount}
+                      </span>
+                    ) : null}
                   </Link>
                 );
               },
@@ -215,7 +253,7 @@ export function MobileDashboardSidebar({
           >
             <button
               type="submit"
-              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm text-white/60 transition hover:bg-red-500/10 hover:text-red-200"
+              className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 text-sm text-white/60 transition hover:bg-red-500/10 hover:text-red-200"
             >
               <LogOut className="size-4" />
 

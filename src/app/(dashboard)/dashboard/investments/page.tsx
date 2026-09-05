@@ -12,6 +12,7 @@ import {
   redirect,
 } from "next/navigation";
 
+import { CashAccountInvestmentForm } from "@/src/components/investments/cash-account-investment-form";
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 
@@ -100,6 +101,102 @@ export default async function MyInvestmentsPage() {
   const records =
     subscriptions ??
     [];
+
+  /*
+   * --------------------------------------------------
+   * 2B. LOAD CASH ACCOUNT + EXISTING PAYMENTS
+   * --------------------------------------------------
+   */
+  const [
+    cashAccountResult,
+    paymentsResult,
+  ] = await Promise.all([
+    admin
+      .from(
+        "investor_cash_accounts",
+      )
+      .select(
+        `
+        available_balance_cents,
+        currency,
+        status
+        `,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .eq(
+        "currency",
+        "USD",
+      )
+      .maybeSingle(),
+
+    admin
+      .from(
+        "investment_payments",
+      )
+      .select(
+        `
+        id,
+        subscription_id,
+        status
+        `,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      ),
+  ]);
+
+  if (
+    cashAccountResult.error
+  ) {
+    console.error(
+      "Investor cash account load error:",
+      cashAccountResult.error,
+    );
+  }
+
+  if (
+    paymentsResult.error
+  ) {
+    console.error(
+      "Investor payments load error:",
+      paymentsResult.error,
+    );
+  }
+
+  const cashAccount =
+    cashAccountResult.data;
+
+  const activePaymentSubscriptionIds =
+    new Set(
+      (
+        paymentsResult.data ??
+        []
+      )
+        .filter(
+          (
+            payment,
+          ) =>
+            payment.status ===
+              "pending" ||
+            payment.status ===
+              "reported" ||
+            payment.status ===
+              "verified",
+        )
+        .map(
+          (
+            payment,
+          ) =>
+            payment.subscription_id,
+        )
+        .filter(
+          Boolean,
+        ),
+    );
 
   const submittedCount =
     records.filter(
@@ -318,6 +415,53 @@ export default async function MyInvestmentsPage() {
                               {
                                 subscription.rejection_reason
                               }
+                            </p>
+                          </div>
+                        ) : null}
+
+                        {subscription.status ===
+                          "approved" &&
+                        cashAccount &&
+                        cashAccount.status ===
+                          "active" &&
+                        !activePaymentSubscriptionIds.has(
+                          subscription.id,
+                        ) ? (
+                          <div className="mt-6">
+                            <CashAccountInvestmentForm
+                              subscriptionId={
+                                subscription.id
+                              }
+                              commitmentAmountCents={
+                                Number(
+                                  subscription.commitment_amount,
+                                )
+                              }
+                              availableBalanceCents={
+                                Number(
+                                  cashAccount.available_balance_cents,
+                                )
+                              }
+                              currency={
+                                cashAccount.currency
+                              }
+                            />
+                          </div>
+                        ) : null}
+
+                        {subscription.status ===
+                          "approved" &&
+                        activePaymentSubscriptionIds.has(
+                          subscription.id,
+                        ) ? (
+                          <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
+                              Funding already submitted
+                            </p>
+
+                            <p className="mt-2 text-sm leading-6 text-emerald-900">
+                              A payment already exists for this approved subscription.
+                              Open the subscription to review its funding status.
                             </p>
                           </div>
                         ) : null}
