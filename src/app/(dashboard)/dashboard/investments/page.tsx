@@ -185,6 +185,10 @@ export default async function MyInvestmentsPage() {
             payment.status ===
               "reported" ||
             payment.status ===
+              "payment_reported" ||
+            payment.status ===
+              "pending_verification" ||
+            payment.status ===
               "verified",
         )
         .map(
@@ -194,7 +198,13 @@ export default async function MyInvestmentsPage() {
             payment.subscription_id,
         )
         .filter(
-          Boolean,
+          (
+            subscriptionId,
+          ): subscriptionId is string =>
+            typeof subscriptionId ===
+              "string" &&
+            subscriptionId.length >
+              0,
         ),
     );
 
@@ -443,7 +453,8 @@ export default async function MyInvestmentsPage() {
                                 )
                               }
                               currency={
-                                cashAccount.currency
+                                cashAccount.currency ??
+                                "USD"
                               }
                             />
                           </div>

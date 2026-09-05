@@ -8,6 +8,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  PiggyBank,
   ShieldCheck,
   UserRound,
 } from "lucide-react";
@@ -390,6 +391,15 @@ export default async function AdminInvestorDetailPage({
             <AdminInvestorCashAccountButton
               investorId={profile.id}
             />
+
+            <Link
+              href={`/admin/investors/${userId}/retirement-accounts`}
+              className="focus-ring inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-forest-900/10 bg-white px-5 text-sm font-semibold text-forest-950 transition hover:bg-ivory-50"
+            >
+              <PiggyBank className="size-4" />
+
+              Retirement accounts
+            </Link>
 
             <Link
               href={`/admin/compliance/${userId}`}

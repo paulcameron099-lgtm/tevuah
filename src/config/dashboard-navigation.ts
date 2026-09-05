@@ -13,9 +13,11 @@ import {
   ClipboardCheck,
   Landmark,
   HandCoins,
+  History,
   FileBarChart,
   FolderOpen,
   Banknote,
+  PiggyBank,
   type LucideIcon,
 } from "lucide-react";
 
@@ -57,6 +59,12 @@ export const investorDashboardNavigation: DashboardNavigationItem[] = [
   },
 
   {
+    label: "Retirement Accounts",
+    href: "/dashboard/retirement-accounts",
+    icon: PiggyBank,
+  },
+
+  {
     label: "Distributions",
     href: "/dashboard/distributions",
     icon: HandCoins,
@@ -72,6 +80,12 @@ export const investorDashboardNavigation: DashboardNavigationItem[] = [
     label: "Documents",
     href: "/dashboard/documents",
     icon: FolderOpen,
+  },
+
+  {
+    label: "Activity",
+    href: "/dashboard/activity",
+    icon: History,
   },
 
   {
