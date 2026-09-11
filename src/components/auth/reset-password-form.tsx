@@ -1,39 +1,71 @@
 "use client";
 
 import Link from "next/link";
+
 import {
   Eye,
   EyeOff,
   Loader2,
   ShieldCheck,
 } from "lucide-react";
+
 import {
   useRouter,
 } from "next/navigation";
-import { useState } from "react";
 
-import { createClient } from "@/src/lib/supabase/client";
+import {
+  useState,
+} from "react";
 
-export function ResetPasswordForm() {
-  const router = useRouter();
-  const supabase = createClient();
+type ResetPasswordFormProps = {
+  mode?: "create" | "reset";
+};
 
-  const [password, setPassword] =
+export function ResetPasswordForm({
+  mode = "reset",
+}: ResetPasswordFormProps) {
+  const router =
+    useRouter();
+
+  const isCreateMode =
+    mode === "create";
+
+  const [
+    password,
+    setPassword,
+  ] =
     useState("");
 
-  const [confirmPassword, setConfirmPassword] =
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] =
     useState("");
 
-  const [showPassword, setShowPassword] =
+  const [
+    showPassword,
+    setShowPassword,
+  ] =
     useState(false);
 
-  const [loading, setLoading] =
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(false);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [
+    error,
+    setError,
+  ] =
+    useState<string | null>(
+      null,
+    );
 
-  const [success, setSuccess] =
+  const [
+    success,
+    setSuccess,
+  ] =
     useState(false);
 
   async function handleSubmit(
@@ -41,17 +73,25 @@ export function ResetPasswordForm() {
   ) {
     event.preventDefault();
 
-    setError(null);
+    setError(
+      null,
+    );
 
-    if (password.length < 8) {
+    if (
+      password.length <
+      8
+    ) {
       setError(
-        "Your new password must be at least 8 characters.",
+        "Your password must be at least 8 characters.",
       );
 
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (
+      password !==
+      confirmPassword
+    ) {
       setError(
         "The passwords you entered do not match.",
       );
@@ -59,30 +99,94 @@ export function ResetPasswordForm() {
       return;
     }
 
-    setLoading(true);
+    setLoading(
+      true,
+    );
 
-    const {
-      error: updateError,
-    } = await supabase.auth.updateUser({
-      password,
-    });
+    try {
+      const response =
+        await fetch(
+          "/api/auth/set-password",
+          {
+            method:
+              "POST",
 
-    if (updateError) {
-      setError(updateError.message);
-      setLoading(false);
-      return;
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            credentials:
+              "same-origin",
+
+            body:
+              JSON.stringify({
+                password,
+                confirmPassword,
+              }),
+          },
+        );
+
+      const result =
+        (await response.json()) as {
+          success?: boolean;
+          email?: string | null;
+          error?: string;
+        };
+
+      if (
+        !response.ok ||
+        !result.success
+      ) {
+        setError(
+          result.error ??
+            "Unable to save your password.",
+        );
+
+        return;
+      }
+
+      setSuccess(
+        true,
+      );
+
+      /*
+       * The hardened server route:
+       *
+       * 1. verifies the activation identity
+       * 2. changes the password
+       * 3. destroys the activation authorization
+       * 4. locally signs out the temporary activation session
+       *
+       * The user must then prove the new credential
+       * through the normal login screen.
+       */
+      window.setTimeout(
+        () => {
+          router.replace(
+            isCreateMode
+              ? "/login?account=activated"
+              : "/login?password=updated",
+          );
+
+          router.refresh();
+        },
+        1200,
+      );
+    } catch {
+      setError(
+        "Unable to save your password. Please try again.",
+      );
+    } finally {
+      setLoading(
+        false,
+      );
     }
-
-    setSuccess(true);
-    setLoading(false);
-
-    window.setTimeout(() => {
-      router.replace("/dashboard");
-      router.refresh();
-    }, 1200);
   }
 
-  if (success) {
+  if (
+    success
+  ) {
     return (
       <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
         <span className="flex size-11 items-center justify-center rounded-full bg-emerald-700 text-white">
@@ -90,12 +194,15 @@ export function ResetPasswordForm() {
         </span>
 
         <h2 className="font-display mt-5 text-2xl font-semibold text-forest-950">
-          Password updated.
+          {isCreateMode
+            ? "Account activated."
+            : "Password updated."}
         </h2>
 
         <p className="mt-3 text-sm leading-7 text-stone-700">
-          Your password has been changed successfully.
-          You’re being redirected to your investor dashboard.
+          {isCreateMode
+            ? "Your Tevuah Reserve investor account password has been created successfully. You’re being redirected to sign in."
+            : "Your Tevuah Reserve password has been updated successfully. You’re being redirected to sign in."}
         </p>
       </div>
     );
@@ -103,7 +210,9 @@ export function ResetPasswordForm() {
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={
+        handleSubmit
+      }
       className="space-y-6"
     >
       {error ? (
@@ -112,55 +221,98 @@ export function ResetPasswordForm() {
         </div>
       ) : null}
 
+      {isCreateMode ? (
+        <div className="rounded-xl border border-forest-900/10 bg-ivory-100 p-4">
+          <p className="text-sm leading-6 text-stone-700">
+            Your invitation has been verified.
+            Create a secure password to activate
+            your investor account.
+          </p>
+        </div>
+      ) : null}
+
       <PasswordField
-        label="New password"
-        value={password}
-        showPassword={showPassword}
-        onChange={setPassword}
+        label={
+          isCreateMode
+            ? "Create password"
+            : "New password"
+        }
+        value={
+          password
+        }
+        showPassword={
+          showPassword
+        }
+        onChange={
+          setPassword
+        }
         onToggle={() =>
           setShowPassword(
-            (current) => !current,
+            (
+              current,
+            ) =>
+              !current,
           )
         }
       />
 
       <PasswordField
-        label="Confirm new password"
-        value={confirmPassword}
-        showPassword={showPassword}
-        onChange={setConfirmPassword}
+        label={
+          isCreateMode
+            ? "Confirm password"
+            : "Confirm new password"
+        }
+        value={
+          confirmPassword
+        }
+        showPassword={
+          showPassword
+        }
+        onChange={
+          setConfirmPassword
+        }
         onToggle={() =>
           setShowPassword(
-            (current) => !current,
+            (
+              current,
+            ) =>
+              !current,
           )
         }
       />
 
       <div className="rounded-xl border border-forest-900/10 bg-ivory-100 p-4">
         <p className="text-xs leading-6 text-stone-600">
-          Use at least 8 characters. A longer,
-          unique password is strongly recommended.
+          Use at least 8 characters.
+          A longer, unique password is strongly recommended.
         </p>
       </div>
 
       <button
         type="submit"
-        disabled={loading}
-        className="flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-forest-950 px-6 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:opacity-60"
+        disabled={
+          loading
+        }
+        className="flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-6 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? (
           <>
             <Loader2 className="size-4 animate-spin" />
-            Updating password...
+
+            {isCreateMode
+              ? "Creating password..."
+              : "Updating password..."}
           </>
+        ) : isCreateMode ? (
+          "Create password"
         ) : (
-          "Update password"
+          "Reset password"
         )}
       </button>
 
       <Link
         href="/login"
-        className="focus-ring mx-auto block w-fit rounded-md text-sm font-semibold text-forest-950 underline-offset-4 hover:underline"
+        className="focus-ring mx-auto block w-fit cursor-pointer rounded-md text-sm font-semibold text-forest-950 underline-offset-4 hover:underline"
       >
         Return to sign in
       </Link>
@@ -172,7 +324,11 @@ type PasswordFieldProps = {
   label: string;
   value: string;
   showPassword: boolean;
-  onChange: (value: string) => void;
+
+  onChange: (
+    value: string,
+  ) => void;
+
   onToggle: () => void;
 };
 
@@ -198,22 +354,30 @@ function PasswordField({
           }
           required
           autoComplete="new-password"
-          value={value}
-          onChange={(event) =>
-            onChange(event.target.value)
+          value={
+            value
+          }
+          onChange={(
+            event,
+          ) =>
+            onChange(
+              event.target.value,
+            )
           }
           className="focus-ring min-h-13 w-full rounded-xl border border-forest-900/10 bg-white px-4 pr-12 text-sm text-forest-950 outline-none"
         />
 
         <button
           type="button"
-          onClick={onToggle}
+          onClick={
+            onToggle
+          }
           aria-label={
             showPassword
               ? "Hide password"
               : "Show password"
           }
-          className="absolute right-3 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-stone-500 transition hover:bg-ivory-100 hover:text-forest-950"
+          className="absolute right-3 top-1/2 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-stone-500 transition hover:bg-ivory-100 hover:text-forest-950"
         >
           {showPassword ? (
             <EyeOff className="size-4" />

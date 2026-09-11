@@ -64,26 +64,42 @@ export function RetirementPlaidOAuthResume() {
           "tevuah_retirement_plaid_account_id",
         );
 
-      if (
-        !savedToken ||
-        !savedAccountId
-      ) {
-        setError(
-          "The secure institution session could not be resumed. Return to Retirement Accounts and start the connection again.",
-        );
-        return;
-      }
+      const currentUrl =
+        window.location.href;
 
-      setLinkToken(
-        savedToken,
-      );
+      /*
+       * React's set-state-in-effect lint rule rejects
+       * synchronous state updates directly inside an effect.
+       *
+       * localStorage is an external browser system, so we read
+       * it inside the effect, then schedule the React state
+       * synchronization for the next microtask.
+       */
+      queueMicrotask(
+        () => {
+          if (
+            !savedToken ||
+            !savedAccountId
+          ) {
+            setError(
+              "The secure institution session could not be resumed. Return to Retirement Accounts and start the connection again.",
+            );
 
-      setAccountId(
-        savedAccountId,
-      );
+            return;
+          }
 
-      setReceivedRedirectUri(
-        window.location.href,
+          setLinkToken(
+            savedToken,
+          );
+
+          setAccountId(
+            savedAccountId,
+          );
+
+          setReceivedRedirectUri(
+            currentUrl,
+          );
+        },
       );
     },
     [],
@@ -101,6 +117,7 @@ export function RetirementPlaidOAuthResume() {
         setError(
           "Retirement account session is missing.",
         );
+
         return;
       }
 
@@ -115,6 +132,7 @@ export function RetirementPlaidOAuthResume() {
         setError(
           "Please select exactly one retirement account.",
         );
+
         return;
       }
 
@@ -158,12 +176,14 @@ export function RetirementPlaidOAuthResume() {
             result.error ||
               "Unable to complete secure institution connection.",
           );
+
           return;
         }
 
         window.localStorage.removeItem(
           "tevuah_retirement_plaid_link_token",
         );
+
         window.localStorage.removeItem(
           "tevuah_retirement_plaid_account_id",
         );
@@ -173,7 +193,9 @@ export function RetirementPlaidOAuthResume() {
         );
 
         router.refresh();
-      } catch (requestError) {
+      } catch (
+        requestError
+      ) {
         console.error(
           "Retirement OAuth exchange error:",
           requestError,

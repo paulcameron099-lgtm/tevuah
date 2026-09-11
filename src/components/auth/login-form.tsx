@@ -12,6 +12,7 @@ import {
 } from "react";
 
 import { createClient } from "@/src/lib/supabase/client";
+import { InvestorAccessLoginNotice } from "@/src/components/auth/investor-access-login-notice";
 
 export function LoginForm() {
   const router = useRouter();
@@ -152,16 +153,7 @@ export function LoginForm() {
           "Sign in"
         )}
       </button>
-
-      <p className="text-center text-sm text-stone-600">
-        Don&apos;t have an account?{" "}
-        <Link
-          href="/register"
-          className="font-semibold text-forest-950 underline underline-offset-4"
-        >
-          Create investor account
-        </Link>
-      </p>
+      <InvestorAccessLoginNotice />
     </form>
   );
 }

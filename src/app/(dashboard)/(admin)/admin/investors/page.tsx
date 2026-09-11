@@ -5,6 +5,7 @@ import {
 import { InvestorDirectory } from "@/src/components/admin/investors/investor-directory";
 import { requireAdmin } from "@/src/lib/auth/require-admin";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+import { AdminCreateInvestorButton } from "@/src/components/admin/investors/admin-create-investor-button";
 
 /*
  * Supabase Auth users are paginated.
@@ -385,16 +386,20 @@ export default async function AdminInvestorsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3 rounded-full border border-forest-900/10 bg-white px-4 py-2">
-          <Users className="size-4 text-gold-600" />
+        <div className="flex items-center gap-3">
+  <div className="flex items-center gap-3 rounded-full border border-forest-900/10 bg-white px-4 py-2">
+    <Users className="size-4 text-gold-600" />
 
-          <span className="text-sm font-semibold text-forest-950">
-            {totalInvestors}{" "}
-            {totalInvestors === 1
-              ? "Investor"
-              : "Investors"}
-          </span>
-        </div>
+    <span className="text-sm font-semibold text-forest-950">
+      {totalInvestors}{" "}
+      {totalInvestors === 1
+        ? "Investor"
+        : "Investors"}
+    </span>
+  </div>
+
+  <AdminCreateInvestorButton />
+</div>
       </div>
 
       {/* ==========================================
