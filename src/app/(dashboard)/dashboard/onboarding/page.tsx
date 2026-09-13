@@ -10,6 +10,7 @@ import {
 import { redirect } from "next/navigation";
 
 import { Button } from "@/src/components/ui/button";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 import { createClient } from "@/src/lib/supabase/server";
 
 type StatusItem = {
@@ -18,13 +19,6 @@ type StatusItem = {
   status: string;
 };
 
-/*
- * Convert database status values such as:
- *
- * under_review -> Under Review
- * not_started  -> Not Started
- * approved     -> Approved
- */
 function humanizeStatus(
   value: string | null | undefined,
 ) {
@@ -39,35 +33,29 @@ function humanizeStatus(
     );
 }
 
-/*
- * Convert editable section database keys
- * into labels that make sense to investors.
- */
 function sectionLabel(
   section: string,
 ) {
-  const labels: Record<
-    string,
-    string
-  > = {
-    profile:
-      "Personal Information",
+  const labels:
+    Record<string, string> = {
+      profile:
+        "Personal Information",
 
-    identity:
-      "Identity Verification",
+      identity:
+        "Identity Verification",
 
-    address:
-      "Address Verification",
+      address:
+        "Address Verification",
 
-    eligibility:
-      "Investor Eligibility",
+      eligibility:
+        "Investor Eligibility",
 
-    suitability:
-      "Suitability Assessment",
+      suitability:
+        "Suitability Assessment",
 
-    tax:
-      "Tax & IRS Certification",
-  };
+      tax:
+        "Tax & IRS Certification",
+    };
 
   return (
     labels[section] ??
@@ -75,35 +63,29 @@ function sectionLabel(
   );
 }
 
-/*
- * Convert editable section database keys
- * into their onboarding page URLs.
- */
 function sectionHref(
   section: string,
 ) {
-  const routes: Record<
-    string,
-    string
-  > = {
-    profile:
-      "/dashboard/onboarding/profile",
+  const routes:
+    Record<string, string> = {
+      profile:
+        "/dashboard/onboarding/profile",
 
-    identity:
-      "/dashboard/onboarding/identity",
+      identity:
+        "/dashboard/onboarding/identity",
 
-    address:
-      "/dashboard/onboarding/address",
+      address:
+        "/dashboard/onboarding/address",
 
-    eligibility:
-      "/dashboard/onboarding/eligibility",
+      eligibility:
+        "/dashboard/onboarding/eligibility",
 
-    suitability:
-      "/dashboard/onboarding/suitability",
+      suitability:
+        "/dashboard/onboarding/suitability",
 
-    tax:
-      "/dashboard/onboarding/tax",
-  };
+      tax:
+        "/dashboard/onboarding/tax",
+    };
 
   return (
     routes[section] ??
@@ -111,13 +93,11 @@ function sectionHref(
   );
 }
 
+
 export default async function InvestorOnboardingPage() {
   /*
-   * --------------------------------------------------
-   * 1. AUTHENTICATE INVESTOR
-   * --------------------------------------------------
+   * 1. Authenticate investor.
    */
-
   const supabase =
     await createClient();
 
@@ -134,18 +114,16 @@ export default async function InvestorOnboardingPage() {
   }
 
   /*
-   * --------------------------------------------------
-   * 2. LOAD PROFILE + ONBOARDING PROGRESS
-   * --------------------------------------------------
+   * 2. Load profile + onboarding progress.
    */
+  const admin =
+    createAdminClient();
 
   const [
     profileResult,
     onboardingResult,
+    complianceResult,
   ] = await Promise.all([
-    /*
-     * Investor profile/status information.
-     */
     supabase
       .from("profiles")
       .select(
@@ -163,15 +141,6 @@ export default async function InvestorOnboardingPage() {
       )
       .maybeSingle(),
 
-    /*
-     * Investor onboarding progress.
-     *
-     * editable_sections contains the
-     * sections reopened by compliance.
-     *
-     * unlock_reason contains the reason
-     * supplied by compliance.
-     */
     supabase
       .from(
         "investor_onboarding",
@@ -196,14 +165,25 @@ export default async function InvestorOnboardingPage() {
         userId,
       )
       .maybeSingle(),
+
+    admin
+      .from(
+        "compliance_reviews",
+      )
+      .select(
+        `
+        status,
+        action_required_reason,
+        rejection_reason
+        `,
+      )
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle(),
   ]);
 
-  /*
-   * Log database errors during development.
-   *
-   * We don't crash the entire page because
-   * the UI can still render sensible defaults.
-   */
   if (profileResult.error) {
     console.error(
       "Onboarding profile load error:",
@@ -218,41 +198,41 @@ export default async function InvestorOnboardingPage() {
     );
   }
 
+  if (complianceResult.error) {
+    console.error(
+      "Onboarding compliance load error:",
+      complianceResult.error,
+    );
+  }
+
   const profile =
     profileResult.data;
 
   const onboarding =
     onboardingResult.data;
 
-  /*
-   * --------------------------------------------------
-   * 3. READ REOPENED SECTIONS
-   * --------------------------------------------------
-   */
+  const compliance =
+    complianceResult.data;
 
-  const editableSections:
-    string[] =
-    Array.isArray(
-      onboarding?.editable_sections,
-    )
-      ? onboarding.editable_sections
-      : [];
+  const editableSections =
+  onboarding?.editable_sections ??
+  [];
 
-  const unlockReason =
-    typeof onboarding?.unlock_reason ===
-    "string"
-      ? onboarding.unlock_reason
-      : null;
+  const actionRequiredReason =
+    compliance?.action_required_reason ??
+    onboarding?.unlock_reason ??
+    null;
+
+  const rejectionReason =
+    compliance?.rejection_reason ??
+    null;
 
   /*
-   * --------------------------------------------------
-   * 4. DETERMINE FINAL ONBOARDING STATUS
-   * --------------------------------------------------
+   * IMPORTANT:
    *
-   * profiles.onboarding_status is our main
-   * source for the investor's final status.
+   * Final investor approval is represented by
+   * profiles.onboarding_status = "approved".
    */
-
   const onboardingStatus =
     profile?.onboarding_status ??
     "not_started";
@@ -279,11 +259,8 @@ export default async function InvestorOnboardingPage() {
     );
 
   /*
-   * --------------------------------------------------
-   * 5. BUILD ONBOARDING CHECKLIST
-   * --------------------------------------------------
+   * 3. Build real onboarding status list.
    */
-
   const items: StatusItem[] = [
     {
       title:
@@ -377,20 +354,14 @@ export default async function InvestorOnboardingPage() {
   ];
 
   /*
-   * --------------------------------------------------
-   * 6. DETERMINE MAIN BUTTON
-   * --------------------------------------------------
+   * 4. Decide button destination/text.
    */
-
   let actionHref =
     "/dashboard/onboarding/profile";
 
   let actionLabel =
     "Begin onboarding";
 
-  /*
-   * Normal onboarding progress.
-   */
   if (
     onboarding?.current_step
   ) {
@@ -401,9 +372,6 @@ export default async function InvestorOnboardingPage() {
       "Continue onboarding";
   }
 
-  /*
-   * Submitted package.
-   */
   if (
     onboarding?.submitted_at
   ) {
@@ -414,9 +382,6 @@ export default async function InvestorOnboardingPage() {
       "View submitted onboarding";
   }
 
-  /*
-   * Approved investor.
-   */
   if (isApproved) {
     actionHref =
       "/dashboard/onboarding/review";
@@ -425,45 +390,32 @@ export default async function InvestorOnboardingPage() {
       "View verification details";
   }
 
-  /*
-   * If compliance requested changes,
-   * send the investor directly to the
-   * first reopened section.
-   */
-  if (
-    isActionRequired &&
-    editableSections.length > 0
-  ) {
+  if (isActionRequired) {
     actionHref =
-      sectionHref(
-        editableSections[0],
-      );
+      "/dashboard/onboarding/review";
 
     actionLabel =
-      "Update requested information";
+      "Review requested updates";
   }
 
-  /*
-   * --------------------------------------------------
-   * 7. RENDER PAGE
-   * --------------------------------------------------
-   */
+  if (isRejected) {
+    actionHref =
+      "/dashboard/onboarding/review";
+
+    actionLabel =
+      "View compliance decision";
+  }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-      {/* ==========================================
-          MAIN ONBOARDING PANEL
-      ========================================== */}
-
       <div className="rounded-[1.75rem] border border-forest-900/10 bg-white p-7 sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
           Onboarding status
         </p>
 
-        {/* ========================================
-            APPROVED
-        ======================================== */}
-
+        {/*
+         * APPROVED
+         */}
         {isApproved ? (
           <>
             <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
@@ -477,18 +429,12 @@ export default async function InvestorOnboardingPage() {
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">
-              Your investor onboarding and
-              verification information have been
-              reviewed and approved by the Tevuah
-              Reserve compliance team.
+              Your investor onboarding and verification
+              information have been reviewed and approved
+              by the Tevuah Reserve compliance team.
             </p>
           </>
         ) : isUnderReview ? (
-          /*
-           * ========================================
-           * UNDER REVIEW
-           * ========================================
-           */
           <>
             <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
               <Clock3 className="size-4" />
@@ -507,11 +453,6 @@ export default async function InvestorOnboardingPage() {
             </p>
           </>
         ) : isActionRequired ? (
-          /*
-           * ========================================
-           * ACTION REQUIRED
-           * ========================================
-           */
           <>
             <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700">
               <TriangleAlert className="size-4" />
@@ -524,97 +465,62 @@ export default async function InvestorOnboardingPage() {
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">
-              The compliance team has requested
-              changes to your onboarding
-              information. Update only the sections
-              listed below and resubmit them for
-              review.
+              The compliance team has requested an
+              update to your onboarding information.
+              Review the requested section and submit
+              the required changes.
             </p>
 
-            {/* Reopened sections */}
+            {editableSections.length > 0 ? (
+            <div className="mt-6 rounded-[1.25rem] border border-red-200 bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-red-700">
+                Sections requiring updates
+              </p>
 
-            {editableSections.length >
-            0 ? (
-              <div className="mt-6 rounded-[1.25rem] border border-red-200 bg-red-50/40 p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-red-700">
-                  Sections requiring updates
-                </p>
-
-                <div className="mt-4 space-y-3">
-                  {editableSections.map(
-                    (
-                      section,
-                    ) => (
-                      <Button
-                        key={
-                          section
-                        }
-                        href={sectionHref(
-                          section,
-                        )}
-                        variant="secondary"
-                        className="w-full justify-between"
-                      >
-                        <span>
-                          {sectionLabel(
-                            section,
-                          )}
-                        </span>
-
-                        <span className="flex items-center gap-2">
-                          <span className="text-xs">
-                            Edit
-                          </span>
-
-                          <ArrowRight className="size-4" />
-                        </span>
-                      </Button>
-                    ),
+        <div className="mt-4 space-y-3">
+          {editableSections.map(
+            (section: string) => (
+              <Button
+                key={section}
+                href={sectionHref(
+                  section,
+                )}
+                variant="secondary"
+                className="w-full justify-between"
+              >
+                <span>
+                  {sectionLabel(
+                    section,
                   )}
-                </div>
+                </span>
 
-                {/* Compliance reason */}
+                <span className="flex items-center gap-2">
+                  <span className="text-xs">
+                    Edit
+                  </span>
 
-                {unlockReason ? (
-                  <div className="mt-5 border-t border-red-100 pt-4">
-                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-stone-400">
-                      Compliance guidance
-                    </p>
+                  <ArrowRight className="size-4" />
+                </span>
+              </Button>
+            ),
+          )}
+        </div>
 
-                    <p className="mt-2 text-sm leading-7 text-stone-600">
-                      {
-                        unlockReason
-                      }
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              /*
-               * Fallback in case the status says
-               * action_required but no sections
-               * were stored.
-               */
-              <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                <p className="text-sm font-semibold text-amber-900">
-                  Compliance update pending
-                </p>
+        {actionRequiredReason ? (
+          <div className="mt-5 border-t border-red-100 pt-4">
+            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-stone-400">
+              Compliance guidance
+            </p>
 
-                <p className="mt-1 text-xs leading-6 text-amber-800">
-                  Your account requires additional
-                  information, but no editable
-                  onboarding section has been
-                  assigned yet.
-                </p>
-              </div>
-            )}
+            <p className="mt-2 text-sm leading-7 text-stone-600">
+              {actionRequiredReason}
+            </p>
+          </div>
+        ) : null}
+      </div>
+    ) : null}
           </>
         ) : isRejected ? (
-          /*
-           * ========================================
-           * REJECTED
-           * ========================================
-           */
           <>
             <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700">
               <TriangleAlert className="size-4" />
@@ -623,44 +529,50 @@ export default async function InvestorOnboardingPage() {
             </div>
 
             <h2 className="font-display mt-5 text-3xl font-semibold text-forest-950">
-              Your investor verification requires
-              review.
+              Your investor verification requires review.
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">
-              Your current verification submission
-              was not approved. Additional guidance
-              will be provided through your account.
+              Your current verification submission was not approved.
+              The reason recorded by the compliance team is shown below.
             </p>
+
+            {rejectionReason ? (
+              <div className="mt-6 rounded-[1.25rem] border border-red-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-red-700">
+                  Reason for decision
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-red-900">
+                  {rejectionReason}
+                </p>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-[1.25rem] border border-red-200 bg-white p-5">
+                <p className="text-sm leading-7 text-red-900">
+                  No rejection reason is currently available in the onboarding record.
+                  Contact Tevuah Reserve for assistance.
+                </p>
+              </div>
+            )}
           </>
         ) : (
-          /*
-           * ========================================
-           * NOT STARTED / IN PROGRESS
-           * ========================================
-           */
           <>
             <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-              Your investor account is not yet
-              verified.
+              Your investor account is not yet verified.
             </h2>
 
             <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">
-              Complete each onboarding stage so
-              Tevuah Reserve can determine which
-              investment opportunities may be
-              available to your account.
+              Complete each onboarding stage so Tevuah
+              Reserve can determine which investment
+              opportunities may be available to your
+              account.
             </p>
           </>
         )}
 
-        {/* ==========================================
-            LOCKED NOTICE
-        ========================================== */}
-
         {isLocked &&
-        !isApproved &&
-        !isActionRequired ? (
+        !isApproved ? (
           <div className="mt-6 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
             <LockKeyhole className="mt-0.5 size-4 shrink-0 text-amber-700" />
 
@@ -670,17 +582,15 @@ export default async function InvestorOnboardingPage() {
               </p>
 
               <p className="mt-1 text-xs leading-6 text-amber-800">
-                Your submitted information is locked
-                while compliance review is in
-                progress.
+                {isActionRequired
+                  ? "Your submitted onboarding remains locked overall. Only the sections listed in the compliance request are available for correction."
+                  : isRejected
+                    ? "Your onboarding package is locked after the compliance decision. An administrator must explicitly reopen selected sections before you can edit and resubmit."
+                    : "Your submitted information is locked while compliance review is in progress."}
               </p>
             </div>
           </div>
         ) : null}
-
-        {/* ==========================================
-            ONBOARDING CHECKLIST
-        ========================================== */}
 
         <div className="mt-8 space-y-3">
           {items.map(
@@ -705,7 +615,8 @@ export default async function InvestorOnboardingPage() {
                     {item.completed ? (
                       <CheckCircle2 className="size-4" />
                     ) : (
-                      index + 1
+                      index +
+                      1
                     )}
                   </span>
 
@@ -734,12 +645,10 @@ export default async function InvestorOnboardingPage() {
           )}
         </div>
 
-        {/* ==========================================
-            MAIN ACTION BUTTON
-        ========================================== */}
-
         <Button
-          href={actionHref}
+          href={
+            actionHref
+          }
           size="lg"
           className="mt-8"
         >
@@ -748,10 +657,6 @@ export default async function InvestorOnboardingPage() {
           <ArrowRight className="size-4" />
         </Button>
       </div>
-
-      {/* ==========================================
-          RIGHT SIDEBAR
-      ========================================== */}
 
       <aside className="rounded-[1.75rem] bg-forest-950 p-7 text-white">
         <ShieldCheck className="size-6 text-gold-400" />
@@ -774,11 +679,11 @@ export default async function InvestorOnboardingPage() {
             "Suitability review",
             "Tax documentation",
           ].map(
-            (
-              item,
-            ) => (
+            (item) => (
               <div
-                key={item}
+                key={
+                  item
+                }
                 className="flex items-center gap-3 text-sm text-white/70"
               >
                 <CheckCircle2 className="size-4 text-gold-400" />
@@ -791,4 +696,4 @@ export default async function InvestorOnboardingPage() {
       </aside>
     </div>
   );
-} 
+}

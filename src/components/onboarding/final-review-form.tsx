@@ -66,7 +66,49 @@ type FinalReviewFormProps = {
     | null;
 
   onboardingStatus: string;
+
+  editableSections: string[];
+
+  actionRequiredReason?:
+    | string
+    | null;
+
+  rejectionReason?:
+    | string
+    | null;
 };
+
+
+function requestedSectionLabel(
+  section: string,
+) {
+  const labels:
+    Record<string, string> = {
+      profile:
+        "Personal Information",
+      identity:
+        "Identity Verification",
+      address:
+        "Address Verification",
+      eligibility:
+        "Investor Eligibility",
+      suitability:
+        "Suitability Assessment",
+      tax:
+        "Tax & IRS Certification",
+    };
+
+  return (
+    labels[section] ??
+    section
+      .replaceAll("_", " ")
+      .replace(
+        /\b\w/g,
+        (letter) =>
+          letter.toUpperCase(),
+      )
+  );
+}
 
 export function FinalReviewForm({
   investorName,
@@ -76,6 +118,9 @@ export function FinalReviewForm({
   alreadySubmitted,
   submittedAt,
   onboardingStatus,
+  editableSections,
+  actionRequiredReason,
+  rejectionReason,
 }: FinalReviewFormProps) {
   /*
    * --------------------------------------------------
@@ -375,11 +420,48 @@ export function FinalReviewForm({
               </h2>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
-                The compliance team requested updates
-                to your onboarding information. Fix
-                the incomplete or reopened sections
-                below and submit the package again.
+                The compliance team requested specific corrections to your onboarding information.
+                Only the sections listed below are available for editing.
               </p>
+
+              <div className="mt-6 rounded-2xl border border-red-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-red-700">
+                  Sections requiring updates
+                </p>
+
+                {editableSections.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {editableSections.map(
+                      (section) => (
+                        <span
+                          key={section}
+                          className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-800"
+                        >
+                          {requestedSectionLabel(
+                            section,
+                          )}
+                        </span>
+                      ),
+                    )}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-red-800">
+                    No correction section is currently listed. Contact Tevuah Reserve before resubmitting.
+                  </p>
+                )}
+
+                {actionRequiredReason ? (
+                  <div className="mt-5 border-t border-red-100 pt-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
+                      Compliance reason
+                    </p>
+
+                    <p className="mt-2 text-sm leading-7 text-red-900">
+                      {actionRequiredReason}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
             </section>
           ) : isRejected ? (
             /*
@@ -397,10 +479,21 @@ export function FinalReviewForm({
               </h2>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
-                Review any guidance provided by the
-                Tevuah Reserve compliance team before
-                taking further action.
+                Your onboarding package remains locked after this decision.
+                If Tevuah Reserve later permits another correction cycle,
+                an administrator must explicitly reopen selected sections.
               </p>
+
+              <div className="mt-6 rounded-2xl border border-red-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-red-700">
+                  Reason for decision
+                </p>
+
+                <p className="mt-3 text-sm leading-7 text-red-900">
+                  {rejectionReason ??
+                    "No rejection reason is currently available in the onboarding record. Contact Tevuah Reserve for assistance."}
+                </p>
+              </div>
             </section>
           ) : null}
         </>
@@ -585,6 +678,21 @@ export function FinalReviewForm({
                 section={
                   section
                 }
+                canEdit={
+                  !alreadySubmitted ||
+                  (
+                    isActionRequired &&
+                    editableSections.includes(
+                      section.key,
+                    )
+                  )
+                }
+                requested={
+                  isActionRequired &&
+                  editableSections.includes(
+                    section.key,
+                  )
+                }
               />
             ),
           )}
@@ -765,11 +873,21 @@ export function FinalReviewForm({
  */
 function ReviewSectionCard({
   section,
+  canEdit,
+  requested,
 }: {
   section: ReviewSection;
+  canEdit: boolean;
+  requested: boolean;
 }) {
   return (
-    <article className="rounded-3xl border border-forest-900/10 bg-white p-6">
+    <article
+      className={`rounded-3xl border bg-white p-6 ${
+        requested
+          ? "border-red-200 ring-1 ring-red-100"
+          : "border-forest-900/10"
+      }`}
+    >
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex gap-4">
           <span
@@ -787,9 +905,17 @@ function ReviewSectionCard({
           </span>
 
           <div>
-            <h3 className="text-sm font-semibold text-forest-950">
-              {section.title}
-            </h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-sm font-semibold text-forest-950">
+                {section.title}
+              </h3>
+
+              {requested ? (
+                <span className="rounded-full bg-red-50 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-wider text-red-700">
+                  Correction requested
+                </span>
+              ) : null}
+            </div>
 
             <p className="mt-1 text-xs leading-6 text-stone-500">
               {section.description}
@@ -826,16 +952,24 @@ function ReviewSectionCard({
           </div>
         </div>
 
-        <Link
-          href={
-            section.href
-          }
-          className="flex shrink-0 items-center gap-1 text-xs font-semibold text-forest-950"
-        >
-          Edit / review
+        {canEdit ? (
+          <Link
+            href={
+              section.href
+            }
+            className="flex shrink-0 cursor-pointer items-center gap-1 text-xs font-semibold text-forest-950"
+          >
+            {requested
+              ? "Update requested section"
+              : "Edit / review"}
 
-          <ChevronRight className="size-4" />
-        </Link>
+            <ChevronRight className="size-4" />
+          </Link>
+        ) : (
+          <span className="shrink-0 text-xs font-semibold text-stone-400">
+            Locked
+          </span>
+        )}
       </div>
 
       {/* Missing reasons directly on card */}

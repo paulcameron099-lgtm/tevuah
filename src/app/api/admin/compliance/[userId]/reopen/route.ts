@@ -1,4 +1,5 @@
-import {NextResponse,
+
+  import { NextResponse,
 } from "next/server";
 
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -7,14 +8,6 @@ import { createClient } from "@/src/lib/supabase/server";
 import {
   recordComplianceAudit,
 } from "@/src/lib/compliance/audit";
-
-import {
-  sendMail,
-} from "@/src/lib/email/mailer";
-
-import {
-  verificationActionRequiredEmail,
-} from "@/src/lib/email/templates";
 
 type RouteContext = {
   params: Promise<{
@@ -30,7 +23,7 @@ type EditableSection =
   | "suitability"
   | "tax";
 
-type RequestPayload = {
+type ReopenPayload = {
   sections: EditableSection[];
   reason: string;
 };
@@ -85,10 +78,7 @@ export async function POST(
     } = await admin
       .from("profiles")
       .select(
-        `
-        id,
-        role
-        `,
+        "id, role",
       )
       .eq(
         "id",
@@ -98,24 +88,13 @@ export async function POST(
 
     if (
       adminProfileError ||
-      !adminProfile
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Unable to verify administrator.",
-        },
-        {
-          status: 403,
-        },
-      );
-    }
-
-    if (
-      adminProfile.role !==
-        "admin" &&
-      adminProfile.role !==
-        "super_admin"
+      !adminProfile ||
+      (
+        adminProfile.role !==
+          "admin" &&
+        adminProfile.role !==
+          "super_admin"
+      )
     ) {
       return NextResponse.json(
         {
@@ -133,7 +112,7 @@ export async function POST(
     } = await params;
 
     const body =
-      (await request.json()) as RequestPayload;
+      (await request.json()) as ReopenPayload;
 
     const reason =
       body.reason
@@ -151,7 +130,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "A reason for requesting additional information is required.",
+            "A reason for reopening onboarding is required.",
         },
         {
           status: 400,
@@ -166,7 +145,7 @@ export async function POST(
       return NextResponse.json(
         {
           error:
-            "Select at least one onboarding section.",
+            "Select at least one onboarding section to reopen.",
         },
         {
           status: 400,
@@ -203,8 +182,6 @@ export async function POST(
         .select(
           `
           id,
-          first_name,
-          last_name,
           onboarding_status
           `,
         )
@@ -221,7 +198,8 @@ export async function POST(
         .select(
           `
           id,
-          status
+          status,
+          rejection_reason
           `,
         )
         .eq(
@@ -244,12 +222,9 @@ export async function POST(
         .maybeSingle(),
     ]);
 
-    const investor =
-      investorResult.data;
-
     if (
       investorResult.error ||
-      !investor
+      !investorResult.data
     ) {
       return NextResponse.json(
         {
@@ -293,28 +268,16 @@ export async function POST(
     }
 
     if (
-      reviewResult.data.status ===
-      "rejected"
+      reviewResult.data.status !==
+        "rejected" ||
+      investorResult.data
+        .onboarding_status !==
+        "rejected"
     ) {
       return NextResponse.json(
         {
           error:
-            "This onboarding review is rejected. Use Reopen onboarding to allow a new correction cycle.",
-        },
-        {
-          status: 409,
-        },
-      );
-    }
-
-    if (
-      reviewResult.data.status ===
-      "approved"
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Approved onboarding cannot be moved to action required from this control.",
+            "Only a rejected onboarding review can be reopened from this action.",
         },
         {
           status: 409,
@@ -324,6 +287,11 @@ export async function POST(
 
     const now =
       new Date().toISOString();
+
+    const previousRejectionReason =
+      reviewResult.data
+        .rejection_reason ??
+      null;
 
     const {
       error:
@@ -339,14 +307,14 @@ export async function POST(
         editable_sections:
           sections,
 
+        unlock_reason:
+          reason,
+
         unlocked_at:
           now,
 
         unlocked_by_admin_id:
           adminUserId,
-
-        unlock_reason:
-          reason,
 
         action_required_at:
           now,
@@ -366,14 +334,14 @@ export async function POST(
       onboardingError
     ) {
       console.error(
-        "Selective onboarding unlock error:",
+        "Reopen onboarding update error:",
         onboardingError,
       );
 
       return NextResponse.json(
         {
           error:
-            "Unable to reopen the requested onboarding sections.",
+            "Unable to reopen the selected onboarding sections.",
         },
         {
           status: 500,
@@ -382,7 +350,8 @@ export async function POST(
     }
 
     const {
-      error: profileError,
+      error:
+        profileError,
     } = await admin
       .from("profiles")
       .update({
@@ -397,16 +366,18 @@ export async function POST(
         userId,
       );
 
-    if (profileError) {
+    if (
+      profileError
+    ) {
       console.error(
-        "Action-required profile update error:",
+        "Reopen profile update error:",
         profileError,
       );
 
       return NextResponse.json(
         {
           error:
-            "Unable to update investor status.",
+            "Unable to reopen the investor onboarding status.",
         },
         {
           status: 500,
@@ -416,7 +387,7 @@ export async function POST(
 
     const {
       error:
-        complianceError,
+        reviewUpdateError,
     } = await admin
       .from(
         "compliance_reviews",
@@ -446,17 +417,17 @@ export async function POST(
       );
 
     if (
-      complianceError
+      reviewUpdateError
     ) {
       console.error(
-        "Compliance action-required error:",
-        complianceError,
+        "Reopen compliance review update error:",
+        reviewUpdateError,
       );
 
       return NextResponse.json(
         {
           error:
-            "Unable to update compliance review.",
+            "Unable to reopen the compliance review.",
         },
         {
           status: 500,
@@ -475,76 +446,19 @@ export async function POST(
         "information_requested",
 
       metadata: {
+        eventType:
+          "onboarding_reopened",
         sections,
         reason,
+        previousRejectionReason,
       },
     });
 
     /*
-     * Existing email behavior is intentionally
-     * preserved here. Email troubleshooting is
-     * being handled after the state workflow test.
+     * Email is intentionally NOT added here yet.
+     * The user requested email verification/fixes
+     * only after the state workflow passes.
      */
-    const {
-      data: authUserData,
-      error: authUserError,
-    } =
-      await admin.auth.admin.getUserById(
-        userId,
-      );
-
-    if (authUserError) {
-      console.error(
-        "Investor Auth lookup error:",
-        authUserError,
-      );
-    }
-
-    const investorEmail =
-      authUserData.user
-        ?.email;
-
-    const investorName =
-      [
-        investor.first_name,
-        investor.last_name,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .trim() ||
-      "Investor";
-
-    if (investorEmail) {
-      const email =
-        verificationActionRequiredEmail({
-          investorName,
-          reason,
-          sections,
-        });
-
-      try {
-        await sendMail({
-          to:
-            investorEmail,
-
-          subject:
-            email.subject,
-
-          text:
-            email.text,
-
-          html:
-            email.html,
-        });
-      } catch (
-        emailError
-      ) {
-        console.error(
-          "Action-required email error:",
-          emailError,
-        );
-      }
-    }
 
     return NextResponse.json({
       success: true,
@@ -555,14 +469,14 @@ export async function POST(
     });
   } catch (error) {
     console.error(
-      "Request information API error:",
+      "Reopen onboarding API error:",
       error,
     );
 
     return NextResponse.json(
       {
         error:
-          "Something went wrong while requesting additional information.",
+          "Something went wrong while reopening onboarding.",
       },
       {
         status: 500,

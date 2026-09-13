@@ -141,7 +141,8 @@ const [
         submitted_at,
         reviewed_at,
         admin_notes,
-        rejection_reason
+        rejection_reason,
+        action_required_reason
         `,
       )
       .eq(

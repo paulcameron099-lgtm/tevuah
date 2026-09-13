@@ -481,7 +481,71 @@ const investorEmail =
     }
 
     /*
-     * 10. Update investor profile.
+     * 10. Finalize onboarding lock state.
+     *
+     * Approval closes any outstanding correction window.
+     */
+    const {
+      error:
+        onboardingLockError,
+    } = await admin
+      .from(
+        "investor_onboarding",
+      )
+      .update({
+        is_locked:
+          true,
+
+        locked_at:
+          now,
+
+        editable_sections:
+          [],
+
+        unlock_reason:
+          null,
+
+        unlocked_at:
+          null,
+
+        unlocked_by_admin_id:
+          null,
+
+        action_required_at:
+          null,
+
+        action_required_by_admin_id:
+          null,
+
+        updated_at:
+          now,
+      })
+      .eq(
+        "user_id",
+        userId,
+      );
+
+    if (
+      onboardingLockError
+    ) {
+      console.error(
+        "Onboarding approval lock error:",
+        onboardingLockError,
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Unable to finalize the onboarding lock state.",
+        },
+        {
+          status: 500,
+        },
+      );
+    }
+
+    /*
+     * 11. Update investor profile.
      */
     const {
       error: profileError,
@@ -529,7 +593,7 @@ const investorEmail =
     }
 
     /*
-     * 11. Complete compliance review.
+     * 12. Complete compliance review.
      */
     const {
       error:
@@ -552,6 +616,9 @@ const investorEmail =
           now,
 
         rejection_reason:
+          null,
+
+        action_required_reason:
           null,
       })
       .eq(
@@ -604,7 +671,7 @@ const investorEmail =
     });
 
     /*
-     * 12. Send investor approval email.
+     * 13. Send investor approval email.
      *
      * Email failure must NOT undo
      * the successful approval.
@@ -656,7 +723,7 @@ const investorEmail =
     }
 
     /*
-     * 13. Success.
+     * 14. Success.
      */
     return NextResponse.json({
       success: true,

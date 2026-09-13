@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { FinalReviewForm } from "@/src/components/onboarding/final-review-form";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 import { createClient } from "@/src/lib/supabase/server";
 
 function displayValue(
@@ -46,6 +47,9 @@ export default async function OnboardingReviewPage() {
    * 2. LOAD ALL ONBOARDING RECORDS
    * --------------------------------------------------
    */
+  const admin =
+    createAdminClient();
+
   const [
     profileResult,
     onboardingResult,
@@ -54,6 +58,7 @@ export default async function OnboardingReviewPage() {
     eligibilityResult,
     suitabilityResult,
     taxResult,
+    complianceResult,
   ] = await Promise.all([
     /*
      * PROFILE
@@ -271,6 +276,23 @@ export default async function OnboardingReviewPage() {
         userId,
       )
       .maybeSingle(),
+
+    admin
+      .from(
+        "compliance_reviews",
+      )
+      .select(
+        `
+        status,
+        action_required_reason,
+        rejection_reason
+        `,
+      )
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle(),
   ]);
 
   /*
@@ -327,6 +349,13 @@ export default async function OnboardingReviewPage() {
     );
   }
 
+  if (complianceResult.error) {
+    console.error(
+      "Review compliance load error:",
+      complianceResult.error,
+    );
+  }
+
   /*
    * --------------------------------------------------
    * 4. NORMALIZE RESULTS
@@ -352,6 +381,9 @@ export default async function OnboardingReviewPage() {
 
   const tax =
     taxResult.data;
+
+  const compliance =
+    complianceResult.data;
 
   const onboardingStatus =
     profile?.onboarding_status ??
@@ -1438,6 +1470,19 @@ export default async function OnboardingReviewPage() {
         }
         onboardingStatus={
           onboardingStatus
+        }
+        editableSections={
+          onboarding?.editable_sections ??
+          []
+        }
+        actionRequiredReason={
+          compliance?.action_required_reason ??
+          onboarding?.unlock_reason ??
+          null
+        }
+        rejectionReason={
+          compliance?.rejection_reason ??
+          null
         }
       />
     </div>

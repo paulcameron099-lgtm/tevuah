@@ -1,4 +1,4 @@
-// src/app/api/onboarding/review/route.ts
+
 
 import {
   NextResponse,
@@ -9,6 +9,10 @@ import { createAdminClient } from "@/src/lib/supabase/admin";
 import { createClient } from "@/src/lib/supabase/server";
 
 import { sendMail } from "@/src/lib/email/mailer";
+
+import {
+  recordComplianceAudit,
+} from "@/src/lib/compliance/audit";
 
 import {
   verificationSubmittedEmail,
@@ -164,7 +168,8 @@ const {
   .select(
     `
     first_name,
-    last_name
+    last_name,
+    onboarding_status
     `,
   )
   .eq("id", userId)
@@ -285,7 +290,9 @@ const investorName =
         eligibility_completed,
         suitability_completed,
         tax_completed,
-        submitted_at
+        submitted_at,
+        is_locked,
+        editable_sections
         `,
       )
       .eq(
@@ -310,6 +317,46 @@ const investorName =
         },
         {
           status: 500,
+        },
+      );
+    }
+
+    const isResubmission =
+      profile.onboarding_status ===
+      "action_required";
+
+    if (
+      onboarding.submitted_at &&
+      !isResubmission
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "This onboarding package has already been submitted and is not currently open for resubmission.",
+        },
+        {
+          status: 409,
+        },
+      );
+    }
+
+    if (
+      isResubmission &&
+      (
+        !Array.isArray(
+          onboarding.editable_sections,
+        ) ||
+        onboarding.editable_sections.length ===
+          0
+      )
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "No onboarding sections are currently authorized for correction. Contact Tevuah Reserve before resubmitting.",
+        },
+        {
+          status: 409,
         },
       );
     }
@@ -701,15 +748,93 @@ const investorName =
     /*
      * 12. Add/update investor in
      * compliance review queue.
+     *
+     * Keep historical admin notes intact.
      */
     const {
-      error: complianceError,
+      data:
+        existingReview,
+      error:
+        existingReviewError,
     } = await admin
       .from(
         "compliance_reviews",
       )
-      .upsert(
+      .select(
+        "id",
+      )
+      .eq(
+        "user_id",
+        userId,
+      )
+      .maybeSingle();
+
+    if (
+      existingReviewError
+    ) {
+      console.error(
+        "Existing compliance review load error:",
+        existingReviewError,
+      );
+
+      return NextResponse.json(
         {
+          error:
+            "Onboarding was submitted, but the compliance review could not be loaded.",
+        },
+        {
+          status: 500,
+        },
+      );
+    }
+
+    let complianceError:
+      | { message?: string }
+      | null = null;
+
+    if (existingReview) {
+      const result = await admin
+        .from(
+          "compliance_reviews",
+        )
+        .update({
+          status:
+            "pending",
+
+          submitted_at:
+            now,
+
+          updated_at:
+            now,
+
+          assigned_admin_id:
+            null,
+
+          rejection_reason:
+            null,
+
+          action_required_reason:
+            null,
+
+          review_started_at:
+            null,
+
+          reviewed_at:
+            null,
+        })
+        .eq(
+          "user_id",
+          userId,
+        );
+
+      complianceError =
+        result.error;
+    } else {
+      const result = await admin
+        .from(
+          "compliance_reviews",
+        )
+        .insert({
           user_id:
             userId,
 
@@ -728,10 +853,10 @@ const investorName =
           assigned_admin_id:
             null,
 
-          admin_notes:
+          rejection_reason:
             null,
 
-          rejection_reason:
+          action_required_reason:
             null,
 
           review_started_at:
@@ -739,12 +864,11 @@ const investorName =
 
           reviewed_at:
             null,
-        },
-        {
-          onConflict:
-            "user_id",
-        },
-      );
+        });
+
+      complianceError =
+        result.error;
+    }
 
     if (
       complianceError
@@ -757,7 +881,7 @@ const investorName =
       return NextResponse.json(
         {
           error:
-            "Onboarding was submitted, but the compliance review could not be created.",
+            "Onboarding was submitted, but the compliance review could not be updated.",
         },
         {
           status: 500,
@@ -766,7 +890,41 @@ const investorName =
     }
 
     /*
-     * 13. Send compliance notification
+     * 13. Audit submission / resubmission.
+     */
+    try {
+      await recordComplianceAudit({
+        actorUserId:
+          userId,
+
+        investorUserId:
+          userId,
+
+        action:
+          "onboarding_submitted",
+
+        metadata: {
+          submissionType:
+            isResubmission
+              ? "resubmission"
+              : "initial",
+          eventType:
+            isResubmission
+              ? "onboarding_resubmitted"
+              : "onboarding_submitted",
+        },
+      });
+    } catch (
+      auditError
+    ) {
+      console.error(
+        "Onboarding submission audit error:",
+        auditError,
+      );
+    }
+
+    /*
+     * 14. Send compliance notification
      * email AFTER database submission
      * succeeds.
      *
@@ -829,7 +987,7 @@ const investorName =
     }
 
     /*
-     * 14. Success.
+     * 15. Success.
      */
     return NextResponse.json(
       {
@@ -839,7 +997,7 @@ const investorName =
           "under_review",
 
         next:
-          "/dashboard",
+          "/dashboard/onboarding/review",
       },
       {
         status: 200,

@@ -62,6 +62,8 @@ export async function POST(
 
     const {
       data: adminProfile,
+      error:
+        adminProfileError,
     } = await admin
       .from("profiles")
       .select(
@@ -74,6 +76,7 @@ export async function POST(
       .maybeSingle();
 
     if (
+      adminProfileError ||
       !adminProfile ||
       (
         adminProfile.role !==
@@ -153,9 +156,6 @@ export async function POST(
     const now =
       new Date().toISOString();
 
-    /*
-     * Rejected onboarding remains locked.
-     */
     const {
       error:
         onboardingError,
@@ -166,6 +166,9 @@ export async function POST(
       .update({
         is_locked:
           true,
+
+        locked_at:
+          now,
 
         editable_sections:
           [],
@@ -179,6 +182,12 @@ export async function POST(
         unlocked_by_admin_id:
           null,
 
+        action_required_at:
+          null,
+
+        action_required_by_admin_id:
+          null,
+
         updated_at:
           now,
       })
@@ -190,6 +199,11 @@ export async function POST(
     if (
       onboardingError
     ) {
+      console.error(
+        "Rejected onboarding lock error:",
+        onboardingError,
+      );
+
       return NextResponse.json(
         {
           error:
@@ -218,6 +232,11 @@ export async function POST(
       );
 
     if (profileError) {
+      console.error(
+        "Rejected profile status error:",
+        profileError,
+      );
+
       return NextResponse.json(
         {
           error:
@@ -243,6 +262,9 @@ export async function POST(
         rejection_reason:
           reason,
 
+        action_required_reason:
+          null,
+
         assigned_admin_id:
           adminUserId,
 
@@ -258,6 +280,11 @@ export async function POST(
       );
 
     if (reviewError) {
+      console.error(
+        "Compliance rejection error:",
+        reviewError,
+      );
+
       return NextResponse.json(
         {
           error:
@@ -284,12 +311,25 @@ export async function POST(
       },
     });
 
+    /*
+     * Existing rejection email behavior is
+     * intentionally preserved for the later
+     * email-delivery test.
+     */
     const {
       data: authUserData,
+      error: authUserError,
     } =
       await admin.auth.admin.getUserById(
         userId,
       );
+
+    if (authUserError) {
+      console.error(
+        "Investor Auth lookup error:",
+        authUserError,
+      );
+    }
 
     const investorEmail =
       authUserData.user
@@ -309,7 +349,6 @@ export async function POST(
       const email =
         verificationRejectedEmail({
           investorName,
-
           reason,
         });
 
@@ -339,7 +378,6 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-
       status:
         "rejected",
     });
