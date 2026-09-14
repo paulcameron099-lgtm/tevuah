@@ -1,4 +1,4 @@
-
+// src/app/api/onboarding/review/route.ts
 
 import {
   NextResponse,
@@ -8,15 +8,19 @@ import {
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { createClient } from "@/src/lib/supabase/server";
 
-import { sendMail } from "@/src/lib/email/mailer";
-
 import {
   recordComplianceAudit,
 } from "@/src/lib/compliance/audit";
 
 import {
-  verificationSubmittedEmail,
-} from "@/src/lib/email/templates";
+  getComplianceRecipient,
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
+import {
+  companySubmissionEmail,
+  investorSubmissionEmail,
+} from "@/src/lib/email/compliance-emails";
+
 import {
   checkAccountAccess,
 } from "@/src/lib/auth/account-status";
@@ -924,66 +928,66 @@ const investorName =
     }
 
     /*
-     * 14. Send compliance notification
-     * email AFTER database submission
-     * succeeds.
+     * 14. Email notifications.
      *
-     * Email failure must NOT undo or
-     * invalidate the onboarding submission.
+     * Investor receives confirmation.
+     * Tevuah Compliance receives a review alert.
+     * Email failure never rolls back a valid submission.
      */
-    const complianceEmail =
-      process.env.COMPLIANCE_EMAIL;
+    const origin =
+      new URL(
+        request.url,
+      ).origin;
 
-    if (
-      !complianceEmail
-    ) {
-      console.error(
-        "COMPLIANCE_EMAIL is missing.",
-      );
-    } else {
-      const email =
-        verificationSubmittedEmail({
+    const investorEmailContent =
+      investorSubmissionEmail({
+        investorName,
+        isResubmission,
+        origin,
+      });
+
+    const investorDelivery =
+      await sendApplicationMail({
+        to: investorEmail,
+        ...investorEmailContent,
+      });
+
+    const complianceRecipient =
+      getComplianceRecipient();
+
+    let companyEmailSent = false;
+    let companyEmailWarning:
+      | string
+      | undefined;
+
+    if (complianceRecipient) {
+      const companyEmailContent =
+        companySubmissionEmail({
           investorName,
-
           investorEmail,
-
-          submittedAt:
-            new Date(
-              now,
-            ).toLocaleString(
-              "en-US",
-              {
-                dateStyle:
-                  "medium",
-
-                timeStyle:
-                  "short",
-              },
-            ),
+          investorId:
+            userId,
+          isResubmission,
+          origin,
         });
 
-      try {
-        await sendMail({
+      const companyDelivery =
+        await sendApplicationMail({
           to:
-            complianceEmail,
-
-          subject:
-            email.subject,
-
-          text:
-            email.text,
-
-          html:
-            email.html,
+            complianceRecipient,
+          ...companyEmailContent,
         });
-      } catch (
-        emailError
-      ) {
-        console.error(
-          "Compliance submission email error:",
-          emailError,
-        );
-      }
+
+      companyEmailSent =
+        companyDelivery.sent;
+
+      companyEmailWarning =
+        companyDelivery.sent
+          ? undefined
+          : companyDelivery.error;
+    } else {
+      companyEmailWarning =
+        "No compliance email recipient is configured. Set COMPLIANCE_EMAIL or COMPLIANCE_NOTIFICATION_EMAIL.";
     }
 
     /*
@@ -998,6 +1002,24 @@ const investorName =
 
         next:
           "/dashboard/onboarding/review",
+
+        emailDelivery: {
+          investor:
+            investorDelivery.sent,
+          company:
+            companyEmailSent,
+        },
+
+        emailWarning:
+          investorDelivery.sent &&
+          companyEmailSent
+            ? undefined
+            : {
+                investor:
+                  investorDelivery.error,
+                company:
+                  companyEmailWarning,
+              },
       },
       {
         status: 200,

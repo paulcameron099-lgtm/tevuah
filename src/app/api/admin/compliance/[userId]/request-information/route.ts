@@ -1,4 +1,5 @@
-import {NextResponse,
+import {
+  NextResponse,
 } from "next/server";
 
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -9,12 +10,11 @@ import {
 } from "@/src/lib/compliance/audit";
 
 import {
-  sendMail,
-} from "@/src/lib/email/mailer";
-
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
 import {
-  verificationActionRequiredEmail,
-} from "@/src/lib/email/templates";
+  actionRequiredEmail,
+} from "@/src/lib/email/compliance-emails";
 
 type RouteContext = {
   params: Promise<{
@@ -481,9 +481,9 @@ export async function POST(
     });
 
     /*
-     * Existing email behavior is intentionally
-     * preserved here. Email troubleshooting is
-     * being handled after the state workflow test.
+     * Notify investor after the compliance state
+     * change succeeds. Delivery failure does not
+     * roll back the compliance decision.
      */
     const {
       data: authUserData,
@@ -501,8 +501,7 @@ export async function POST(
     }
 
     const investorEmail =
-      authUserData.user
-        ?.email;
+      authUserData.user?.email;
 
     const investorName =
       [
@@ -514,36 +513,39 @@ export async function POST(
         .trim() ||
       "Investor";
 
+    let emailSent = false;
+    let emailWarning:
+      | string
+      | undefined;
+
     if (investorEmail) {
       const email =
-        verificationActionRequiredEmail({
+        actionRequiredEmail({
           investorName,
           reason,
           sections,
+          origin:
+            new URL(
+              request.url,
+            ).origin,
         });
 
-      try {
-        await sendMail({
-          to:
-            investorEmail,
-
-          subject:
-            email.subject,
-
-          text:
-            email.text,
-
-          html:
-            email.html,
+      const delivery =
+        await sendApplicationMail({
+          to: investorEmail,
+          ...email,
         });
-      } catch (
-        emailError
-      ) {
-        console.error(
-          "Action-required email error:",
-          emailError,
-        );
-      }
+
+      emailSent =
+        delivery.sent;
+
+      emailWarning =
+        delivery.sent
+          ? undefined
+          : delivery.error;
+    } else {
+      emailWarning =
+        "Investor email address is missing.";
     }
 
     return NextResponse.json({
@@ -552,6 +554,8 @@ export async function POST(
         "action_required",
       editableSections:
         sections,
+      emailSent,
+      emailWarning,
     });
   } catch (error) {
     console.error(

@@ -6,16 +6,15 @@ import { createAdminClient } from "@/src/lib/supabase/admin";
 import { createClient } from "@/src/lib/supabase/server";
 
 import {
-  sendMail,
-} from "@/src/lib/email/mailer";
-
-import {
   recordComplianceAudit,
 } from "@/src/lib/compliance/audit";
 
 import {
-  verificationApprovedEmail,
-} from "@/src/lib/email/templates";
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
+import {
+  approvedEmail,
+} from "@/src/lib/email/compliance-emails";
 
 type RouteContext = {
   params: Promise<{
@@ -672,9 +671,7 @@ const investorEmail =
 
     /*
      * 13. Send investor approval email.
-     *
-     * Email failure must NOT undo
-     * the successful approval.
+     * Delivery failure does not undo approval.
      */
     const investorName =
       [
@@ -686,40 +683,37 @@ const investorEmail =
         .trim() ||
       "Investor";
 
-    if (
-      investorEmail
-    ) {
+    let emailSent = false;
+    let emailWarning:
+      | string
+      | undefined;
+
+    if (investorEmail) {
       const email =
-        verificationApprovedEmail({
+        approvedEmail({
           investorName,
+          origin:
+            new URL(
+              request.url,
+            ).origin,
         });
 
-      try {
-            await sendMail({
-        to:
-            investorEmail,
-
-        subject:
-            email.subject,
-
-        text:
-            email.text,
-
-        html:
-            email.html,
+      const delivery =
+        await sendApplicationMail({
+          to: investorEmail,
+          ...email,
         });
-      } catch (
-        emailError
-      ) {
-        console.error(
-          "Investor approval email error:",
-          emailError,
-        );
-      }
+
+      emailSent =
+        delivery.sent;
+
+      emailWarning =
+        delivery.sent
+          ? undefined
+          : delivery.error;
     } else {
-      console.error(
-        "Investor has no email address for approval notification.",
-      );
+      emailWarning =
+        "Investor email address is missing.";
     }
 
     /*
@@ -730,6 +724,8 @@ const investorEmail =
 
       status:
         "approved",
+      emailSent,
+      emailWarning,
     });
   } catch (error) {
     console.error(

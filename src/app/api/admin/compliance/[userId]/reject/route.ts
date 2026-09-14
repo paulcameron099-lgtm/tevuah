@@ -1,5 +1,4 @@
-import {
-  NextResponse,
+import {NextResponse,
 } from "next/server";
 
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -10,12 +9,11 @@ import {
 } from "@/src/lib/compliance/audit";
 
 import {
-  sendMail,
-} from "@/src/lib/email/mailer";
-
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
 import {
-  verificationRejectedEmail,
-} from "@/src/lib/email/templates";
+  rejectedEmail,
+} from "@/src/lib/email/compliance-emails";
 
 type RouteContext = {
   params: Promise<{
@@ -345,41 +343,46 @@ export async function POST(
         .trim() ||
       "Investor";
 
+    let emailSent = false;
+    let emailWarning:
+      | string
+      | undefined;
+
     if (investorEmail) {
       const email =
-        verificationRejectedEmail({
+        rejectedEmail({
           investorName,
           reason,
+          origin:
+            new URL(
+              request.url,
+            ).origin,
         });
 
-      try {
-        await sendMail({
-          to:
-            investorEmail,
-
-          subject:
-            email.subject,
-
-          text:
-            email.text,
-
-          html:
-            email.html,
+      const delivery =
+        await sendApplicationMail({
+          to: investorEmail,
+          ...email,
         });
-      } catch (
-        emailError
-      ) {
-        console.error(
-          "Investor rejection email error:",
-          emailError,
-        );
-      }
+
+      emailSent =
+        delivery.sent;
+
+      emailWarning =
+        delivery.sent
+          ? undefined
+          : delivery.error;
+    } else {
+      emailWarning =
+        "Investor email address is missing.";
     }
 
     return NextResponse.json({
       success: true,
       status:
         "rejected",
+      emailSent,
+      emailWarning,
     });
   } catch (error) {
     console.error(

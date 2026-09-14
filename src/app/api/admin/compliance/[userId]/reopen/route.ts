@@ -1,5 +1,5 @@
-
-  import { NextResponse,
+import {
+  NextResponse,
 } from "next/server";
 
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -8,6 +8,13 @@ import { createClient } from "@/src/lib/supabase/server";
 import {
   recordComplianceAudit,
 } from "@/src/lib/compliance/audit";
+
+import {
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
+import {
+  actionRequiredEmail,
+} from "@/src/lib/email/compliance-emails";
 
 type RouteContext = {
   params: Promise<{
@@ -455,10 +462,92 @@ export async function POST(
     });
 
     /*
-     * Email is intentionally NOT added here yet.
-     * The user requested email verification/fixes
-     * only after the state workflow passes.
+     * Notify the investor that selected sections
+     * were reopened for correction.
      */
+    const {
+      data: investor,
+      error: investorError,
+    } = await admin
+      .from("profiles")
+      .select(
+        "first_name, last_name",
+      )
+      .eq(
+        "id",
+        userId,
+      )
+      .maybeSingle();
+
+    const {
+      data: authUserData,
+      error: authUserError,
+    } =
+      await admin.auth.admin.getUserById(
+        userId,
+      );
+
+    if (
+      investorError ||
+      authUserError
+    ) {
+      console.error(
+        "Reopen email recipient lookup error:",
+        {
+          investorError,
+          authUserError,
+        },
+      );
+    }
+
+    const investorEmail =
+      authUserData.user?.email;
+
+    const investorName =
+      [
+        investor?.first_name,
+        investor?.last_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .trim() ||
+      "Investor";
+
+    let emailSent = false;
+    let emailWarning:
+      | string
+      | undefined;
+
+    if (investorEmail) {
+      const email =
+        actionRequiredEmail({
+          investorName,
+          reason,
+          sections,
+          origin:
+            new URL(
+              request.url,
+            ).origin,
+          reopened: true,
+        });
+
+      const delivery =
+        await sendApplicationMail({
+          to: investorEmail,
+          ...email,
+        });
+
+      emailSent =
+        delivery.sent;
+
+      emailWarning =
+        delivery.sent
+          ? undefined
+          : delivery.error;
+    } else {
+      emailWarning =
+        "Investor email address is missing.";
+    }
 
     return NextResponse.json({
       success: true,
@@ -466,6 +555,8 @@ export async function POST(
         "action_required",
       editableSections:
         sections,
+      emailSent,
+      emailWarning,
     });
   } catch (error) {
     console.error(
