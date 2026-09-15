@@ -9,10 +9,6 @@ import {
   ReceiptText,
 } from "lucide-react";
 
-import {
-  AdminInvestorCashAccountButton,
-} from "@/src/components/admin/investors/admin-investor-cash-account-button";
-
 import Link from "next/link";
 
 import {
@@ -23,6 +19,10 @@ import {
 import {
   AdminFundCashAccountForm,
 } from "@/src/components/admin/cash-account/admin-fund-cash-account-form";
+
+import {
+  AdminCashDepositRequests,
+} from "@/src/components/admin/cash-account/admin-cash-deposit-requests";
 
 import {
   getCurrentUser,
@@ -268,6 +268,38 @@ export default async function AdminInvestorCashAccountPage({
     );
   }
 
+  const {
+    data:
+      depositRequests,
+    error:
+      depositRequestsError,
+  } = await admin
+    .from(
+      "cash_account_deposit_requests",
+    )
+    .select("*")
+    .eq(
+      "investor_id",
+      investor.id,
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      },
+    )
+    .limit(25);
+
+  if (
+    depositRequestsError
+  ) {
+    console.error(
+      "Admin Cash Account deposit requests error:",
+      depositRequestsError,
+    );
+  }
+
   const ledger =
     (ledgerData ??
       []) as CashLedgerEntry[];
@@ -357,6 +389,13 @@ export default async function AdminInvestorCashAccountPage({
           </div>
         </div>
       </section>
+
+      <AdminCashDepositRequests
+        deposits={
+          depositRequests ??
+          []
+        }
+      />
 
       <section className="grid gap-8 xl:grid-cols-[0.8fr_1.2fr]">
         <AdminFundCashAccountForm

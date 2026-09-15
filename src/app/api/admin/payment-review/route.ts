@@ -117,26 +117,26 @@ export async function POST(
       .from(
         "investment_payments",
       )
-      .select(
-        `
-        id,
+.select(
+  `
+  id,
 
-        subscription_id,
-        investor_id,
-        opportunity_id,
+  subscription_id,
+  investor_id,
+  opportunity_id,
 
-        expected_amount,
-        reported_amount,
-        verified_amount,
+  expected_amount,
+  reported_amount,
+  verified_amount,
 
-        investor_reference,
-        payment_reference,
+  investor_reference,
+  payment_reference,
 
-        proof_storage_path,
+  payment_method,
 
-        status
-        `,
-      )
+  status
+  `,
+)
       .eq(
         "id",
         paymentId,
@@ -162,6 +162,62 @@ export async function POST(
         },
       );
     }
+
+    /*
+ * ==================================================
+ * LOAD INVESTOR PAYMENT REPORT
+ * ==================================================
+ *
+ * External payment evidence lives here.
+ *
+ * Wire:
+ *   wire_reference is required
+ *   uploaded proof is optional
+ *
+ * Bitcoin:
+ *   bitcoin_transaction_hash is required
+ *   uploaded proof is optional
+ */
+const {
+  data: paymentReport,
+  error: paymentReportError,
+} = await admin
+  .from("investment_payment_reports")
+  .select(
+    `
+    id,
+    payment_id,
+    payment_method,
+    wire_reference,
+    bitcoin_transaction_hash,
+    proof_bucket,
+    proof_storage_path,
+    investor_note,
+    reported_at
+    `,
+  )
+  .eq(
+    "payment_id",
+    payment.id,
+  )
+  .maybeSingle();
+
+if (paymentReportError) {
+  console.error(
+    "Payment report lookup error:",
+    paymentReportError,
+  );
+
+  return NextResponse.json(
+    {
+      error:
+        "Unable to load the investor payment report.",
+    },
+    {
+      status: 500,
+    },
+  );
+}
 
     /*
  * ==================================================
@@ -319,22 +375,75 @@ if (
       }
 
       /*
-       * Proof must exist.
-       */
-      if (
-        !payment.proof_storage_path
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "Payment proof must exist before verification.",
-          },
-          {
-            status: 400,
-          },
-        );
-      }
+ * ==================================================
+ * PAYMENT EVIDENCE VALIDATION
+ * ==================================================
+ *
+ * Receipt/proof upload is OPTIONAL.
+ *
+ * Wire Transfer:
+ *   wire reference is required.
+ *
+ * Bitcoin:
+ *   transaction hash is required.
+ */
 
+if (!paymentReport) {
+  return NextResponse.json(
+    {
+      error:
+        "The investor payment report could not be found.",
+    },
+    {
+      status: 400,
+    },
+  );
+}
+
+if (
+  payment.payment_method === "wire_transfer" &&
+  !paymentReport.wire_reference?.trim()
+) {
+  return NextResponse.json(
+    {
+      error:
+        "A wire transfer reference is required before verification.",
+    },
+    {
+      status: 400,
+    },
+  );
+}
+
+if (
+  payment.payment_method === "bitcoin" &&
+  !paymentReport.bitcoin_transaction_hash?.trim()
+) {
+  return NextResponse.json(
+    {
+      error:
+        "A Bitcoin transaction hash is required before verification.",
+    },
+    {
+      status: 400,
+    },
+  );
+}
+
+if (
+  payment.payment_method !== "wire_transfer" &&
+  payment.payment_method !== "bitcoin"
+) {
+  return NextResponse.json(
+    {
+      error:
+        "This external payment method cannot be verified here.",
+    },
+    {
+      status: 400,
+    },
+  );
+}
       /*
        * Investor must have reported an amount.
        */

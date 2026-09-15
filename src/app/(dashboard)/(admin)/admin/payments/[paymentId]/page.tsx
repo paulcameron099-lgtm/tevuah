@@ -12,6 +12,7 @@ import {
   notFound,
 } from "next/navigation";
 
+import { AdminInvestmentFundingInstructionsForm } from "@/src/components/admin/payments/admin-investment-funding-instructions-form";
 import { PaymentReviewActions } from "@/src/components/admin/payments/payment-review-actions";
 import { requireAdmin } from "@/src/lib/auth/require-admin";
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -242,7 +243,37 @@ export default async function AdminPaymentDetailPage({
 
   /*
    * --------------------------------------------------
-   * 5. AUDIT HISTORY
+   * 5. FUNDING INSTRUCTIONS
+   * --------------------------------------------------
+   */
+  const {
+    data: fundingInstruction,
+    error: fundingInstructionError,
+  } = await admin
+    .from(
+      "investment_payment_instructions",
+    )
+    .select("*")
+    .eq(
+      "payment_id",
+      payment.id,
+    )
+    .eq(
+      "status",
+      "active",
+    )
+    .maybeSingle();
+
+  if (fundingInstructionError) {
+    console.error(
+      "Admin funding instruction load error:",
+      fundingInstructionError,
+    );
+  }
+
+  /*
+   * --------------------------------------------------
+   * 6. AUDIT HISTORY
    * --------------------------------------------------
    */
   const {
@@ -282,7 +313,7 @@ export default async function AdminPaymentDetailPage({
 
   /*
    * --------------------------------------------------
-   * 6. CALCULATE CURRENT REMAINING ALLOCATION
+   * 7. CALCULATE CURRENT REMAINING ALLOCATION
    * --------------------------------------------------
    */
   const remainingAllocation =
@@ -494,6 +525,24 @@ export default async function AdminPaymentDetailPage({
               </div>
             ) : null}
           </section>
+
+          {/* FUNDING INSTRUCTIONS */}
+
+          {payment.status !== "verified" ? (
+            <AdminInvestmentFundingInstructionsForm
+              paymentId={
+                payment.id
+              }
+              commitmentAmountCents={
+                Number(
+                  payment.expected_amount,
+                )
+              }
+              initialInstruction={
+                fundingInstruction
+              }
+            />
+          ) : null}
 
           {/* PROOF */}
 

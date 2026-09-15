@@ -47,7 +47,7 @@ export function PaymentReviewActions({
   expectedAmount,
   reportedAmount,
   remainingAllocation,
-  proofAvailable,
+  proofAvailable: _proofAvailable,
 }: Props) {
   const router =
     useRouter();
@@ -311,19 +311,6 @@ export function PaymentReviewActions({
 
   return;
 }
-
-    /*
-     * Payment proof is required.
-     */
-    if (
-      !proofAvailable
-    ) {
-      setError(
-        "Payment proof must be available before verification.",
-      );
-
-      return;
-    }
 
     setLoading(
       "verify",

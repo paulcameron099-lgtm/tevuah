@@ -1,4 +1,4 @@
-
+import Link from "next/link";
 
 import {
   ArrowDownLeft,
@@ -24,10 +24,12 @@ import {
 } from "@/src/lib/cash-account/cash-money";
 
 import {
+  CashAccountFundingCenter,
+} from "@/src/components/cash-account/cash-account-funding-center";
+
+import {
   createAdminClient,
 } from "@/src/lib/supabase/admin";
-
-import Link from "next/link";
 
 export const dynamic =
   "force-dynamic";
@@ -246,6 +248,38 @@ export default async function CashAccountPage() {
     (ledgerData ??
       []) as CashLedgerEntry[];
 
+  const {
+    data:
+      depositRequests,
+    error:
+      depositRequestsError,
+  } = await admin
+    .from(
+      "cash_account_deposit_requests",
+    )
+    .select("*")
+    .eq(
+      "investor_id",
+      user.id,
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      },
+    )
+    .limit(25);
+
+  if (
+    depositRequestsError
+  ) {
+    console.error(
+      "Cash Account deposit request load error:",
+      depositRequestsError,
+    );
+  }
+
   const postedCredits =
     ledger
       .filter(
@@ -286,7 +320,7 @@ export default async function CashAccountPage() {
 
   return (
     <div className="space-y-8">
-      <section className="overflow-hidden rounded-3xl border border-forest-900/10 bg-forest-950 text-white shadow-sm">
+      <section className="overflow-hidden rounded-4xl border border-forest-900/10 bg-forest-950 text-white shadow-sm">
         <div className="grid gap-8 p-7 sm:p-9 lg:grid-cols-[1.25fr_0.75fr] lg:p-10">
           <div>
             <div className="flex items-center gap-2 text-gold-400">
@@ -359,6 +393,13 @@ export default async function CashAccountPage() {
           </div>
         </div>
       </section>
+
+      <CashAccountFundingCenter
+        initialDeposits={
+          depositRequests ??
+          []
+        }
+      />
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-3xl border border-forest-900/10 bg-white p-6">

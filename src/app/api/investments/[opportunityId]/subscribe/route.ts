@@ -1,869 +1,360 @@
-import {
-  NextResponse,
-} from "next/server";
+import { NextResponse } from "next/server";
 
-import {
-  checkAccountAccess,
-} from "@/src/lib/auth/account-status";
-
-import {
-  getCurrentUser,
-} from "@/src/lib/auth/get-current-user";
-
-import {
-  createAdminClient,
-} from "@/src/lib/supabase/admin";
+import { checkAccountAccess } from "@/src/lib/auth/account-status";
+import { getCurrentUser } from "@/src/lib/auth/get-current-user";
+import { getInvestmentNotificationRecipient } from "@/src/lib/email/funding-email-recipients";
+import { sendApplicationMail } from "@/src/lib/email/application-mailer";
+import { companySubscriptionSubmittedEmail } from "@/src/lib/email/investment-emails";
+import { createAdminClient } from "@/src/lib/supabase/admin";
 
 type RouteContext = {
-  params: Promise<{
-    opportunityId: string;
-  }>;
+  params: Promise<{ opportunityId: string }>;
 };
 
 type SubscribePayload = {
-  amount:
-    | string
-    | number;
-
-  offeringAcknowledged:
-    boolean;
-
-  riskAccepted:
-    boolean;
-
+  amount: string | number;
+  offeringAcknowledged: boolean;
+  riskAccepted: boolean;
   signature: string;
 };
 
-/*
- * Convert a USD amount such as:
- *
- * 25000
- *
- * into:
- *
- * 2500000 cents
- *
- * We store money as integer cents
- * in the database.
- */
-function dollarsToCents(
-  value: number,
-) {
-  return Math.round(
-    value * 100,
-  );
+function dollarsToCents(value: number) {
+  return Math.round(value * 100);
 }
 
-export async function POST(
-  request: Request,
-  {
-    params,
-  }: RouteContext,
-) {
+export async function POST(request: Request, { params }: RouteContext) {
   try {
-    /*
-     * ==================================================
-     * 1. AUTHENTICATE CURRENT USER
-     * ==================================================
-     */
-    const user =
-      await getCurrentUser();
+    const user = await getCurrentUser();
 
     if (!user) {
       return NextResponse.json(
-        {
-          error:
-            "You must sign in before submitting an investment subscription.",
-        },
-        {
-          status: 401,
-        },
+        { error: "You must sign in before submitting an investment subscription." },
+        { status: 401 },
       );
     }
 
-    /*
-     * ==================================================
-     * 2. INVESTOR ROLE ONLY
-     * ==================================================
-     */
-    if (
-      user.role !==
-      "investor"
-    ) {
+    if (user.role !== "investor") {
+      return NextResponse.json(
+        { error: "Only investor accounts can submit investment subscriptions." },
+        { status: 403 },
+      );
+    }
+
+    const accountAccess = await checkAccountAccess(user.id);
+
+    if (!accountAccess.allowed) {
       return NextResponse.json(
         {
-          error:
-            "Only investor accounts can submit investment subscriptions.",
+          error: accountAccess.reason,
+          accountStatus: accountAccess.status,
         },
-        {
-          status: 403,
-        },
+        { status: 403 },
       );
     }
 
-    /*
-     * ==================================================
-     * 3. ACCOUNT MUST BE ACTIVE
-     * ==================================================
-     */
-    const accountAccess =
-      await checkAccountAccess(
-        user.id,
-      );
-
-    if (
-      !accountAccess.allowed
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            accountAccess.reason,
-
-          accountStatus:
-            accountAccess.status,
-        },
-        {
-          status: 403,
-        },
-      );
-    }
-
-    /*
-     * ==================================================
-     * 4. INVESTOR MUST BE VERIFIED
-     * ==================================================
-     */
-    if (
-      user.onboarding_status !==
-      "approved"
-    ) {
+    if (user.onboarding_status !== "approved") {
       return NextResponse.json(
         {
           error:
             "Your investor verification must be approved before you can submit an investment subscription.",
         },
-        {
-          status: 403,
-        },
+        { status: 403 },
       );
     }
 
-    /*
-     * ==================================================
-     * 5. READ OPPORTUNITY ID
-     * ==================================================
-     */
-    const {
-      opportunityId,
-    } = await params;
+    const { opportunityId } = await params;
 
     if (!opportunityId) {
       return NextResponse.json(
-        {
-          error:
-            "Investment opportunity ID is missing.",
-        },
-        {
-          status: 400,
-        },
+        { error: "Investment opportunity ID is missing." },
+        { status: 400 },
       );
     }
 
-    /*
-     * ==================================================
-     * 6. READ SUBMITTED FORM
-     * ==================================================
-     */
-    const body =
-      (await request.json()) as SubscribePayload;
+    const body = (await request.json()) as SubscribePayload;
+    const investmentAmount = Number(body.amount);
+    const signature = body.signature?.trim();
 
-    const investmentAmount =
-      Number(
-        body.amount,
-      );
-
-    const signature =
-      body.signature
-        ?.trim();
-
-    /*
-     * ==================================================
-     * 7. VALIDATE INVESTMENT AMOUNT
-     * ==================================================
-     */
-    if (
-      !Number.isFinite(
-        investmentAmount,
-      ) ||
-      investmentAmount <= 0
-    ) {
+    if (!Number.isFinite(investmentAmount) || investmentAmount <= 0) {
       return NextResponse.json(
-        {
-          error:
-            "Enter a valid investment amount.",
-        },
-        {
-          status: 400,
-        },
+        { error: "Enter a valid investment amount." },
+        { status: 400 },
       );
     }
 
-    /*
-     * ==================================================
-     * 8. VALIDATE ACKNOWLEDGEMENTS
-     * ==================================================
-     */
-    if (
-      body.offeringAcknowledged !==
-      true
-    ) {
+    if (body.offeringAcknowledged !== true) {
       return NextResponse.json(
-        {
-          error:
-            "You must acknowledge that you reviewed the offering documents.",
-        },
-        {
-          status: 400,
-        },
+        { error: "You must acknowledge that you reviewed the offering documents." },
+        { status: 400 },
       );
     }
 
-    if (
-      body.riskAccepted !==
-      true
-    ) {
+    if (body.riskAccepted !== true) {
       return NextResponse.json(
-        {
-          error:
-            "You must accept the investment risk disclosure before submitting.",
-        },
-        {
-          status: 400,
-        },
+        { error: "You must accept the investment risk disclosure before submitting." },
+        { status: 400 },
       );
     }
 
-    /*
-     * ==================================================
-     * 9. VALIDATE ELECTRONIC SIGNATURE
-     * ==================================================
-     */
-    if (!signature) {
+    if (!signature || signature.length < 3) {
       return NextResponse.json(
-        {
-          error:
-            "Enter your full legal name as your electronic signature.",
-        },
-        {
-          status: 400,
-        },
+        { error: "Enter a valid electronic signature." },
+        { status: 400 },
       );
     }
 
-    if (
-      signature.length <
-      3
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Enter a valid electronic signature.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
+    const admin = createAdminClient();
 
-    /*
-     * ==================================================
-     * 10. CREATE SERVICE-ROLE CLIENT
-     * ==================================================
-     */
-    const admin =
-      createAdminClient();
-
-    /*
-     * ==================================================
-     * 11. LOAD THE OPPORTUNITY
-     * ==================================================
-     *
-     * IMPORTANT:
-     *
-     * We do NOT trust the amount/limits
-     * sent from the browser.
-     *
-     * Everything is reloaded from the
-     * database here.
-     */
-    const {
-      data: opportunity,
-      error:
-        opportunityError,
-    } = await admin
-      .from(
-        "investment_opportunities",
-      )
-      .select(
-        `
+    const { data: opportunity, error: opportunityError } = await admin
+      .from("investment_opportunities")
+      .select(`
         id,
         title,
         status,
         funding_target,
         minimum_investment,
         total_funded
-        `,
-      )
-      .eq(
-        "id",
-        opportunityId,
-      )
+      `)
+      .eq("id", opportunityId)
       .maybeSingle();
 
-    if (
-      opportunityError ||
-      !opportunity
-    ) {
-      console.error(
-        "Subscription opportunity load error:",
-        opportunityError,
-      );
-
+    if (opportunityError || !opportunity) {
+      console.error("Subscription opportunity load error:", opportunityError);
       return NextResponse.json(
-        {
-          error:
-            "Investment opportunity could not be found.",
-        },
-        {
-          status: 404,
-        },
+        { error: "Investment opportunity could not be found." },
+        { status: 404 },
       );
     }
 
-    /*
-     * ==================================================
-     * 12. OPPORTUNITY MUST STILL BE PUBLISHED
-     * ==================================================
-     */
-    if (
-      opportunity.status !==
-      "published"
-    ) {
+    if (opportunity.status !== "published") {
       return NextResponse.json(
-        {
-          error:
-            "This investment opportunity is no longer open for subscriptions.",
-        },
-        {
-          status: 409,
-        },
+        { error: "This investment opportunity is no longer open for subscriptions." },
+        { status: 409 },
       );
     }
 
-    /*
-     * ==================================================
-     * 13. CONVERT DATABASE VALUES
-     * ==================================================
-     */
-    const fundingTarget =
-      Number(
-        opportunity.funding_target,
-      );
+    const fundingTarget = Number(opportunity.funding_target);
+    const minimumInvestment = Number(opportunity.minimum_investment);
+    const totalFunded = Number(opportunity.total_funded);
+    const commitmentAmount = dollarsToCents(investmentAmount);
+    const remainingAllocation = fundingTarget - totalFunded;
 
-    const minimumInvestment =
-      Number(
-        opportunity.minimum_investment,
-      );
-
-    const totalFunded =
-      Number(
-        opportunity.total_funded,
-      );
-
-    const commitmentAmount =
-      dollarsToCents(
-        investmentAmount,
-      );
-
-    /*
-     * ==================================================
-     * 14. CALCULATE AVAILABLE ALLOCATION
-     * ==================================================
-     */
-    const remainingAllocation =
-      fundingTarget -
-      totalFunded;
-
-    if (
-      remainingAllocation <=
-      0
-    ) {
+    if (remainingAllocation <= 0) {
       return NextResponse.json(
-        {
-          error:
-            "This investment opportunity is fully funded.",
-        },
-        {
-          status: 409,
-        },
+        { error: "This investment opportunity is fully funded." },
+        { status: 409 },
       );
     }
 
-    /*
-     * ==================================================
-     * 15. MINIMUM INVESTMENT VALIDATION
-     * ==================================================
-     */
-    if (
-      commitmentAmount <
-      minimumInvestment
-    ) {
+    if (commitmentAmount < minimumInvestment) {
       return NextResponse.json(
         {
-          error:
-            `The minimum investment for this opportunity is ${formatMoney(
-              minimumInvestment,
-            )}.`,
+          error: `The minimum investment for this opportunity is ${formatMoney(
+            minimumInvestment,
+          )}.`,
         },
-        {
-          status: 400,
-        },
+        { status: 400 },
       );
     }
 
-    /*
-     * ==================================================
-     * 16. MAXIMUM / REMAINING ALLOCATION VALIDATION
-     * ==================================================
-     */
-    if (
-      commitmentAmount >
-      remainingAllocation
-    ) {
+    if (commitmentAmount > remainingAllocation) {
       return NextResponse.json(
         {
-          error:
-            `Your investment cannot exceed the remaining allocation of ${formatMoney(
-              remainingAllocation,
-            )}.`,
+          error: `Your investment cannot exceed the remaining allocation of ${formatMoney(
+            remainingAllocation,
+          )}.`,
         },
-        {
-          status: 400,
-        },
+        { status: 400 },
       );
     }
 
-    /*
-     * ==================================================
-     * 17. CHECK EXISTING SUBSCRIPTION
-     * ==================================================
-     *
-     * Your table currently has:
-     *
-     * unique (
-     *   investor_id,
-     *   opportunity_id
-     * )
-     *
-     * so an investor can have only one
-     * subscription record per opportunity.
-     */
-    const {
-      data:
-        existingSubscription,
-      error:
-        existingError,
-    } = await admin
-      .from(
-        "investment_subscriptions",
-      )
-      .select(
-        `
-        id,
-        status,
-        commitment_amount
-        `,
-      )
-      .eq(
-        "investor_id",
-        user.id,
-      )
-      .eq(
-        "opportunity_id",
-        opportunityId,
-      )
+    const { data: existingSubscription, error: existingError } = await admin
+      .from("investment_subscriptions")
+      .select("id, status, commitment_amount")
+      .eq("investor_id", user.id)
+      .eq("opportunity_id", opportunityId)
       .maybeSingle();
 
     if (existingError) {
-      console.error(
-        "Existing subscription lookup error:",
-        existingError,
-      );
-
+      console.error("Existing subscription lookup error:", existingError);
       return NextResponse.json(
-        {
-          error:
-            "Unable to check your existing investment subscription.",
-        },
-        {
-          status: 500,
-        },
+        { error: "Unable to check your existing investment subscription." },
+        { status: 500 },
       );
     }
 
-    /*
-     * Prevent duplicate final subscriptions.
-     */
     if (
       existingSubscription &&
-      [
-        "submitted",
-        "under_review",
-        "approved",
-      ].includes(
+      ["submitted", "under_review", "approved"].includes(
         existingSubscription.status,
       )
     ) {
       return NextResponse.json(
-        {
-          error:
-            "You already have an active subscription for this investment opportunity.",
-        },
-        {
-          status: 409,
-        },
+        { error: "You already have an active subscription for this investment opportunity." },
+        { status: 409 },
       );
     }
 
-    /*
-     * ==================================================
-     * 18. TIMESTAMPS
-     * ==================================================
-     */
-    const now =
-      new Date().toISOString();
+    const now = new Date().toISOString();
+    let subscriptionId: string;
 
-    /*
-     * ==================================================
-     * 19. CREATE OR UPDATE SUBSCRIPTION
-     * ==================================================
-     *
-     * If a previous draft, rejected,
-     * action_required or cancelled record
-     * exists, reuse it.
-     *
-     * Otherwise create a new record.
-     */
-    let subscriptionId:
-      string;
-
-    if (
-      existingSubscription
-    ) {
-      const {
-        data:
-          updatedSubscription,
-        error:
-          updateError,
-      } = await admin
-        .from(
-          "investment_subscriptions",
-        )
+    if (existingSubscription) {
+      const { data: updatedSubscription, error: updateError } = await admin
+        .from("investment_subscriptions")
         .update({
-  commitment_amount:
-    commitmentAmount,
-
-  status:
-    "submitted",
-
-  offering_acknowledged:
-    true,
-
-  offering_acknowledged_at:
-    now,
-
-  risk_disclosure_accepted:
-    true,
-
-  risk_disclosure_accepted_at:
-    now,
-
-  electronic_signature:
-    signature,
-
-  signed_at:
-    now,
-
-  submitted_at:
-    now,
-
-  reviewed_at:
-    null,
-
-  reviewed_by:
-    null,
-
-  rejection_reason:
-    null,
-
-  admin_notes:
-    null,
-
-  updated_at:
-    now,
-})
-        .eq(
-          "id",
-          existingSubscription.id,
-        )
-        .select(
-          `
-          id
-          `,
-        )
+          commitment_amount: commitmentAmount,
+          status: "submitted",
+          offering_acknowledged: true,
+          offering_acknowledged_at: now,
+          risk_disclosure_accepted: true,
+          risk_disclosure_accepted_at: now,
+          electronic_signature: signature,
+          signed_at: now,
+          submitted_at: now,
+          reviewed_at: null,
+          reviewed_by: null,
+          rejection_reason: null,
+          admin_notes: null,
+          updated_at: now,
+        })
+        .eq("id", existingSubscription.id)
+        .select("id")
         .single();
 
-      if (
-        updateError ||
-        !updatedSubscription
-      ) {
-        console.error(
-          "Subscription update error:",
-          updateError,
-        );
-
+      if (updateError || !updatedSubscription) {
+        console.error("Subscription update error:", updateError);
         return NextResponse.json(
-          {
-            error:
-              "Unable to submit your investment subscription.",
-          },
-          {
-            status: 500,
-          },
+          { error: "Unable to submit your investment subscription." },
+          { status: 500 },
         );
       }
 
-      subscriptionId =
-        updatedSubscription.id;
+      subscriptionId = updatedSubscription.id;
     } else {
-      const {
-        data:
-          newSubscription,
-        error:
-          insertError,
-      } = await admin
-        .from(
-          "investment_subscriptions",
-        )
+      const { data: newSubscription, error: insertError } = await admin
+        .from("investment_subscriptions")
         .insert({
-          investor_id:
-            user.id,
-
-          opportunity_id:
-            opportunityId,
-
-          commitment_amount:
-            commitmentAmount,
-
-          status:
-            "submitted",
-
-          offering_acknowledged:
-            true,
-
-          offering_acknowledged_at:
-            now,
-
-          risk_disclosure_accepted:
-            true,
-
-          risk_disclosure_accepted_at:
-            now,
-
-          electronic_signature:
-            signature,
-
-          signed_at:
-            now,
-
-          submitted_at:
-            now,
+          investor_id: user.id,
+          opportunity_id: opportunityId,
+          commitment_amount: commitmentAmount,
+          status: "submitted",
+          offering_acknowledged: true,
+          offering_acknowledged_at: now,
+          risk_disclosure_accepted: true,
+          risk_disclosure_accepted_at: now,
+          electronic_signature: signature,
+          signed_at: now,
+          submitted_at: now,
         })
-        .select(
-          `
-          id
-          `,
-        )
+        .select("id")
         .single();
 
-      if (
-        insertError ||
-        !newSubscription
-      ) {
-        console.error(
-          "Subscription creation error:",
-          insertError,
-        );
+      if (insertError || !newSubscription) {
+        console.error("Subscription creation error:", insertError);
 
-        /*
-         * Unique constraint conflict.
-         */
-        if (
-          insertError?.code ===
-          "23505"
-        ) {
+        if (insertError?.code === "23505") {
           return NextResponse.json(
-            {
-              error:
-                "You already have a subscription for this opportunity.",
-            },
-            {
-              status: 409,
-            },
+            { error: "You already have a subscription for this opportunity." },
+            { status: 409 },
           );
         }
 
         return NextResponse.json(
-          {
-            error:
-              "Unable to submit your investment subscription.",
-          },
-          {
-            status: 500,
-          },
+          { error: "Unable to submit your investment subscription." },
+          { status: 500 },
         );
       }
 
-      subscriptionId =
-        newSubscription.id;
+      subscriptionId = newSubscription.id;
     }
 
-    /*
-     * ==================================================
-     * 20. WRITE AUDIT RECORD
-     * ==================================================
-     */
-    const {
-      error:
-        auditError,
-    } = await admin
-      .from(
-        "investment_subscription_audit",
-      )
+    const { error: auditError } = await admin
+      .from("investment_subscription_audit")
       .insert({
-        subscription_id:
-          subscriptionId,
-
-        actor_id:
-          user.id,
-
-        action:
-          existingSubscription
-            ? "subscription_resubmitted"
-            : "subscription_submitted",
-
+        subscription_id: subscriptionId,
+        actor_id: user.id,
+        action: existingSubscription
+          ? "subscription_resubmitted"
+          : "subscription_submitted",
         metadata: {
           opportunityId,
-
-          /*
-           * Commitment amount is business
-           * transaction information and is
-           * appropriate to record here.
-           */
           commitmentAmount,
-
-          currency:
-            "USD",
+          currency: "USD",
         },
       });
 
-    /*
-     * Audit failure should be visible in
-     * server logs, but we do not destroy
-     * an otherwise valid subscription.
-     */
     if (auditError) {
-      console.error(
-        "Subscription audit error:",
-        auditError,
-      );
+      console.error("Subscription audit error:", auditError);
     }
 
     /*
-     * ==================================================
-     * 21. IMPORTANT:
-     * DO NOT UPDATE total_funded YET
-     * ==================================================
-     *
-     * A submitted subscription is only a
-     * requested commitment.
-     *
-     * It has NOT yet been approved by admin.
-     *
-     * Therefore we deliberately do NOT:
-     *
-     * investment_opportunities.total_funded += amount
-     *
-     * here.
-     *
-     * That will happen during the admin
-     * approval workflow.
+     * Notify Tevuah Reserve only after the subscription is safely stored.
+     * Email failure does not roll back a valid investor subscription.
      */
+    let companyEmailSent = false;
+    const companyRecipient = getInvestmentNotificationRecipient();
 
-    /*
-     * ==================================================
-     * 22. SUCCESS
-     * ==================================================
-     */
+    if (companyRecipient) {
+      const [authResult, profileResult] = await Promise.all([
+        admin.auth.admin.getUserById(user.id),
+        admin
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ]);
+
+      const investorEmail =
+        authResult.data.user?.email ?? "Email unavailable";
+
+      const investorName =
+        [
+          profileResult.data?.first_name,
+          profileResult.data?.last_name,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .trim() || "Investor";
+
+      const email = companySubscriptionSubmittedEmail({
+        investorName,
+        investorEmail,
+        opportunityTitle: opportunity.title,
+        commitmentAmountCents: commitmentAmount,
+        subscriptionId,
+        origin: new URL(request.url).origin,
+      });
+
+      companyEmailSent = (
+        await sendApplicationMail({
+          to: companyRecipient,
+          ...email,
+        })
+      ).sent;
+    }
+
     return NextResponse.json({
       success: true,
-
       subscriptionId,
-
-      next:
-        "/dashboard/investments",
+      companyEmailSent,
+      next: "/dashboard/investments",
     });
   } catch (error) {
-    console.error(
-      "Investment subscription API error:",
-      error,
-    );
-
+    console.error("Investment subscription API error:", error);
     return NextResponse.json(
       {
         error:
           "Something went wrong while submitting your investment subscription.",
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
   }
 }
 
-/*
- * ==================================================
- * MONEY FORMATTER
- * ==================================================
- *
- * Receives cents.
- */
-function formatMoney(
-  cents: number,
-) {
-  return new Intl.NumberFormat(
-    "en-US",
-    {
-      style:
-        "currency",
-
-      currency:
-        "USD",
-
-      maximumFractionDigits:
-        0,
-    },
-  ).format(
-    cents / 100,
-  );
+function formatMoney(cents: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(cents / 100);
 }

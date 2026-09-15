@@ -1,19 +1,17 @@
-import {
-  NextResponse,
+import { NextResponse,
 } from "next/server";
-
-import {
-  subscriptionApprovedEmail,
-  subscriptionInformationRequestedEmail,
-  subscriptionRejectedEmail,
-} from "@/src/lib/email/templates";
-
-import {
-  sendMail,
-} from "@/src/lib/email/mailer";
 
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+
+import {
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
+import {
+  investorSubscriptionActionRequiredEmail,
+  investorSubscriptionApprovedEmail,
+  investorSubscriptionRejectedEmail,
+} from "@/src/lib/email/investment-emails";
 
 type RouteContext = {
   params: Promise<{
@@ -373,67 +371,63 @@ if (!existingPayment) {
         "awaiting_payment",
     });
 
-if (paymentCreateError) {
-  console.error(
-    "Funding payment creation error:",
-    {
-      message:
-        paymentCreateError.message,
+  if (paymentCreateError) {
+    console.error(
+      "Funding payment creation error:",
+      paymentCreateError,
+    );
 
-      details:
-        paymentCreateError.details,
-
-      hint:
-        paymentCreateError.hint,
-
-      code:
-        paymentCreateError.code,
-    },
-  );
+    /*
+     * Do not falsely say approval failed.
+     *
+     * Subscription approval already succeeded.
+     * Log this so it can be repaired.
+     */
+  }
 }
-}
-
       /*
-       * Best-effort email.
+       * Investor approval email.
+       * Approval remains valid even when SMTP fails.
        */
+      let emailSent = false;
+      let emailWarning:
+        | string
+        | undefined;
+
       if (investorEmail) {
-        try {
-          const email =
-            subscriptionApprovedEmail({
-              investorName,
+        const email =
+          investorSubscriptionApprovedEmail({
+            investorName,
+            opportunityTitle:
+              opportunity.title,
+            commitmentAmountCents:
+              Number(
+                subscription.commitment_amount,
+              ),
+            subscriptionId,
+            origin:
+              new URL(
+                request.url,
+              ).origin,
+          });
 
-              opportunityTitle:
-                opportunity.title,
-
-              commitmentDisplay:
-                formatMoney(
-                  Number(
-                    subscription.commitment_amount,
-                  ),
-                ),
-            });
-
-          await sendMail({
+        const delivery =
+          await sendApplicationMail({
             to:
               investorEmail,
-
-            subject:
-              email.subject,
-
-            text:
-              email.text,
-
-            html:
-              email.html,
+            ...email,
           });
-        } catch (
-          emailError
-        ) {
-          console.error(
-            "Approved subscription email error:",
-            emailError,
-          );
-        }
+
+        emailSent =
+          delivery.sent;
+
+        emailWarning =
+          delivery.sent
+            ? undefined
+            : delivery.error;
+      } else {
+        emailWarning =
+          "Investor email address is missing.";
       }
 
       return NextResponse.json({
@@ -444,6 +438,9 @@ if (paymentCreateError) {
 
         result:
           data,
+
+        emailSent,
+        emailWarning,
       });
     }
 
@@ -571,28 +568,28 @@ if (paymentCreateError) {
       if (investorEmail) {
         try {
           const email =
-            subscriptionInformationRequestedEmail({
+            investorSubscriptionActionRequiredEmail({
               investorName,
 
               opportunityTitle:
                 opportunity.title,
 
-              requestMessage:
+              reason:
                 note,
+
+              subscriptionId,
+
+              origin:
+                new URL(
+                  request.url,
+                ).origin,
             });
 
-          await sendMail({
+          await sendApplicationMail({
             to:
               investorEmail,
 
-            subject:
-              email.subject,
-
-            text:
-              email.text,
-
-            html:
-              email.html,
+            ...email,
           });
         } catch (
           emailError
@@ -715,7 +712,7 @@ if (paymentCreateError) {
       if (investorEmail) {
         try {
           const email =
-            subscriptionRejectedEmail({
+            investorSubscriptionRejectedEmail({
               investorName,
 
               opportunityTitle:
@@ -723,20 +720,20 @@ if (paymentCreateError) {
 
               reason:
                 note,
+
+              subscriptionId,
+
+              origin:
+                new URL(
+                  request.url,
+                ).origin,
             });
 
-          await sendMail({
+          await sendApplicationMail({
             to:
               investorEmail,
 
-            subject:
-              email.subject,
-
-            text:
-              email.text,
-
-            html:
-              email.html,
+            ...email,
           });
         } catch (
           emailError

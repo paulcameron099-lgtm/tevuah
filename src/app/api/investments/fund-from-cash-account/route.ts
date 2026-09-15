@@ -1,5 +1,5 @@
-import {
-  NextResponse,
+
+  import { NextResponse,
 } from "next/server";
 
 import {
@@ -9,6 +9,15 @@ import {
 import {
   createAdminClient,
 } from "@/src/lib/supabase/admin";
+
+import {
+  getComplianceRecipient,
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
+import {
+  companyPaymentReceivedEmail,
+  investorInvestmentFundedEmail,
+} from "@/src/lib/email/investment-emails";
 
 export const dynamic =
   "force-dynamic";
@@ -141,6 +150,7 @@ export async function POST(
           `
           id,
           investor_id,
+          opportunity_id,
           commitment_amount,
           status
           `,
@@ -234,6 +244,153 @@ export async function POST(
       );
     }
 
+    const paymentId =
+      data?.paymentId ??
+      null;
+
+    const {
+      data: investorProfile,
+      error:
+        investorProfileError,
+    } = await admin
+      .from("profiles")
+      .select(
+        "first_name, last_name",
+      )
+      .eq(
+        "id",
+        user.id,
+      )
+      .maybeSingle();
+
+    const {
+      data: authUserData,
+      error:
+        authUserError,
+    } =
+      await admin.auth.admin.getUserById(
+        user.id,
+      );
+
+    const {
+      data: opportunity,
+      error:
+        opportunityError,
+    } = await admin
+      .from(
+        "investment_opportunities",
+      )
+      .select(
+        "id, title",
+      )
+      .eq(
+        "id",
+        subscription.opportunity_id,
+      )
+      .maybeSingle();
+
+    if (
+      investorProfileError ||
+      authUserError ||
+      opportunityError
+    ) {
+      console.error(
+        "Tevuah Cash funding email context error:",
+        {
+          investorProfileError,
+          authUserError,
+          opportunityError,
+        },
+      );
+    }
+
+    const investorName =
+      [
+        investorProfile?.first_name,
+        investorProfile?.last_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .trim() ||
+      "Investor";
+
+    const investorEmail =
+      authUserData.user?.email;
+
+    const amountCents =
+      Number(
+        data?.amountCents ??
+          subscription.commitment_amount,
+      );
+
+    const opportunityTitle =
+      opportunity?.title ??
+      "Investment Opportunity";
+
+    const origin =
+      new URL(
+        request.url,
+      ).origin;
+
+    let investorEmailSent = false;
+    let companyEmailSent = false;
+
+    if (
+      investorEmail &&
+      paymentId
+    ) {
+      const email =
+        investorInvestmentFundedEmail({
+          investorName,
+          opportunityTitle,
+          amountCents,
+          paymentMethod:
+            "Tevuah Cash Account",
+          paymentId,
+          origin,
+        });
+
+      investorEmailSent =
+        (
+          await sendApplicationMail({
+            to:
+              investorEmail,
+            ...email,
+          })
+        ).sent;
+    }
+
+    const companyRecipient =
+      getComplianceRecipient();
+
+    if (
+      companyRecipient &&
+      paymentId
+    ) {
+      const email =
+        companyPaymentReceivedEmail({
+          investorName,
+          investorEmail:
+            investorEmail ??
+            "Email unavailable",
+          opportunityTitle,
+          amountCents,
+          paymentMethod:
+            "tevuah_cash",
+          paymentId,
+          origin,
+        });
+
+      companyEmailSent =
+        (
+          await sendApplicationMail({
+            to:
+              companyRecipient,
+            ...email,
+          })
+        ).sent;
+    }
+
     return NextResponse.json(
       {
         success: true,
@@ -263,6 +420,13 @@ export async function POST(
           false,
 
         verified: true,
+
+        emailDelivery: {
+          investor:
+            investorEmailSent,
+          company:
+            companyEmailSent,
+        },
       },
       {
         headers: {

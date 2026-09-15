@@ -1,5 +1,5 @@
-
-  import { NextResponse,
+import {
+  NextResponse,
 } from "next/server";
 
 import {
@@ -9,6 +9,13 @@ import {
 import {
   createAdminClient,
 } from "@/src/lib/supabase/admin";
+
+import {
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
+import {
+  investorCashAccountFundedEmail,
+} from "@/src/lib/email/investment-emails";
 
 export const dynamic =
   "force-dynamic";
@@ -319,6 +326,72 @@ export async function POST(
         ? data[0]
         : data;
 
+    const {
+      data: authUserData,
+      error: authUserError,
+    } =
+      await admin.auth.admin.getUserById(
+        investorId,
+      );
+
+    if (authUserError) {
+      console.error(
+        "Cash funding investor Auth lookup error:",
+        authUserError,
+      );
+    }
+
+    const investorEmail =
+      authUserData.user?.email;
+
+    const investorName =
+      [
+        investor.first_name,
+        investor.last_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .trim() ||
+      "Investor";
+
+    let emailSent = false;
+    let emailWarning:
+      | string
+      | undefined;
+
+    if (investorEmail) {
+      const email =
+        investorCashAccountFundedEmail({
+          investorName,
+          amountCents,
+          availableBalanceCents:
+            result?.available_balance_cents ??
+            null,
+          origin:
+            new URL(
+              request.url,
+            ).origin,
+        });
+
+      const delivery =
+        await sendApplicationMail({
+          to:
+            investorEmail,
+          ...email,
+        });
+
+      emailSent =
+        delivery.sent;
+
+      emailWarning =
+        delivery.sent
+          ? undefined
+          : delivery.error;
+    } else {
+      emailWarning =
+        "Investor email address is missing.";
+    }
+
     return NextResponse.json(
       {
         success: true,
@@ -331,6 +404,9 @@ export async function POST(
         availableBalanceCents:
           result?.available_balance_cents ??
           null,
+
+        emailSent,
+        emailWarning,
       },
       {
         headers: {
