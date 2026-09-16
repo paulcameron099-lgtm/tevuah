@@ -28,6 +28,10 @@ import {
 } from "@/src/components/cash-account/cash-account-funding-center";
 
 import {
+  CashAccountWithdrawalCenter,
+} from "@/src/components/cash-account/cash-account-withdrawal-center";
+
+import {
   createAdminClient,
 } from "@/src/lib/supabase/admin";
 
@@ -271,17 +275,158 @@ export default async function CashAccountPage() {
     )
     .limit(25);
 
-  if (
-    depositRequestsError
-  ) {
-    console.error(
-      "Cash Account deposit request load error:",
-      depositRequestsError,
-    );
-  }
+ if (
+  depositRequestsError
+) {
+  console.error(
+    "Cash Account deposit request load error:",
+    depositRequestsError,
+  );
+}
 
-  const postedCredits =
-    ledger
+/*
+ * Load this investor's latest Cash Account
+ * withdrawal requests.
+ *
+ * Full bank account numbers are read only on the server.
+ * We convert them to masked values before passing data
+ * into the client component.
+ */
+const {
+  data:
+    withdrawalData,
+  error:
+    withdrawalError,
+} =
+  await admin
+    .from(
+      "cash_account_withdrawal_requests",
+    )
+    .select(
+      `
+      id,
+      amount_cents,
+      currency,
+      withdrawal_method,
+      bank_name,
+      account_holder_name,
+      account_number,
+      investor_note,
+      status,
+      rejection_reason,
+      payment_reference,
+      payment_note,
+      reviewed_at,
+      approved_at,
+      paid_at,
+      cancelled_at,
+      created_at,
+      updated_at
+      `,
+    )
+    .eq(
+      "investor_id",
+      user.id,
+    )
+    .order(
+      "created_at",
+      {
+        ascending:
+          false,
+      },
+    )
+    .limit(25);
+
+if (withdrawalError) {
+  console.error(
+    "Cash Account withdrawal load error:",
+    withdrawalError,
+  );
+}
+
+/*
+ * Never pass the full bank account number
+ * from this Server Component into the Client Component.
+ */
+const withdrawals =
+  (
+    withdrawalData ??
+    []
+  ).map(
+    (
+      withdrawal,
+    ) => {
+      const accountNumber =
+        withdrawal.account_number?.trim() ??
+        "";
+
+      return {
+        id:
+          withdrawal.id,
+
+        amount_cents:
+          withdrawal.amount_cents,
+
+        currency:
+          withdrawal.currency,
+
+        withdrawal_method:
+          withdrawal.withdrawal_method,
+
+        bank_name:
+          withdrawal.bank_name,
+
+        account_holder_name:
+          withdrawal.account_holder_name,
+
+        masked_account_number:
+          accountNumber
+            ? accountNumber.length >
+              4
+              ? `••••${accountNumber.slice(
+                  -4,
+                )}`
+              : "••••"
+            : null,
+
+        investor_note:
+          withdrawal.investor_note,
+
+        status:
+          withdrawal.status,
+
+        rejection_reason:
+          withdrawal.rejection_reason,
+
+        payment_reference:
+          withdrawal.payment_reference,
+
+        payment_note:
+          withdrawal.payment_note,
+
+        reviewed_at:
+          withdrawal.reviewed_at,
+
+        approved_at:
+          withdrawal.approved_at,
+
+        paid_at:
+          withdrawal.paid_at,
+
+        cancelled_at:
+          withdrawal.cancelled_at,
+
+        created_at:
+          withdrawal.created_at,
+
+        updated_at:
+          withdrawal.updated_at,
+      };
+    },
+  );
+
+const postedCredits =
+  ledger
       .filter(
         (entry) =>
           entry.direction ===
@@ -392,14 +537,26 @@ export default async function CashAccountPage() {
             </div>
           </div>
         </div>
-      </section>
+     </section>
 
-      <CashAccountFundingCenter
-        initialDeposits={
-          depositRequests ??
-          []
-        }
-      />
+<CashAccountFundingCenter
+  initialDeposits={
+    depositRequests ??
+    []
+  }
+/>
+
+<CashAccountWithdrawalCenter
+  availableBalanceCents={
+    account.available_balance_cents
+  }
+  currency={
+    account.currency
+  }
+  initialWithdrawals={
+    withdrawals
+  }
+/>
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-3xl border border-forest-900/10 bg-white p-6">

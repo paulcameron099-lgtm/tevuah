@@ -18,6 +18,7 @@ import {
   FolderOpen,
   Banknote,
   PiggyBank,
+  BanknoteArrowUp,
   type LucideIcon,
 } from "lucide-react";
 
@@ -121,6 +122,11 @@ export const adminDashboardNavigation: DashboardNavigationItem[] = [
     href: "/admin/payments",
     icon: Landmark,
   },
+  {
+  label: "Withdrawals",
+  href: "/admin/withdrawals",
+  icon: BanknoteArrowUp,
+},
   {
     label: "Positions",
     href: "/admin/positions",
