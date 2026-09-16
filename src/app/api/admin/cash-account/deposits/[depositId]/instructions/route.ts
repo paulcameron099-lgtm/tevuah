@@ -14,6 +14,9 @@ import {
 import {
   createAdminClient,
 } from "@/src/lib/supabase/admin";
+import {
+  createInvestorNotification,
+} from "@/src/lib/notifications/create-investor-notification";
 
 type RouteContext = {
   params: Promise<{
@@ -373,6 +376,47 @@ export async function PUT(
       );
     }
 
+    /*
+ * ==================================================
+ * INVESTOR DASHBOARD NOTIFICATION
+ * ==================================================
+ *
+ * Cash Account instructions have now been successfully
+ * stored, so the investor can safely be notified.
+ */
+const notificationResult =
+  await createInvestorNotification({
+    investorId:
+      deposit.investor_id,
+
+    notificationType:
+      "payment",
+
+    eventKey:
+      `cash-deposit-instructions:${deposit.id}`,
+
+    title:
+      "Cash Account funding instructions ready",
+
+    message:
+      `Your ${paymentMethod === "wire_transfer" ? "Wire Transfer" : "Bitcoin"} instructions for funding your Tevuah Cash Account are ready.`,
+
+    actionLabel:
+      "View instructions",
+
+    actionPath:
+      "/dashboard/cash-account",
+
+    sourceType:
+      "cash_account_deposit",
+
+    sourceId:
+      deposit.id,
+  });
+
+const notificationCreated =
+  notificationResult.created;
+
     const [
       authResult,
       profileResult,
@@ -444,6 +488,7 @@ export async function PUT(
       deposit:
         updatedDeposit,
       emailSent,
+      notificationCreated,
     });
   } catch (error) {
     console.error(

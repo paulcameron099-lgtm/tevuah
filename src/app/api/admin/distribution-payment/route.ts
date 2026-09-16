@@ -7,6 +7,18 @@ import {
 } from "@/src/lib/auth/get-current-user";
 
 import {
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
+
+import {
+  investorDistributionPaidEmail,
+} from "@/src/lib/email/investment-emails";
+
+import {
+  createInvestorNotification,
+} from "@/src/lib/notifications/create-investor-notification";
+
+import {
   createAdminClient,
 } from "@/src/lib/supabase/admin";
 
@@ -15,14 +27,11 @@ type Payload = {
     | "start_processing"
     | "mark_paid";
 
-  distributionId?:
-    | string;
+  distributionId?: string;
 
-  investorDistributionId?:
-    | string;
+  investorDistributionId?: string;
 
-  paymentReference?:
-    | string;
+  paymentReference?: string;
 };
 
 export async function POST(
@@ -79,6 +88,11 @@ export async function POST(
      * ==================================================
      * 3. START PROCESSING
      * ==================================================
+     *
+     * No investor email/notification is sent here.
+     *
+     * Publication/approval already communicates the
+     * distribution to the investor.
      */
     if (
       body.action ===
@@ -144,7 +158,7 @@ export async function POST(
 
     /*
      * ==================================================
-     * 4. MARK INVESTOR PAID
+     * 4. MARK INDIVIDUAL INVESTOR DISTRIBUTION PAID
      * ==================================================
      */
     if (
@@ -184,7 +198,17 @@ export async function POST(
       }
 
       /*
-       * Confirm allocation exists before RPC.
+       * --------------------------------------------------
+       * LOAD INDIVIDUAL INVESTOR ALLOCATION
+       * --------------------------------------------------
+       *
+       * IMPORTANT:
+       *
+       * net_amount is the amount belonging to THIS
+       * investor.
+       *
+       * Never use the parent distribution total when
+       * communicating an individual investor payment.
        */
       const {
         data: allocation,
@@ -213,6 +237,11 @@ export async function POST(
         allocationError ||
         !allocation
       ) {
+        console.error(
+          "Investor distribution allocation lookup error:",
+          allocationError,
+        );
+
         return NextResponse.json(
           {
             error:
@@ -254,6 +283,107 @@ export async function POST(
         );
       }
 
+      /*
+       * --------------------------------------------------
+       * LOAD PARENT DISTRIBUTION
+       * --------------------------------------------------
+       */
+      const {
+        data: distribution,
+        error:
+          distributionError,
+      } = await admin
+        .from(
+          "investment_distributions",
+        )
+        .select(
+          `
+          id,
+          opportunity_id,
+          title,
+          distribution_type,
+          currency
+          `,
+        )
+        .eq(
+          "id",
+          allocation.distribution_id,
+        )
+        .maybeSingle();
+
+      if (
+        distributionError ||
+        !distribution
+      ) {
+        console.error(
+          "Distribution lookup error:",
+          distributionError,
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Distribution could not be found.",
+          },
+          {
+            status: 404,
+          },
+        );
+      }
+
+      /*
+       * --------------------------------------------------
+       * LOAD OPPORTUNITY
+       * --------------------------------------------------
+       */
+      const {
+        data: opportunity,
+        error:
+          opportunityError,
+      } = await admin
+        .from(
+          "investment_opportunities",
+        )
+        .select(
+          `
+          id,
+          title
+          `,
+        )
+        .eq(
+          "id",
+          distribution.opportunity_id,
+        )
+        .maybeSingle();
+
+      if (
+        opportunityError ||
+        !opportunity
+      ) {
+        console.error(
+          "Distribution opportunity lookup error:",
+          opportunityError,
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Distribution opportunity could not be found.",
+          },
+          {
+            status: 404,
+          },
+        );
+      }
+
+      /*
+       * ==================================================
+       * 5. CANONICAL PAID TRANSACTION
+       * ==================================================
+       *
+       * The database RPC must succeed BEFORE any
+       * notification/email is sent.
+       */
       const {
         data,
         error,
@@ -289,6 +419,174 @@ export async function POST(
         );
       }
 
+      /*
+       * ==================================================
+       * 6. PAID DASHBOARD NOTIFICATION
+       * ==================================================
+       */
+      const amountCents =
+        Number(
+          allocation.net_amount,
+        );
+
+      const currency =
+        distribution.currency ??
+        "USD";
+
+      const distributionPath =
+        "/dashboard/distributions";
+
+      const readableType =
+        humanizeDistributionType(
+          distribution.distribution_type,
+        );
+
+      const amountDisplay =
+        formatMoney(
+          amountCents,
+          currency,
+        );
+
+      const notificationResult =
+        await createInvestorNotification({
+          investorId:
+            allocation.investor_id,
+
+          notificationType:
+            "distribution",
+
+          eventKey:
+            `distribution-paid:${allocation.id}`,
+
+          title:
+            "Distribution payment completed",
+
+          message:
+            `${distribution.title} (${readableType}) for ${opportunity.title} has been paid. Amount: ${amountDisplay}. Payment reference: ${paymentReference}.`,
+
+          actionLabel:
+            "View distributions",
+
+          actionPath:
+            distributionPath,
+
+          sourceType:
+            "investor_distribution",
+
+          sourceId:
+            allocation.id,
+        });
+
+      /*
+       * ==================================================
+       * 7. PAID EMAIL
+       * ==================================================
+       *
+       * Email is best-effort because the payment RPC
+       * has already succeeded.
+       */
+      let emailSent =
+        false;
+
+      try {
+        const [
+          authResult,
+          profileResult,
+        ] = await Promise.all([
+          admin.auth.admin.getUserById(
+            allocation.investor_id,
+          ),
+
+          admin
+            .from(
+              "profiles",
+            )
+            .select(
+              "first_name, last_name",
+            )
+            .eq(
+              "id",
+              allocation.investor_id,
+            )
+            .maybeSingle(),
+        ]);
+
+        const investorEmail =
+          authResult.data.user
+            ?.email ??
+          null;
+
+        const investorName =
+          [
+            profileResult.data
+              ?.first_name,
+
+            profileResult.data
+              ?.last_name,
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .trim() ||
+          "Investor";
+
+        if (investorEmail) {
+          const origin =
+            new URL(
+              request.url,
+            ).origin;
+
+          const email =
+            investorDistributionPaidEmail({
+              investorName,
+
+              opportunityTitle:
+                opportunity.title,
+
+              distributionTitle:
+                distribution.title,
+
+              distributionType:
+                distribution.distribution_type,
+
+              amountCents,
+
+              paymentReference,
+
+              paidAt:
+                formatDate(
+                  new Date(),
+                ),
+
+              dashboardUrl:
+                `${origin}${distributionPath}`,
+            });
+
+          emailSent =
+            (
+              await sendApplicationMail({
+                to:
+                  investorEmail,
+
+                ...email,
+              })
+            ).sent;
+        }
+      } catch (emailError) {
+        /*
+         * Never report the distribution payment as
+         * failed because email delivery failed.
+         */
+        console.error(
+          "Distribution paid email error:",
+          emailError,
+        );
+      }
+
+      /*
+       * ==================================================
+       * 8. SUCCESS
+       * ==================================================
+       */
       return NextResponse.json({
         success: true,
 
@@ -297,12 +595,17 @@ export async function POST(
 
         result:
           data,
+
+        notificationCreated:
+          notificationResult.created,
+
+        emailSent,
       });
     }
 
     /*
      * ==================================================
-     * 5. INVALID ACTION
+     * 9. INVALID ACTION
      * ==================================================
      */
     return NextResponse.json(
@@ -332,4 +635,69 @@ export async function POST(
       },
     );
   }
+}
+
+function humanizeDistributionType(
+  value:
+    | string
+    | null
+    | undefined,
+) {
+  if (!value) {
+    return "Distribution";
+  }
+
+  return value
+    .replaceAll(
+      "_",
+      " ",
+    )
+    .replace(
+      /\b\w/g,
+      (letter) =>
+        letter.toUpperCase(),
+    );
+}
+
+function formatMoney(
+  cents: number,
+  currency: string,
+) {
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style:
+        "currency",
+
+      currency,
+
+      minimumFractionDigits:
+        2,
+
+      maximumFractionDigits:
+        2,
+    },
+  ).format(
+    cents / 100,
+  );
+}
+
+function formatDate(
+  value: Date,
+) {
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      year:
+        "numeric",
+
+      month:
+        "long",
+
+      day:
+        "numeric",
+    },
+  ).format(
+    value,
+  );
 }

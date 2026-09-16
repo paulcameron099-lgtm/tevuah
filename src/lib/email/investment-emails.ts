@@ -848,3 +848,1155 @@ export function investorCashDepositVerifiedEmail({
     }),
   };
 }
+
+export function investorDistributionPublishedEmail({
+  investorName,
+  opportunityTitle,
+  distributionTitle,
+  distributionType,
+  amountCents,
+  paymentDate,
+  dashboardUrl,
+}: {
+  investorName: string;
+  opportunityTitle: string;
+  distributionTitle: string;
+  distributionType: string;
+  amountCents: number;
+  paymentDate?: string | null;
+  dashboardUrl: string;
+}) {
+  const amount =
+    new Intl.NumberFormat(
+      "en-US",
+      {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      },
+    ).format(
+      amountCents / 100,
+    );
+
+  const readableType =
+    distributionType
+      .replaceAll("_", " ")
+      .replace(
+        /\b\w/g,
+        (letter) =>
+          letter.toUpperCase(),
+      );
+
+  const formattedPaymentDate =
+    paymentDate
+      ? formatDistributionEmailDate(
+          paymentDate,
+        )
+      : null;
+
+  const subject =
+    `New distribution available — ${distributionTitle}`;
+
+  const text = `
+TEVUAH RESERVE
+
+Distribution Available
+
+Hello ${investorName},
+
+A new distribution has been published for your investment in ${opportunityTitle}.
+
+YOUR DISTRIBUTION
+${amount}
+
+Distribution: ${distributionTitle}
+Investment: ${opportunityTitle}
+Type: ${readableType}
+${formattedPaymentDate ? `Payment date: ${formattedPaymentDate}` : ""}
+
+This amount represents your individual distribution allocation.
+
+Review your distribution:
+${dashboardUrl}
+
+You can view your distribution history and related investment information securely from your Tevuah Reserve investor dashboard.
+
+Tevuah Reserve
+Private Markets · Real Assets · Long-Term Value
+
+This is an automated account notification. For security, access investment information only through your authenticated Tevuah Reserve dashboard.
+  `.trim();
+
+  const html = `
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <meta
+      name="color-scheme"
+      content="light"
+    />
+    <meta
+      name="supported-color-schemes"
+      content="light"
+    />
+    <title>${escapeEmailHtml(subject)}</title>
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f1e8;
+      color: #1c2923;
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    "
+  >
+    <div
+      style="
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        color: transparent;
+      "
+    >
+      A new ${escapeEmailHtml(readableType)} distribution of ${escapeEmailHtml(amount)}
+      is available for your investment in ${escapeEmailHtml(opportunityTitle)}.
+    </div>
+
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      border="0"
+      style="
+        width: 100%;
+        background-color: #f4f1e8;
+      "
+    >
+      <tr>
+        <td
+          align="center"
+          style="
+            padding: 40px 16px;
+          "
+        >
+          <table
+            role="presentation"
+            width="100%"
+            cellspacing="0"
+            cellpadding="0"
+            border="0"
+            style="
+              width: 100%;
+              max-width: 640px;
+              background-color: #ffffff;
+              border-radius: 24px;
+              overflow: hidden;
+              border: 1px solid #e4e0d6;
+              box-shadow: 0 10px 35px rgba(24, 45, 36, 0.08);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background-color: #102a21;
+                  padding: 32px 40px;
+                "
+              >
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                >
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          color: #d4b26a;
+                          font-size: 11px;
+                          font-weight: 700;
+                          letter-spacing: 2.4px;
+                          text-transform: uppercase;
+                        "
+                      >
+                        TEVUAH RESERVE
+                      </div>
+
+                      <div
+                        style="
+                          margin-top: 9px;
+                          color: #ffffff;
+                          font-family: Georgia, 'Times New Roman', serif;
+                          font-size: 25px;
+                          line-height: 32px;
+                          font-weight: 600;
+                        "
+                      >
+                        Distribution Available
+                      </div>
+                    </td>
+
+                    <td
+                      align="right"
+                      valign="top"
+                    >
+                      <span
+                        style="
+                          display: inline-block;
+                          padding: 8px 12px;
+                          border: 1px solid rgba(212, 178, 106, 0.35);
+                          border-radius: 999px;
+                          color: #e5ca91;
+                          font-size: 10px;
+                          font-weight: 700;
+                          letter-spacing: 1.2px;
+                          text-transform: uppercase;
+                        "
+                      >
+                        Published
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Main -->
+            <tr>
+              <td
+                style="
+                  padding: 40px 40px 18px;
+                "
+              >
+                <div
+                  style="
+                    font-size: 16px;
+                    line-height: 26px;
+                    color: #26372f;
+                  "
+                >
+                  Hello ${escapeEmailHtml(investorName)},
+                </div>
+
+                <div
+                  style="
+                    margin-top: 14px;
+                    font-size: 15px;
+                    line-height: 26px;
+                    color: #667069;
+                  "
+                >
+                  A new distribution has been published for your
+                  investment in
+                  <strong
+                    style="
+                      color: #1b3027;
+                      font-weight: 700;
+                    "
+                  >
+                    ${escapeEmailHtml(opportunityTitle)}
+                  </strong>.
+                  The amount below represents your individual
+                  distribution allocation.
+                </div>
+              </td>
+            </tr>
+
+            <!-- Amount card -->
+            <tr>
+              <td
+                style="
+                  padding: 14px 40px 26px;
+                "
+              >
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                  style="
+                    background-color: #f8f5ec;
+                    border: 1px solid #e8e0cc;
+                    border-radius: 18px;
+                  "
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      style="
+                        padding: 28px 24px;
+                      "
+                    >
+                      <div
+                        style="
+                          color: #8c7951;
+                          font-size: 10px;
+                          font-weight: 700;
+                          letter-spacing: 1.8px;
+                          text-transform: uppercase;
+                        "
+                      >
+                        Your Distribution
+                      </div>
+
+                      <div
+                        style="
+                          margin-top: 9px;
+                          color: #102a21;
+                          font-family: Georgia, 'Times New Roman', serif;
+                          font-size: 38px;
+                          line-height: 46px;
+                          font-weight: 700;
+                          letter-spacing: -1px;
+                        "
+                      >
+                        ${escapeEmailHtml(amount)}
+                      </div>
+
+                      <div
+                        style="
+                          margin-top: 7px;
+                          color: #8a918d;
+                          font-size: 12px;
+                          line-height: 18px;
+                        "
+                      >
+                        Individual investor allocation
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Details -->
+            <tr>
+              <td
+                style="
+                  padding: 0 40px 30px;
+                "
+              >
+                <div
+                  style="
+                    margin-bottom: 14px;
+                    color: #102a21;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 1.5px;
+                    text-transform: uppercase;
+                  "
+                >
+                  Distribution details
+                </div>
+
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                  style="
+                    width: 100%;
+                    border-collapse: collapse;
+                  "
+                >
+                  ${distributionEmailDetailRow(
+                    "Distribution",
+                    distributionTitle,
+                  )}
+
+                  ${distributionEmailDetailRow(
+                    "Investment",
+                    opportunityTitle,
+                  )}
+
+                  ${distributionEmailDetailRow(
+                    "Distribution type",
+                    readableType,
+                  )}
+
+                  ${
+                    formattedPaymentDate
+                      ? distributionEmailDetailRow(
+                          "Payment date",
+                          formattedPaymentDate,
+                        )
+                      : ""
+                  }
+                </table>
+              </td>
+            </tr>
+
+            <!-- CTA -->
+            <tr>
+              <td
+                align="center"
+                style="
+                  padding: 0 40px 38px;
+                "
+              >
+                <table
+                  role="presentation"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      bgcolor="#102a21"
+                      style="
+                        border-radius: 999px;
+                      "
+                    >
+                      <a
+                        href="${escapeEmailAttribute(dashboardUrl)}"
+                        style="
+                          display: inline-block;
+                          padding: 14px 26px;
+                          color: #ffffff;
+                          font-size: 13px;
+                          line-height: 18px;
+                          font-weight: 700;
+                          text-decoration: none;
+                        "
+                      >
+                        View Distribution
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <div
+                  style="
+                    margin-top: 18px;
+                    color: #8a918d;
+                    font-size: 11px;
+                    line-height: 18px;
+                  "
+                >
+                  Sign in to your secure investor dashboard to review
+                  your distribution history and investment details.
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            ${distributionEmailFooter()}
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+  `.trim();
+
+  return {
+    subject,
+    text,
+    html,
+  };
+}
+
+export function investorDistributionPaidEmail({
+  investorName,
+  opportunityTitle,
+  distributionTitle,
+  distributionType,
+  amountCents,
+  paymentReference,
+  paidAt,
+  dashboardUrl,
+}: {
+  investorName: string;
+  opportunityTitle: string;
+  distributionTitle: string;
+  distributionType: string;
+  amountCents: number;
+  paymentReference: string;
+  paidAt: string;
+  dashboardUrl: string;
+}) {
+  const amount =
+    new Intl.NumberFormat(
+      "en-US",
+      {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      },
+    ).format(
+      amountCents / 100,
+    );
+
+  const readableType =
+    distributionType
+      .replaceAll("_", " ")
+      .replace(
+        /\b\w/g,
+        (letter) =>
+          letter.toUpperCase(),
+      );
+
+  const subject =
+    `Distribution payment completed — ${distributionTitle}`;
+
+  const text = `
+TEVUAH RESERVE
+
+Distribution Payment Completed
+
+Hello ${investorName},
+
+Your distribution payment for ${opportunityTitle} has been completed.
+
+AMOUNT PAID
+${amount}
+
+Distribution: ${distributionTitle}
+Investment: ${opportunityTitle}
+Type: ${readableType}
+Payment reference: ${paymentReference}
+Paid: ${paidAt}
+
+This amount represents your individual distribution payment.
+
+Review your distributions:
+${dashboardUrl}
+
+You can review your payment details and distribution history securely from your Tevuah Reserve investor dashboard.
+
+Tevuah Reserve
+Private Markets · Real Assets · Long-Term Value
+
+This is an automated account notification. For security, access investment information only through your authenticated Tevuah Reserve dashboard.
+  `.trim();
+
+  const html = `
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <meta
+      name="color-scheme"
+      content="light"
+    />
+    <meta
+      name="supported-color-schemes"
+      content="light"
+    />
+    <title>${escapeEmailHtml(subject)}</title>
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background-color: #f4f1e8;
+      color: #1c2923;
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    "
+  >
+    <div
+      style="
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        color: transparent;
+      "
+    >
+      Your ${escapeEmailHtml(amount)} distribution payment for
+      ${escapeEmailHtml(opportunityTitle)} has been completed.
+    </div>
+
+    <table
+      role="presentation"
+      width="100%"
+      cellspacing="0"
+      cellpadding="0"
+      border="0"
+      style="
+        width: 100%;
+        background-color: #f4f1e8;
+      "
+    >
+      <tr>
+        <td
+          align="center"
+          style="
+            padding: 40px 16px;
+          "
+        >
+          <table
+            role="presentation"
+            width="100%"
+            cellspacing="0"
+            cellpadding="0"
+            border="0"
+            style="
+              width: 100%;
+              max-width: 640px;
+              background-color: #ffffff;
+              border-radius: 24px;
+              overflow: hidden;
+              border: 1px solid #e4e0d6;
+              box-shadow: 0 10px 35px rgba(24, 45, 36, 0.08);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background-color: #102a21;
+                  padding: 32px 40px;
+                "
+              >
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                >
+                  <tr>
+                    <td>
+                      <div
+                        style="
+                          color: #d4b26a;
+                          font-size: 11px;
+                          font-weight: 700;
+                          letter-spacing: 2.4px;
+                          text-transform: uppercase;
+                        "
+                      >
+                        TEVUAH RESERVE
+                      </div>
+
+                      <div
+                        style="
+                          margin-top: 9px;
+                          color: #ffffff;
+                          font-family: Georgia, 'Times New Roman', serif;
+                          font-size: 25px;
+                          line-height: 32px;
+                          font-weight: 600;
+                        "
+                      >
+                        Distribution Payment Completed
+                      </div>
+                    </td>
+
+                    <td
+                      align="right"
+                      valign="top"
+                    >
+                      <span
+                        style="
+                          display: inline-block;
+                          padding: 8px 12px;
+                          border: 1px solid rgba(212, 178, 106, 0.35);
+                          border-radius: 999px;
+                          color: #e5ca91;
+                          font-size: 10px;
+                          font-weight: 700;
+                          letter-spacing: 1.2px;
+                          text-transform: uppercase;
+                        "
+                      >
+                        Paid
+                      </span>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Main -->
+            <tr>
+              <td
+                style="
+                  padding: 40px 40px 18px;
+                "
+              >
+                <div
+                  style="
+                    font-size: 16px;
+                    line-height: 26px;
+                    color: #26372f;
+                  "
+                >
+                  Hello ${escapeEmailHtml(investorName)},
+                </div>
+
+                <div
+                  style="
+                    margin-top: 14px;
+                    font-size: 15px;
+                    line-height: 26px;
+                    color: #667069;
+                  "
+                >
+                  Your distribution payment for
+                  <strong
+                    style="
+                      color: #1b3027;
+                      font-weight: 700;
+                    "
+                  >
+                    ${escapeEmailHtml(opportunityTitle)}
+                  </strong>
+                  has been completed. The amount below represents
+                  your individual distribution payment.
+                </div>
+              </td>
+            </tr>
+
+            <!-- Paid amount -->
+            <tr>
+              <td
+                style="
+                  padding: 14px 40px 26px;
+                "
+              >
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                  style="
+                    background-color: #f8f5ec;
+                    border: 1px solid #e8e0cc;
+                    border-radius: 18px;
+                  "
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      style="
+                        padding: 28px 24px;
+                      "
+                    >
+                      <div
+                        style="
+                          color: #8c7951;
+                          font-size: 10px;
+                          font-weight: 700;
+                          letter-spacing: 1.8px;
+                          text-transform: uppercase;
+                        "
+                      >
+                        Amount Paid
+                      </div>
+
+                      <div
+                        style="
+                          margin-top: 9px;
+                          color: #102a21;
+                          font-family: Georgia, 'Times New Roman', serif;
+                          font-size: 38px;
+                          line-height: 46px;
+                          font-weight: 700;
+                          letter-spacing: -1px;
+                        "
+                      >
+                        ${escapeEmailHtml(amount)}
+                      </div>
+
+                      <div
+                        style="
+                          margin-top: 7px;
+                          color: #537361;
+                          font-size: 12px;
+                          line-height: 18px;
+                          font-weight: 700;
+                        "
+                      >
+                        Payment completed
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Details -->
+            <tr>
+              <td
+                style="
+                  padding: 0 40px 30px;
+                "
+              >
+                <div
+                  style="
+                    margin-bottom: 14px;
+                    color: #102a21;
+                    font-size: 11px;
+                    font-weight: 700;
+                    letter-spacing: 1.5px;
+                    text-transform: uppercase;
+                  "
+                >
+                  Payment details
+                </div>
+
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                  style="
+                    width: 100%;
+                    border-collapse: collapse;
+                  "
+                >
+                  ${distributionEmailDetailRow(
+                    "Distribution",
+                    distributionTitle,
+                  )}
+
+                  ${distributionEmailDetailRow(
+                    "Investment",
+                    opportunityTitle,
+                  )}
+
+                  ${distributionEmailDetailRow(
+                    "Distribution type",
+                    readableType,
+                  )}
+
+                  ${distributionEmailDetailRow(
+                    "Payment reference",
+                    paymentReference,
+                  )}
+
+                  ${distributionEmailDetailRow(
+                    "Paid",
+                    paidAt,
+                  )}
+                </table>
+              </td>
+            </tr>
+
+            <!-- Confirmation -->
+            <tr>
+              <td
+                style="
+                  padding: 0 40px 28px;
+                "
+              >
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                  style="
+                    background-color: #f1f7f3;
+                    border: 1px solid #d8e8de;
+                    border-radius: 14px;
+                  "
+                >
+                  <tr>
+                    <td
+                      style="
+                        padding: 17px 18px;
+                        color: #365c48;
+                        font-size: 12px;
+                        line-height: 20px;
+                      "
+                    >
+                      <strong
+                        style="
+                          color: #204b37;
+                        "
+                      >
+                        Payment confirmed.
+                      </strong>
+                      This distribution has been recorded as paid in
+                      your Tevuah Reserve investment account.
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- CTA -->
+            <tr>
+              <td
+                align="center"
+                style="
+                  padding: 0 40px 38px;
+                "
+              >
+                <table
+                  role="presentation"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                >
+                  <tr>
+                    <td
+                      align="center"
+                      bgcolor="#102a21"
+                      style="
+                        border-radius: 999px;
+                      "
+                    >
+                      <a
+                        href="${escapeEmailAttribute(dashboardUrl)}"
+                        style="
+                          display: inline-block;
+                          padding: 14px 26px;
+                          color: #ffffff;
+                          font-size: 13px;
+                          line-height: 18px;
+                          font-weight: 700;
+                          text-decoration: none;
+                        "
+                      >
+                        View Distribution History
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <div
+                  style="
+                    margin-top: 18px;
+                    color: #8a918d;
+                    font-size: 11px;
+                    line-height: 18px;
+                  "
+                >
+                  Your dashboard contains the latest status and
+                  details for your investment distributions.
+                </div>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            ${distributionEmailFooter()}
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+  `.trim();
+
+  return {
+    subject,
+    text,
+    html,
+  };
+}
+
+/*
+ * ==================================================
+ * DISTRIBUTION EMAIL HELPERS
+ * ==================================================
+ */
+
+function distributionEmailDetailRow(
+  label: string,
+  value: string,
+) {
+  return `
+    <tr>
+      <td
+        valign="top"
+        style="
+          width: 42%;
+          padding: 13px 0;
+          border-bottom: 1px solid #eeeae1;
+          color: #8a918d;
+          font-size: 12px;
+          line-height: 19px;
+        "
+      >
+        ${escapeEmailHtml(label)}
+      </td>
+
+      <td
+        valign="top"
+        align="right"
+        style="
+          padding: 13px 0;
+          border-bottom: 1px solid #eeeae1;
+          color: #20342b;
+          font-size: 12px;
+          line-height: 19px;
+          font-weight: 700;
+        "
+      >
+        ${escapeEmailHtml(value)}
+      </td>
+    </tr>
+  `;
+}
+
+function distributionEmailFooter() {
+  const year =
+    new Date().getFullYear();
+
+  return `
+    <tr>
+      <td
+        style="
+          background-color: #faf9f5;
+          border-top: 1px solid #ece8de;
+          padding: 26px 40px 30px;
+          text-align: center;
+        "
+      >
+        <div
+          style="
+            color: #102a21;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase;
+          "
+        >
+          Tevuah Reserve
+        </div>
+
+        <div
+          style="
+            margin-top: 8px;
+            color: #a09d94;
+            font-size: 10px;
+            line-height: 17px;
+          "
+        >
+          Private Markets &nbsp;·&nbsp;
+          Real Assets &nbsp;·&nbsp;
+          Long-Term Value
+        </div>
+
+        <div
+          style="
+            margin: 18px auto 0;
+            max-width: 480px;
+            color: #aaa79f;
+            font-size: 10px;
+            line-height: 17px;
+          "
+        >
+          This is an automated account notification.
+          For your security, access investment information
+          only through your authenticated Tevuah Reserve
+          dashboard.
+        </div>
+
+        <div
+          style="
+            margin-top: 14px;
+            color: #bbb8b0;
+            font-size: 9px;
+            line-height: 15px;
+          "
+        >
+          © ${year} Tevuah Reserve. All rights reserved.
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function formatDistributionEmailDate(
+  value: string,
+) {
+  /*
+   * YYYY-MM-DD dates should not accidentally move backward
+   * one day because of the server's local timezone.
+   */
+  const dateOnly =
+    /^\d{4}-\d{2}-\d{2}$/.test(
+      value,
+    );
+
+  const date =
+    dateOnly
+      ? new Date(
+          `${value}T12:00:00Z`,
+        )
+      : new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime(),
+    )
+  ) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone:
+        dateOnly
+          ? "UTC"
+          : undefined,
+    },
+  ).format(date);
+}
+
+function escapeEmailHtml(
+  value: string,
+) {
+  return String(value)
+    .replaceAll(
+      "&",
+      "&amp;",
+    )
+    .replaceAll(
+      "<",
+      "&lt;",
+    )
+    .replaceAll(
+      ">",
+      "&gt;",
+    )
+    .replaceAll(
+      '"',
+      "&quot;",
+    )
+    .replaceAll(
+      "'",
+      "&#039;",
+    );
+}
+
+function escapeEmailAttribute(
+  value: string,
+) {
+  return escapeEmailHtml(
+    value,
+  );
+}

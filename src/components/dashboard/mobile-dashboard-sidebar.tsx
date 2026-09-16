@@ -7,7 +7,9 @@ import {
   X,
 } from "lucide-react";
 
-import { usePathname } from "next/navigation";
+import {
+  usePathname,
+} from "next/navigation";
 
 import {
   adminDashboardNavigation,
@@ -15,8 +17,9 @@ import {
   superAdminDashboardNavigation,
 } from "@/src/config/dashboard-navigation";
 
-// import { useUnreadNotificationCount } from "@/src/hooks/use-unread-notification-count";
-import { cn } from "@/src/lib/utils";
+import {
+  cn,
+} from "@/src/lib/utils";
 
 type MobileDashboardSidebarProps = {
   open: boolean;
@@ -41,6 +44,11 @@ export function MobileDashboardSidebar({
   const pathname =
     usePathname();
 
+  const isAdmin =
+    user.role ===
+      "admin" ||
+    user.role ===
+      "super_admin";
 
   /*
    * Choose navigation according
@@ -59,10 +67,7 @@ export function MobileDashboardSidebar({
    * Mobile portal label.
    */
   const portalLabel =
-    user.role ===
-      "admin" ||
-    user.role ===
-      "super_admin"
+    isAdmin
       ? "Administration Portal"
       : "Investor Portal";
 
@@ -70,12 +75,14 @@ export function MobileDashboardSidebar({
    * Navigation section title.
    */
   const navigationLabel =
-    user.role ===
-      "admin" ||
-    user.role ===
-      "super_admin"
+    isAdmin
       ? "Administration"
       : "Portfolio";
+
+  const notificationPath =
+    isAdmin
+      ? "/admin/notifications"
+      : "/dashboard/notifications";
 
   return (
     <>
@@ -166,12 +173,8 @@ export function MobileDashboardSidebar({
                       );
 
                 const isNotificationItem =
-                  user.role !==
-                    "admin" &&
-                  user.role !==
-                    "super_admin" &&
                   item.href ===
-                    "/dashboard/notifications";
+                  notificationPath;
 
                 return (
                   <Link

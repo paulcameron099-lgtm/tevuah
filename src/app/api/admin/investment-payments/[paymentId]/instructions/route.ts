@@ -4,6 +4,9 @@ import { requireAdmin } from "@/src/lib/auth/require-admin";
 import { sendApplicationMail } from "@/src/lib/email/application-mailer";
 import { investorFundingInstructionsEmail } from "@/src/lib/email/investment-funding-instructions-email";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+import {
+  createInvestorNotification,
+} from "@/src/lib/notifications/create-investor-notification";
 
 type RouteContext = {
   params: Promise<{ paymentId: string }>;
@@ -194,7 +197,71 @@ export async function PUT(request: Request, { params }: RouteContext) {
       );
     }
 
-    let emailSent = false;
+    /*
+ * ==================================================
+ * INVESTOR DASHBOARD NOTIFICATION
+ * ==================================================
+ *
+ * The instructions and payment method have already
+ * been saved successfully at this point.
+ *
+ * This is intentionally idempotent:
+ * saving the same instructions again will not create
+ * another notification.
+ */
+const opportunityRelation =
+  payment.opportunity;
+
+const opportunity =
+  Array.isArray(
+    opportunityRelation,
+  )
+    ? opportunityRelation[0] ??
+      null
+    : opportunityRelation;
+
+const opportunityTitle =
+  opportunity?.title ??
+  "your investment";
+
+const fundingPath =
+  `/dashboard/investments/${payment.subscription_id}/funding`;
+
+const notificationResult =
+  await createInvestorNotification({
+    investorId:
+      payment.investor_id,
+
+    notificationType:
+      "payment",
+
+    eventKey:
+      `investment-payment-instructions:${payment.id}`,
+
+    title:
+      "Payment instructions ready",
+
+    message:
+      `Funding instructions for ${opportunityTitle} are ready. Review the instructions and complete your ${paymentMethod === "wire_transfer" ? "Wire Transfer" : "Bitcoin"} payment.`,
+
+    actionLabel:
+      "View instructions",
+
+    actionPath:
+      fundingPath,
+
+    sourceType:
+      "investment_payment",
+
+    sourceId:
+      payment.id,
+  });
+
+const notificationCreated =
+  notificationResult.created;
+
+let emailSent = false;
+
 
     const [
       authInvestorResult,
@@ -231,16 +298,6 @@ export async function PUT(request: Request, { params }: RouteContext) {
         .join(" ")
         .trim() ||
       "Investor";
-
-    const opportunityRelation =
-      payment.opportunity;
-    const opportunity =
-      Array.isArray(
-        opportunityRelation,
-      )
-        ? opportunityRelation[0] ??
-          null
-        : opportunityRelation;
 
     if (
       investorEmail &&
@@ -299,11 +356,12 @@ export async function PUT(request: Request, { params }: RouteContext) {
       ).sent;
     }
 
-    return NextResponse.json({
-      success: true,
-      instruction,
-      emailSent,
-    });
+  return NextResponse.json({
+    success: true,
+    instruction,
+    emailSent,
+    notificationCreated,
+  });
   } catch (error) {
     console.error("Investment funding instruction API error:", error);
     return NextResponse.json(

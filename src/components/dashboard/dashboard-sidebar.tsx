@@ -2,11 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
+
 import {
   ArrowUpRight,
   LogOut,
 } from "lucide-react";
-import { usePathname } from "next/navigation";
+
+import {
+  usePathname,
+} from "next/navigation";
 
 import {
   adminDashboardNavigation,
@@ -14,8 +18,9 @@ import {
   superAdminDashboardNavigation,
 } from "@/src/config/dashboard-navigation";
 
-// import { useUnreadNotificationCount } from "@/src/hooks/use-unread-notification-count";
-import { cn } from "@/src/lib/utils";
+import {
+  cn,
+} from "@/src/lib/utils";
 
 type DashboardSidebarProps = {
   unreadNotificationCount?: number;
@@ -32,13 +37,25 @@ export function DashboardSidebar({
   user,
   unreadNotificationCount = 0,
 }: DashboardSidebarProps) {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
+
+  const isAdmin =
+    user.role ===
+      "admin" ||
+    user.role ===
+      "super_admin";
 
   /*
-   * Keep the notification count live.
+   * ==================================================
+   * LIVE NOTIFICATION COUNTS
+   * ==================================================
    *
-   * The initial value comes from the server,
-   * then the hook refreshes it automatically.
+   * Hooks must always be called in the same order.
+   *
+   * Investors use investor_notifications.
+   * Admins use admin_notifications +
+   * admin_notification_reads.
    */
 
   const initials = [
@@ -53,9 +70,11 @@ export function DashboardSidebar({
    * Choose navigation based on role.
    */
   const navigation =
-    user.role === "super_admin"
+    user.role ===
+    "super_admin"
       ? superAdminDashboardNavigation
-      : user.role === "admin"
+      : user.role ===
+          "admin"
         ? adminDashboardNavigation
         : investorDashboardNavigation;
 
@@ -63,8 +82,7 @@ export function DashboardSidebar({
    * Sidebar section label.
    */
   const navigationLabel =
-    user.role === "admin" ||
-    user.role === "super_admin"
+    isAdmin
       ? "Administration"
       : "Portfolio";
 
@@ -72,8 +90,7 @@ export function DashboardSidebar({
    * Portal subtitle.
    */
   const portalLabel =
-    user.role === "admin" ||
-    user.role === "super_admin"
+    isAdmin
       ? "Administration Portal"
       : "Investor Portal";
 
@@ -114,18 +131,14 @@ export function DashboardSidebar({
                       item.href,
                     );
 
-              /*
-               * Only the investor
-               * Notifications navigation item
-               * should display the unread badge.
-               */
+              const notificationPath =
+                isAdmin
+                  ? "/admin/notifications"
+                  : "/dashboard/notifications";
+
               const isNotificationItem =
-                user.role !==
-                  "admin" &&
-                user.role !==
-                  "super_admin" &&
                 item.href ===
-                  "/dashboard/notifications";
+                notificationPath;
 
               return (
                 <Link
@@ -137,6 +150,7 @@ export function DashboardSidebar({
                   }
                   className={cn(
                     "focus-ring flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-3.5 text-sm font-medium transition",
+
                     active
                       ? "bg-white text-forest-950"
                       : "text-white/60 hover:bg-white/6 hover:text-white",
@@ -145,6 +159,7 @@ export function DashboardSidebar({
                   <Icon
                     className={cn(
                       "size-4.5 shrink-0",
+
                       active
                         ? "text-gold-600"
                         : "text-white/40",
@@ -162,12 +177,7 @@ export function DashboardSidebar({
                     0 ? (
                     <span
                       aria-label={`${unreadNotificationCount} unread notifications`}
-                      className={cn(
-                        "inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[0.62rem] font-bold leading-none",
-                        active
-                          ? "bg-red-600 text-white"
-                          : "bg-red-600 text-white",
-                      )}
+                      className="inline-flex min-h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-red-600 px-1.5 text-[0.62rem] font-bold leading-none text-white"
                     >
                       {unreadNotificationCount >
                       99
@@ -181,10 +191,7 @@ export function DashboardSidebar({
           )}
         </div>
 
-        {user.role !==
-          "admin" &&
-        user.role !==
-          "super_admin" ? (
+        {!isAdmin ? (
           <div className="mt-8 border-t border-white/10 pt-6">
             <Link
               href="/investments"
@@ -195,7 +202,8 @@ export function DashboardSidebar({
               </p>
 
               <p className="mt-2 text-sm leading-6 text-white/60">
-                Explore new investment opportunities.
+                Explore new investment
+                opportunities.
               </p>
 
               <span className="mt-4 inline-flex items-center gap-2 text-xs font-semibold text-white">

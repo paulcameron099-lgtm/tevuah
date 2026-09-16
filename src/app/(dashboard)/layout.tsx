@@ -6,10 +6,25 @@ import {
   redirect,
 } from "next/navigation";
 
-import { DashboardShell } from "@/src/components/dashboard/dashboard-shell";
-import { checkAccountAccess } from "@/src/lib/auth/account-status";
-import { getCurrentUser } from "@/src/lib/auth/get-current-user";
-import { getUnreadNotificationCount } from "@/src/lib/notifications/get-unread-notification-count";
+import {
+  DashboardShell,
+} from "@/src/components/dashboard/dashboard-shell";
+
+import {
+  checkAccountAccess,
+} from "@/src/lib/auth/account-status";
+
+import {
+  getCurrentUser,
+} from "@/src/lib/auth/get-current-user";
+
+import {
+  getUnreadAdminNotificationCount,
+} from "@/src/lib/notifications/get-unread-admin-notification-count";
+
+import {
+  getUnreadNotificationCount,
+} from "@/src/lib/notifications/get-unread-notification-count";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -19,39 +34,50 @@ export default async function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
   /*
-   * 1. Load the authenticated user.
+   * ==================================================
+   * 1. LOAD AUTHENTICATED USER
+   * ==================================================
    */
   const user =
     await getCurrentUser();
 
   /*
-   * 2. Not logged in.
+   * ==================================================
+   * 2. REQUIRE AUTHENTICATION
+   * ==================================================
    */
   if (!user) {
-    redirect("/login");
+    redirect(
+      "/login",
+    );
   }
 
   /*
-   * 3. Admins are allowed through without
-   * investor account-status enforcement.
+   * ==================================================
+   * 3. DETERMINE PORTAL TYPE
+   * ==================================================
    *
-   * account_status is currently intended
-   * for investor accounts.
+   * Admin and Super Admin use the company/admin
+   * notification system.
+   *
+   * Investors use the investor notification system.
    */
   const isAdministrator =
-    user.role === "admin" ||
-    user.role === "super_admin";
-
-  const unreadNotificationCount =
-  user.role === "investor"
-    ? await getUnreadNotificationCount(
-        user.id,
-      )
-    : 0;
+    user.role ===
+      "admin" ||
+    user.role ===
+      "super_admin";
 
   /*
-   * 4. Investors must have an active
-   * account before entering the dashboard.
+   * ==================================================
+   * 4. INVESTOR ACCOUNT ACCESS
+   * ==================================================
+   *
+   * account_status restrictions currently apply to
+   * investor accounts only.
+   *
+   * Administrators must not be blocked by investor
+   * account-status enforcement.
    */
   if (!isAdministrator) {
     const accountAccess =
@@ -69,31 +95,61 @@ export default async function DashboardLayout({
   }
 
   /*
-   * 5. Account is allowed.
+   * ==================================================
+   * 5. LOAD CORRECT UNREAD NOTIFICATION COUNT
+   * ==================================================
+   *
+   * Investor:
+   * investor_notifications
+   *
+   * Admin / Super Admin:
+   * admin_notifications
+   * +
+   * admin_notification_reads
+   *
+   * This value becomes the initial count used by the
+   * client-side live notification hook.
+   */
+  const unreadNotificationCount =
+    isAdministrator
+      ? await getUnreadAdminNotificationCount(
+          user.id,
+        )
+      : await getUnreadNotificationCount(
+          user.id,
+        );
+
+  /*
+   * ==================================================
+   * 6. RENDER DASHBOARD
+   * ==================================================
+   *
+   * DashboardShell determines which live notification
+   * hook and bell should be used based on user.role.
    */
   return (
     <DashboardShell
-  unreadNotificationCount={
-    unreadNotificationCount
-  }
-  user={{
-    first_name:
-      user.first_name ??
-      "",
+      unreadNotificationCount={
+        unreadNotificationCount
+      }
+      user={{
+        first_name:
+          user.first_name ??
+          "",
 
-    last_name:
-      user.last_name ??
-      "",
+        last_name:
+          user.last_name ??
+          "",
 
-    role:
-      user.role ??
-      "investor",
+        role:
+          user.role ??
+          "investor",
 
-    avatar_url:
-      user.avatar_url ??
-      null,
-  }}
->
+        avatar_url:
+          user.avatar_url ??
+          null,
+      }}
+    >
       {children}
     </DashboardShell>
   );
