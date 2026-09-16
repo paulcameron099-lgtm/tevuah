@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 
 import Link from "next/link";
+import JointInvestmentsList from "@/src/components/investments/joint-investments-list";
 
 import {
   redirect,
@@ -504,9 +505,17 @@ export default async function MyInvestmentsPage() {
                 );
               },
             )}
-          </div>
+                    </div>
         )}
       </section>
+
+      {/* ==========================================
+          JOINT INVESTMENTS
+      ========================================== */}
+
+      <div className="mt-10">
+        <JointInvestmentsList />
+      </div>
     </div>
   );
 }
