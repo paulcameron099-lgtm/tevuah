@@ -9,7 +9,9 @@ import {
   redirect,
 } from "next/navigation";
 
-import { SubscriptionForm } from "@/src/components/investments/subscription-form";
+import {
+  InvestmentStructureSelector,
+} from "@/src/components/investments/investment-structure-selector";
 import { checkAccountAccess } from "@/src/lib/auth/account-status";
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -164,19 +166,19 @@ export default async function SubscriptionPage({
         Back to opportunity
       </Link>
 
-      <SubscriptionForm
-        opportunity={{
-          id:
-            opportunity.id,
+      <InvestmentStructureSelector
+      opportunity={{
+        id:
+          opportunity.id,
 
-          title:
-            opportunity.title,
+        title:
+          opportunity.title,
 
-          minimumInvestment,
+        minimumInvestment,
 
-          remainingAllocation,
-        }}
-      />
+        remainingAllocation,
+      }}
+    />
     </div>
   );
 }

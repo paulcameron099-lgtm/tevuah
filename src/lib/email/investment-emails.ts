@@ -2000,3 +2000,1056 @@ function escapeEmailAttribute(
     value,
   );
 }
+
+type CompanyJointPaymentInstructionsRequestedEmailInput = {
+  investorName: string;
+  investorEmail: string;
+  opportunityTitle: string;
+
+  paymentMethod:
+    | "wire_transfer"
+    | "bitcoin";
+
+  principalAmountCents: number;
+  wireChargeAmountCents: number;
+  totalAmountDueCents: number;
+
+  jointSubscriptionId: string;
+  externalFundingId: string;
+
+  origin: string;
+};
+
+function formatJointFundingMoney(
+  amountCents: number,
+) {
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+    },
+  ).format(
+    amountCents / 100,
+  );
+}
+
+function escapeJointFundingHtml(
+  value: string,
+) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+export function companyJointPaymentInstructionsRequestedEmail(
+  input: CompanyJointPaymentInstructionsRequestedEmailInput,
+) {
+  const methodLabel =
+    input.paymentMethod ===
+    "wire_transfer"
+      ? "Wire Transfer"
+      : "Bitcoin";
+
+  const principal =
+    formatJointFundingMoney(
+      input.principalAmountCents,
+    );
+
+  const wireCharge =
+    formatJointFundingMoney(
+      input.wireChargeAmountCents,
+    );
+
+  const totalDue =
+    formatJointFundingMoney(
+      input.totalAmountDueCents,
+    );
+
+  const adminUrl =
+    `${input.origin}/admin/investments/joint/${input.jointSubscriptionId}`;
+
+  const subject =
+    `Joint investment ${methodLabel} instructions requested`;
+
+  const wireChargeText =
+    input.paymentMethod ===
+    "wire_transfer"
+      ? `Wire charge: ${wireCharge}\n`
+      : "";
+
+  const text = [
+    "A joint investor has requested payment instructions.",
+    "",
+    `Investor: ${input.investorName}`,
+    `Investor email: ${input.investorEmail}`,
+    `Investment: ${input.opportunityTitle}`,
+    `Payment method: ${methodLabel}`,
+    "",
+    `Principal obligation: ${principal}`,
+    wireChargeText.trimEnd(),
+    `Total amount due: ${totalDue}`,
+    "",
+    `Joint investment ID: ${input.jointSubscriptionId}`,
+    `Funding request ID: ${input.externalFundingId}`,
+    "",
+    "Review the request and provide the investor with payment instructions:",
+    adminUrl,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;">
+      <h2 style="margin-bottom:16px;">
+        Joint investment payment instructions requested
+      </h2>
+
+      <p>
+        A joint investor has requested
+        <strong>${escapeJointFundingHtml(methodLabel)}</strong>
+        payment instructions.
+      </p>
+
+      <table
+        cellpadding="8"
+        cellspacing="0"
+        style="border-collapse:collapse;width:100%;max-width:640px;"
+      >
+        <tr>
+          <td><strong>Investor</strong></td>
+          <td>${escapeJointFundingHtml(input.investorName)}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Investor email</strong></td>
+          <td>${escapeJointFundingHtml(input.investorEmail)}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Investment</strong></td>
+          <td>${escapeJointFundingHtml(input.opportunityTitle)}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Payment method</strong></td>
+          <td>${escapeJointFundingHtml(methodLabel)}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Principal obligation</strong></td>
+          <td>${principal}</td>
+        </tr>
+
+        ${
+          input.paymentMethod ===
+          "wire_transfer"
+            ? `
+              <tr>
+                <td><strong>Wire charge</strong></td>
+                <td>${wireCharge}</td>
+              </tr>
+            `
+            : ""
+        }
+
+        <tr>
+          <td><strong>Total amount due</strong></td>
+          <td>${totalDue}</td>
+        </tr>
+      </table>
+
+      <p style="margin-top:24px;">
+        <strong>Joint investment ID:</strong><br />
+        ${escapeJointFundingHtml(input.jointSubscriptionId)}
+      </p>
+
+      <p>
+        <strong>Funding request ID:</strong><br />
+        ${escapeJointFundingHtml(input.externalFundingId)}
+      </p>
+
+      <p style="margin-top:24px;">
+        <a
+          href="${escapeJointFundingHtml(adminUrl)}"
+          style="
+            display:inline-block;
+            padding:12px 18px;
+            background:#173f35;
+            color:#ffffff;
+            text-decoration:none;
+            border-radius:6px;
+          "
+        >
+          Review funding request
+        </a>
+      </p>
+    </div>
+  `;
+
+  return {
+    subject,
+    text,
+    html,
+  };
+}
+
+type InvestorJointPaymentInstructionsReadyEmailInput = {
+  investorName: string;
+  opportunityTitle: string;
+
+  paymentMethod:
+    | "wire_transfer"
+    | "bitcoin";
+
+  principalAmountCents: number;
+  wireChargeAmountCents: number;
+  totalAmountDueCents: number;
+
+  paymentReference: string;
+
+  jointSubscriptionId: string;
+  externalFundingId: string;
+
+  bitcoinAmount?: string | number | null;
+  bitcoinAddress?: string | null;
+  bitcoinNetwork?: string | null;
+  bitcoinPaymentUrl?: string | null;
+  instructions?: string | null;
+
+  origin: string;
+};
+
+function formatJointInstructionMoney(
+  amountCents: number,
+) {
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+    },
+  ).format(amountCents / 100);
+}
+
+function escapeJointInstructionHtml(
+  value: string,
+) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+export function investorJointPaymentInstructionsReadyEmail(
+  input: InvestorJointPaymentInstructionsReadyEmailInput,
+) {
+  const isWire =
+    input.paymentMethod ===
+    "wire_transfer";
+
+  const isBitcoin =
+    input.paymentMethod ===
+    "bitcoin";
+
+  const methodLabel =
+    isWire
+      ? "Wire Transfer"
+      : "Bitcoin";
+
+  const principal =
+    formatJointInstructionMoney(
+      input.principalAmountCents,
+    );
+
+  const wireCharge =
+    formatJointInstructionMoney(
+      input.wireChargeAmountCents,
+    );
+
+  const totalDue =
+    formatJointInstructionMoney(
+      input.totalAmountDueCents,
+    );
+
+  const bitcoinAmount =
+    input.bitcoinAmount != null
+      ? String(
+          input.bitcoinAmount,
+        ).trim()
+      : "";
+
+  const bitcoinAddress =
+    input.bitcoinAddress
+      ?.trim() ?? "";
+
+  const bitcoinNetwork =
+    input.bitcoinNetwork
+      ?.trim() ?? "";
+
+  const bitcoinPaymentUrl =
+    input.bitcoinPaymentUrl
+      ?.trim() ?? "";
+
+  const instructions =
+    input.instructions
+      ?.trim() ?? "";
+
+  const fundingUrl =
+    `${input.origin}/dashboard/investments/joint/${input.jointSubscriptionId}`;
+
+  const subject =
+    `Your ${methodLabel} instructions are ready`;
+
+  const textRows = [
+    `Hello ${input.investorName},`,
+    "",
+    `Your ${methodLabel} payment instructions for ${input.opportunityTitle} are ready.`,
+    "",
+    `Principal investment obligation: ${principal}`,
+
+    isWire
+      ? `Wire Transfer charge: ${wireCharge}`
+      : "",
+
+    `Total amount due: ${totalDue}`,
+    "",
+    `Payment reference: ${input.paymentReference}`,
+  ];
+
+  if (isBitcoin) {
+    textRows.push(
+      "",
+      "BITCOIN PAYMENT DETAILS",
+      "",
+      bitcoinAmount
+        ? `Bitcoin amount: ${bitcoinAmount} BTC`
+        : "",
+      bitcoinNetwork
+        ? `Network: ${bitcoinNetwork}`
+        : "",
+      bitcoinAddress
+        ? `Receiving address: ${bitcoinAddress}`
+        : "",
+      bitcoinPaymentUrl
+        ? `Payment URL: ${bitcoinPaymentUrl}`
+        : "",
+      "",
+      "Send only using the Bitcoin network shown above. Confirm the receiving address carefully before sending.",
+      "After sending the payment, return to Tevuah Reserve and report the blockchain transaction hash for verification.",
+    );
+  }
+
+  if (isWire) {
+    textRows.push(
+      "",
+      "Use the exact Tevuah Reserve payment reference in your transfer memo or reference field.",
+      "The Wire Transfer charge does not increase your investment principal.",
+    );
+  }
+
+  if (instructions) {
+    textRows.push(
+      "",
+      "Additional instructions:",
+      instructions,
+    );
+  }
+
+  textRows.push(
+    "",
+    "Review your payment instructions:",
+    fundingUrl,
+    "",
+    "Tevuah Reserve",
+  );
+
+  const text =
+    textRows
+      .filter(Boolean)
+      .join("\n");
+
+  const bitcoinDetailsHtml =
+    isBitcoin
+      ? `
+        <div
+          style="
+            margin:24px 0;
+            padding:20px;
+            background:#f1f7f3;
+            border:1px solid #d8e8de;
+            border-radius:8px;
+          "
+        >
+          <div
+            style="
+              margin-bottom:16px;
+              color:#173f35;
+              font-size:12px;
+              font-weight:700;
+              letter-spacing:1.3px;
+              text-transform:uppercase;
+            "
+          >
+            Bitcoin payment details
+          </div>
+
+          ${
+            bitcoinAmount
+              ? `
+                <div style="margin-bottom:14px;">
+                  <strong>Bitcoin amount</strong><br />
+                  <span style="font-family:monospace;">
+                    ${escapeJointInstructionHtml(
+                      bitcoinAmount,
+                    )} BTC
+                  </span>
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            bitcoinNetwork
+              ? `
+                <div style="margin-bottom:14px;">
+                  <strong>Network</strong><br />
+                  ${escapeJointInstructionHtml(
+                    bitcoinNetwork,
+                  )}
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            bitcoinAddress
+              ? `
+                <div style="margin-bottom:14px;">
+                  <strong>Receiving address</strong><br />
+
+                  <div
+                    style="
+                      margin-top:6px;
+                      padding:12px;
+                      background:#ffffff;
+                      border:1px solid #d8e8de;
+                      border-radius:6px;
+                      font-family:monospace;
+                      font-size:13px;
+                      line-height:1.6;
+                      word-break:break-all;
+                    "
+                  >
+                    ${escapeJointInstructionHtml(
+                      bitcoinAddress,
+                    )}
+                  </div>
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            bitcoinPaymentUrl
+              ? `
+                <div>
+                  <strong>Payment URL</strong><br />
+
+                  <a
+                    href="${escapeJointInstructionHtml(
+                      bitcoinPaymentUrl,
+                    )}"
+                    style="
+                      color:#173f35;
+                      word-break:break-all;
+                    "
+                  >
+                    ${escapeJointInstructionHtml(
+                      bitcoinPaymentUrl,
+                    )}
+                  </a>
+                </div>
+              `
+              : ""
+          }
+        </div>
+
+        <div
+          style="
+            margin:20px 0;
+            padding:16px 18px;
+            background:#fff8e8;
+            border:1px solid #ead8a6;
+            border-radius:8px;
+            color:#5d4a20;
+            font-size:13px;
+            line-height:1.7;
+          "
+        >
+          <strong>Important:</strong>
+          Confirm the Bitcoin amount, receiving address and network
+          carefully before sending. Send only using the network shown
+          above. After payment, report the blockchain transaction hash
+          through your Tevuah Reserve dashboard.
+        </div>
+      `
+      : "";
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.65;color:#24352f;max-width:680px;margin:0 auto;">
+      <div
+        style="
+          background:#173f35;
+          color:#ffffff;
+          padding:28px 30px;
+          border-radius:12px 12px 0 0;
+        "
+      >
+        <div
+          style="
+            font-size:12px;
+            letter-spacing:2px;
+            text-transform:uppercase;
+            opacity:.8;
+            margin-bottom:8px;
+          "
+        >
+          Tevuah Reserve
+        </div>
+
+        <h1
+          style="
+            margin:0;
+            font-size:25px;
+            font-weight:600;
+          "
+        >
+          Payment instructions are ready
+        </h1>
+      </div>
+
+      <div
+        style="
+          border:1px solid #dedbd1;
+          border-top:0;
+          padding:30px;
+          border-radius:0 0 12px 12px;
+          background:#fffdf7;
+        "
+      >
+        <p>
+          Hello
+          ${escapeJointInstructionHtml(
+            input.investorName,
+          )},
+        </p>
+
+        <p>
+          Your
+          <strong>${escapeJointInstructionHtml(
+            methodLabel,
+          )}</strong>
+          payment instructions for
+          <strong>${escapeJointInstructionHtml(
+            input.opportunityTitle,
+          )}</strong>
+          are now ready.
+        </p>
+
+        <div
+          style="
+            margin:24px 0;
+            padding:20px;
+            background:#f5f2e9;
+            border-radius:8px;
+          "
+        >
+          <div style="margin-bottom:10px;">
+            <strong>
+              Principal investment obligation
+            </strong><br />
+            ${principal}
+          </div>
+
+          ${
+            isWire
+              ? `
+                <div style="margin-bottom:10px;">
+                  <strong>
+                    Wire Transfer charge
+                  </strong><br />
+                  ${wireCharge}
+                </div>
+              `
+              : ""
+          }
+
+          <div style="margin-bottom:10px;">
+            <strong>Total amount due</strong><br />
+            ${totalDue}
+          </div>
+
+          <div>
+            <strong>Payment reference</strong><br />
+
+            <span style="font-family:monospace;">
+              ${escapeJointInstructionHtml(
+                input.paymentReference,
+              )}
+            </span>
+          </div>
+        </div>
+
+        ${bitcoinDetailsHtml}
+
+        ${
+          isWire
+            ? `
+              <p>
+                Include the exact Tevuah Reserve payment
+                reference in your Wire Transfer memo or
+                reference field.
+              </p>
+
+              <p>
+                The Wire Transfer charge is separate from
+                your investment principal and does not
+                increase your ownership or funded principal.
+              </p>
+            `
+            : ""
+        }
+
+        ${
+          instructions
+            ? `
+              <div
+                style="
+                  margin:20px 0;
+                  padding:16px 18px;
+                  border-left:3px solid #b79552;
+                  background:#faf8f1;
+                  color:#52615b;
+                  font-size:13px;
+                  line-height:1.7;
+                "
+              >
+                <strong
+                  style="
+                    display:block;
+                    margin-bottom:5px;
+                    color:#24352f;
+                  "
+                >
+                  Additional instructions
+                </strong>
+
+                ${escapeJointInstructionHtml(
+                  instructions,
+                )}
+              </div>
+            `
+            : ""
+        }
+
+        <p style="margin:28px 0;">
+          <a
+            href="${escapeJointInstructionHtml(
+              fundingUrl,
+            )}"
+            style="
+              display:inline-block;
+              background:#173f35;
+              color:#ffffff;
+              text-decoration:none;
+              padding:13px 20px;
+              border-radius:6px;
+              font-weight:600;
+            "
+          >
+            Review payment instructions
+          </a>
+        </p>
+
+        <p
+          style="
+            font-size:13px;
+            color:#66736e;
+          "
+        >
+          For security, review the complete destination
+          details from your authenticated Tevuah Reserve
+          dashboard before sending funds.
+        </p>
+      </div>
+    </div>
+  `;
+
+  return {
+    subject,
+    text,
+    html,
+  };
+}
+
+export function companyJointPaymentReportedEmail({
+  investorName,
+  investorEmail,
+  opportunityTitle,
+  paymentMethod,
+  principalAmountCents,
+  wireChargeAmountCents,
+  totalAmountDueCents,
+  paymentReference,
+  reportedWireReference,
+  reportedBitcoinTxHash,
+  investorReportNote,
+  jointSubscriptionId,
+  externalFundingId,
+  origin,
+}: {
+  investorName: string;
+  investorEmail: string;
+  opportunityTitle: string;
+  paymentMethod: "wire_transfer" | "bitcoin";
+  principalAmountCents: number;
+  wireChargeAmountCents: number;
+  totalAmountDueCents: number;
+  paymentReference: string | null;
+  reportedWireReference: string | null;
+  reportedBitcoinTxHash: string | null;
+  investorReportNote: string | null;
+  jointSubscriptionId: string;
+  externalFundingId: string;
+  origin: string;
+}) {
+  const money = (cents: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(cents / 100);
+
+  const methodLabel =
+    paymentMethod === "wire_transfer"
+      ? "Wire Transfer"
+      : "Bitcoin";
+
+  const evidence =
+    paymentMethod === "wire_transfer"
+      ? reportedWireReference
+      : reportedBitcoinTxHash;
+
+  const evidenceLabel =
+    paymentMethod === "wire_transfer"
+      ? "Bank transfer reference"
+      : "Bitcoin transaction hash";
+
+  const reviewUrl =
+    `${origin}/admin/investments/joint/${jointSubscriptionId}`;
+
+  const subject =
+    `Joint investment payment reported — ${opportunityTitle}`;
+
+  const text = `
+A joint investment payment has been reported and is ready for verification.
+
+Investor: ${investorName}
+Investor email: ${investorEmail}
+Opportunity: ${opportunityTitle}
+Payment method: ${methodLabel}
+
+Investment principal: ${money(principalAmountCents)}
+Wire charge: ${money(wireChargeAmountCents)}
+Total amount due: ${money(totalAmountDueCents)}
+
+Tevuah payment reference: ${paymentReference ?? "N/A"}
+${evidenceLabel}: ${evidence ?? "N/A"}
+
+Investor note:
+${investorReportNote ?? "None"}
+
+Joint subscription:
+${jointSubscriptionId}
+
+Funding request:
+${externalFundingId}
+
+Review:
+${reviewUrl}
+
+No investment principal has been recognized as funded yet. Administrative verification is required.
+  `.trim();
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;color:#1f2937;">
+      <h2 style="margin-bottom:8px;">
+        Joint investment payment reported
+      </h2>
+
+      <p>
+        A joint investment payment has been reported and is ready
+        for administrative verification.
+      </p>
+
+      <table
+        style="width:100%;border-collapse:collapse;margin:24px 0;"
+      >
+        <tbody>
+          <tr>
+            <td style="padding:8px 0;"><strong>Investor</strong></td>
+            <td style="padding:8px 0;">${investorName}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;"><strong>Email</strong></td>
+            <td style="padding:8px 0;">${investorEmail}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;"><strong>Opportunity</strong></td>
+            <td style="padding:8px 0;">${opportunityTitle}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;"><strong>Method</strong></td>
+            <td style="padding:8px 0;">${methodLabel}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;"><strong>Principal</strong></td>
+            <td style="padding:8px 0;">
+              ${money(principalAmountCents)}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;"><strong>Wire charge</strong></td>
+            <td style="padding:8px 0;">
+              ${money(wireChargeAmountCents)}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;"><strong>Total due</strong></td>
+            <td style="padding:8px 0;">
+              ${money(totalAmountDueCents)}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;">
+              <strong>Tevuah reference</strong>
+            </td>
+            <td style="padding:8px 0;">
+              ${paymentReference ?? "N/A"}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 0;">
+              <strong>${evidenceLabel}</strong>
+            </td>
+            <td style="padding:8px 0;">
+              ${evidence ?? "N/A"}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      ${
+        investorReportNote
+          ? `<p><strong>Investor note:</strong><br>${investorReportNote}</p>`
+          : ""
+      }
+
+      <p>
+        <strong>No investment principal has been recognized as
+        funded yet.</strong> Administrative verification is required.
+      </p>
+
+      <p style="margin-top:24px;">
+        <a
+          href="${reviewUrl}"
+          style="display:inline-block;padding:12px 18px;background:#111827;color:#ffffff;text-decoration:none;border-radius:6px;"
+        >
+          Review payment
+        </a>
+      </p>
+    </div>
+  `;
+
+  return {
+    subject,
+    text,
+    html,
+  };
+}
+export function investorJointPaymentVerifiedEmail({
+  investorName,
+  opportunityTitle,
+  principalAmountCents,
+  paymentMethod,
+  jointSubscriptionId,
+  origin,
+}: {
+  investorName: string;
+  opportunityTitle: string;
+  principalAmountCents: number;
+  paymentMethod: "wire_transfer" | "bitcoin";
+  jointSubscriptionId: string;
+  origin: string;
+}) {
+  const money = (cents: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(cents / 100);
+
+  const methodLabel =
+    paymentMethod === "wire_transfer"
+      ? "Wire Transfer"
+      : "Bitcoin";
+
+  const dashboardUrl =
+    `${origin}/dashboard/investments/joint/${jointSubscriptionId}`;
+
+  const subject =
+    `Joint investment payment verified — ${opportunityTitle}`;
+
+  const text = `
+Hello ${investorName},
+
+Your ${methodLabel} payment for your joint investment in ${opportunityTitle} has been verified.
+
+Verified investment principal: ${money(principalAmountCents)}
+
+Your funding obligation for this joint investment has been satisfied.
+
+The joint investment will remain in funding until all member funding obligations have been completed. Investment positions are created only after final funding completion and finalization.
+
+View your joint investment:
+${dashboardUrl}
+
+Tevuah Reserve
+  `.trim();
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;color:#1f2937;">
+      <h2>Joint investment payment verified</h2>
+
+      <p>Hello ${investorName},</p>
+
+      <p>
+        Your ${methodLabel} payment for your joint investment in
+        <strong>${opportunityTitle}</strong> has been verified.
+      </p>
+
+      <p>
+        <strong>Verified investment principal:</strong>
+        ${money(principalAmountCents)}
+      </p>
+
+      <p>
+        Your funding obligation for this joint investment has been
+        satisfied.
+      </p>
+
+      <p>
+        The joint investment will remain in funding until all member
+        funding obligations have been completed. Investment positions
+        are created only after final funding completion and finalization.
+      </p>
+
+      <p style="margin-top:24px;">
+        <a
+          href="${dashboardUrl}"
+          style="display:inline-block;padding:12px 18px;background:#111827;color:#fff;text-decoration:none;border-radius:6px;"
+        >
+          View joint investment
+        </a>
+      </p>
+
+      <p>Tevuah Reserve</p>
+    </div>
+  `;
+
+  return {
+    subject,
+    text,
+    html,
+  };
+}
+
+
+export function investorJointMemberPaymentVerifiedEmail({
+  investorName,
+  fundedMemberName,
+  opportunityTitle,
+  jointSubscriptionId,
+  origin,
+}: {
+  investorName: string;
+  fundedMemberName: string;
+  opportunityTitle: string;
+  jointSubscriptionId: string;
+  origin: string;
+}) {
+  const dashboardUrl =
+    `${origin}/dashboard/investments/joint/${jointSubscriptionId}`;
+
+  const subject =
+    `Joint investment funding update — ${opportunityTitle}`;
+
+  const text = `
+Hello ${investorName},
+
+There has been a funding update for your joint investment in ${opportunityTitle}.
+
+${fundedMemberName}'s funding obligation has been verified and completed.
+
+Your joint investment remains in the funding stage until all member funding obligations have been completed.
+
+View your joint investment:
+${dashboardUrl}
+
+Tevuah Reserve
+  `.trim();
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;color:#1f2937;">
+      <h2>Joint investment funding update</h2>
+
+      <p>Hello ${investorName},</p>
+
+      <p>
+        There has been a funding update for your joint investment in
+        <strong>${opportunityTitle}</strong>.
+      </p>
+
+      <p>
+        <strong>${fundedMemberName}</strong>'s funding obligation has
+        been verified and completed.
+      </p>
+
+      <p>
+        Your joint investment remains in the funding stage until all
+        member funding obligations have been completed.
+      </p>
+
+      <p style="margin-top:24px;">
+        <a
+          href="${dashboardUrl}"
+          style="display:inline-block;padding:12px 18px;background:#111827;color:#fff;text-decoration:none;border-radius:6px;"
+        >
+          View joint investment
+        </a>
+      </p>
+
+      <p>Tevuah Reserve</p>
+    </div>
+  `;
+
+  return {
+    subject,
+    text,
+    html,
+  };
+}

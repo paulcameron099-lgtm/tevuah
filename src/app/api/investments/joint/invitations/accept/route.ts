@@ -15,6 +15,18 @@ import {
   checkAccountAccess,
 } from "@/src/lib/auth/account-status";
 
+import {
+  createAdminClient,
+} from "@/src/lib/supabase/admin";
+
+import {
+  sendApplicationMail,
+} from "@/src/lib/email/application-mailer";
+
+import {
+  jointInvestmentAcceptedEmail,
+} from "@/src/lib/email/joint-investment";
+
 
 export const dynamic =
   "force-dynamic";
@@ -484,8 +496,421 @@ export async function POST(
 
 
     /*
+ * ==========================================================
+ * 10. NOTIFY INITIATOR OF ACCEPTANCE + SIGNATURE
+ * ==========================================================
+ *
+ * The financial/legal acceptance has already succeeded.
+ *
+ * Communication failures must NOT roll back or misrepresent
+ * the successful acceptance.
+ */
+
+try {
+  const admin =
+    createAdminClient();
+
+
+  /*
+   * ----------------------------------------------------------
+   * Load the joint investment
+   * ----------------------------------------------------------
+   */
+
+  const {
+    data: joint,
+    error: jointError,
+  } =
+    await admin
+      .from(
+        "joint_investment_subscriptions",
+      )
+      .select(
+        `
+          id,
+          initiated_by,
+          opportunity_id
+        `,
+      )
+      .eq(
+        "id",
+        acceptance.joint_subscription_id,
+      )
+      .maybeSingle();
+
+
+  if (
+    jointError ||
+    !joint
+  ) {
+    console.error(
+      "Unable to load joint investment for acceptance notification:",
+      jointError,
+    );
+  } else {
+
+
+    /*
+ * ----------------------------------------------------------
+ * Load initiator profile
+ * ----------------------------------------------------------
+ */
+
+const {
+  data: initiatorProfile,
+  error: initiatorProfileError,
+} =
+  await admin
+    .from(
+      "profiles",
+    )
+    .select(
+      `
+        id,
+        first_name,
+        last_name
+      `,
+    )
+    .eq(
+      "id",
+      joint.initiated_by,
+    )
+    .maybeSingle();
+
+
+if (initiatorProfileError) {
+  console.error(
+    "Unable to load joint investment initiator profile:",
+    initiatorProfileError,
+  );
+}
+
+    /*
+     * ----------------------------------------------------------
+     * Load accepted investor profile
+     * ----------------------------------------------------------
+     */
+
+    const {
+      data: acceptedInvestor,
+      error: acceptedInvestorError,
+    } =
+      await admin
+        .from(
+          "profiles",
+        )
+        .select(
+          `
+            id,
+            first_name,
+            last_name
+          `,
+        )
+        .eq(
+          "id",
+          userId,
+        )
+        .maybeSingle();
+
+
+    /*
+     * ----------------------------------------------------------
+     * Load opportunity
+     * ----------------------------------------------------------
+     */
+
+    const {
+      data: opportunity,
+      error: opportunityError,
+    } =
+      await admin
+        .from(
+          "investment_opportunities",
+        )
+        .select(
+          `
+            id,
+            title
+          `,
+        )
+        .eq(
+          "id",
+          joint.opportunity_id,
+        )
+        .maybeSingle();
+
+
+    if (acceptedInvestorError) {
+      console.error(
+        "Unable to load accepted joint investor profile:",
+        acceptedInvestorError,
+      );
+    }
+
+
+    if (opportunityError) {
+      console.error(
+        "Unable to load joint investment opportunity for acceptance notification:",
+        opportunityError,
+      );
+    }
+
+
+    const acceptedInvestorName =
+      [
+        acceptedInvestor?.first_name,
+        acceptedInvestor?.last_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .trim() ||
+      "The invited investor";
+
+      const initiatorName =
+    [
+      initiatorProfile?.first_name,
+      initiatorProfile?.last_name,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
+    "Investor";
+
+
+    const opportunityTitle =
+      opportunity?.title ||
+      "your joint investment";
+
+
+    /*
+     * ----------------------------------------------------------
+     * Dashboard notification
+     * ----------------------------------------------------------
+     */
+
+    const {
+      error:
+        initiatorNotificationError,
+    } =
+      await admin
+        .from(
+          "investor_notifications",
+        )
+        .upsert(
+          {
+            investor_id:
+              joint.initiated_by,
+
+            notification_type:
+              "subscription",
+
+            event_key:
+              `joint:${acceptance.joint_subscription_id}:invitee-accepted:${userId}`,
+
+            title:
+              "Joint investment invitation accepted",
+
+            message:
+              `${acceptedInvestorName} has accepted and signed your joint investment invitation for ${opportunityTitle}. The joint investment can now continue through the review process.`,
+
+            action_label:
+              "View joint investment",
+
+            action_path:
+              `/dashboard/investments/joint/${acceptance.joint_subscription_id}`,
+
+            source_type:
+              "joint_investment_subscription",
+
+            source_id:
+              acceptance.joint_subscription_id,
+          },
+          {
+            onConflict:
+              "investor_id,event_key",
+
+            ignoreDuplicates:
+              true,
+          },
+        );
+
+
+    if (
+      initiatorNotificationError
+    ) {
+      console.error(
+        "Joint acceptance initiator notification failed:",
+        {
+          jointSubscriptionId:
+            acceptance.joint_subscription_id,
+
+          initiatorId:
+            joint.initiated_by,
+
+          acceptedInvestorId:
+            userId,
+
+          error:
+            initiatorNotificationError,
+        },
+      );
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * Resolve initiator email from Supabase Auth
+     * ----------------------------------------------------------
+     *
+     * profiles does not contain email in the current schema.
+     */
+
+    const {
+      data: initiatorAuthData,
+      error: initiatorAuthError,
+    } =
+      await admin.auth.admin.getUserById(
+        joint.initiated_by,
+      );
+
+
+    if (initiatorAuthError) {
+      console.error(
+        "Unable to load joint investment initiator email:",
+        {
+          jointSubscriptionId:
+            acceptance.joint_subscription_id,
+
+          initiatorId:
+            joint.initiated_by,
+
+          error:
+            initiatorAuthError,
+        },
+      );
+    }
+
+
+    const initiatorEmail =
+      initiatorAuthData?.user?.email
+        ?.trim() ||
+      null;
+
+
+    /*
+     * ----------------------------------------------------------
+     * Send initiator acceptance email
+     * ----------------------------------------------------------
+     */
+
+    if (initiatorEmail) {
+      try {
+        const origin =
+          new URL(
+            request.url,
+          ).origin;
+
+
+        const jointInvestmentUrl =
+          `${origin}/dashboard/investments/joint/${acceptance.joint_subscription_id}`;
+
+
+        const email =
+          jointInvestmentAcceptedEmail({
+            initiatorName,
+
+            acceptedInvestorName,
+
+            opportunityTitle,
+
+            jointInvestmentUrl,
+          });
+
+
+        const delivery =
+          await sendApplicationMail({
+            to:
+              initiatorEmail,
+
+            subject:
+              email.subject,
+
+            text:
+              email.text,
+
+            html:
+              email.html,
+          });
+
+
+        if (!delivery.sent) {
+          console.error(
+            "Joint acceptance initiator email was not delivered:",
+            {
+              jointSubscriptionId:
+                acceptance.joint_subscription_id,
+
+              initiatorId:
+                joint.initiated_by,
+
+              error:
+                delivery.error,
+            },
+          );
+        }
+      } catch (emailError) {
+        console.error(
+          "Unable to send joint acceptance initiator email:",
+          {
+            jointSubscriptionId:
+              acceptance.joint_subscription_id,
+
+            initiatorId:
+              joint.initiated_by,
+
+            error:
+              emailError instanceof Error
+                ? emailError.message
+                : emailError,
+          },
+        );
+      }
+    } else {
+      console.error(
+        "Joint acceptance initiator email unavailable:",
+        {
+          jointSubscriptionId:
+            acceptance.joint_subscription_id,
+
+          initiatorId:
+            joint.initiated_by,
+        },
+      );
+    }
+  }
+} catch (
+  communicationError
+) {
+  /*
+   * Acceptance is already legally recorded.
+   *
+   * Never turn a successful signature into an API failure just
+   * because a secondary communication operation failed.
+   */
+
+  console.error(
+    "Joint acceptance communication error:",
+    communicationError,
+  );
+}
+
+
+
+
+
+    /*
      * ==========================================================
-     * 10. SAFE RESPONSE
+     * 11. SAFE RESPONSE
      * ==========================================================
      */
 

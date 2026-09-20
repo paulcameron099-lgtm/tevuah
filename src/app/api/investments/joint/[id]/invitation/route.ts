@@ -632,6 +632,213 @@ export async function POST(
       );
     }
 
+    
+    /*
+ * ==========================================================
+ * 10B. VERIFY STORED INVITATION TOKEN
+ * ==========================================================
+ *
+ * Never email an invitation unless PostgreSQL contains
+ * exactly the SHA-256 digest generated for this raw token.
+ *
+ * The raw token itself is never stored.
+ */
+
+const invitationId =
+  invitation.invitation_id;
+
+if (
+  !invitationId ||
+  !isUuid(invitationId)
+) {
+  console.error(
+    "Joint invitation RPC returned an invalid invitation id.",
+  );
+
+  return NextResponse.json(
+    {
+      error:
+        "Joint investment invitation could not be verified.",
+    },
+    {
+      status: 500,
+    },
+  );
+}
+
+
+const {
+  data: storedInvitation,
+  error: storedInvitationError,
+} =
+  await admin
+    .from(
+      "joint_investment_invitations",
+    )
+    .select(
+      `
+        id,
+        token_hash,
+        status,
+        invitee_investor_id
+      `,
+    )
+    .eq(
+      "id",
+      invitationId,
+    )
+    .maybeSingle();
+
+
+if (
+  storedInvitationError ||
+  !storedInvitation
+) {
+  console.error(
+    "Unable to verify stored joint invitation:",
+    storedInvitationError,
+  );
+
+  return NextResponse.json(
+    {
+      error:
+        "Joint investment invitation could not be verified.",
+    },
+    {
+      status: 500,
+    },
+  );
+}
+
+
+const tokenHashMatches =
+  storedInvitation.token_hash ===
+  tokenHash;
+
+const inviteeMatches =
+  storedInvitation.invitee_investor_id ===
+  memberTwo.investor_id;
+
+const invitationIsPending =
+  storedInvitation.status ===
+  "pending";
+
+
+if (
+  !tokenHashMatches ||
+  !inviteeMatches ||
+  !invitationIsPending
+) {
+  console.error(
+    "Joint invitation verification failed.",
+    {
+      invitationId,
+
+      tokenHashMatches,
+
+      inviteeMatches,
+
+      invitationIsPending,
+    },
+  );
+
+  return NextResponse.json(
+    {
+      error:
+        "Joint investment invitation could not be verified.",
+    },
+    {
+      status: 500,
+    },
+  );
+}
+
+/* ==========================================================
+ * 10C. CREATE INVITEE DASHBOARD NOTIFICATION
+ * ==========================================================
+ *
+ * IMPORTANT:
+ *
+ * Do NOT store rawToken in investor_notifications.
+ *
+ * The invitation-token architecture deliberately stores only
+ * the SHA-256 digest in PostgreSQL. Putting rawToken inside an
+ * action_path would defeat that security boundary.
+ *
+ * The email remains the secure deep-link into the invitation.
+ * The dashboard notification directs the investor to the
+ * investment area, where pending joint-investment activity is
+ * visible.
+ */
+
+const {
+  error: invitationNotificationError,
+} =
+  await admin
+    .from(
+      "investor_notifications",
+    )
+    .upsert(
+      {
+        investor_id:
+          memberTwo.investor_id,
+
+        notification_type:
+          "subscription",
+
+        event_key:
+          `joint:${id}:invitation:${invitationId}`,
+
+        title:
+          "Joint investment invitation",
+
+        message:
+          `${inviterName} has invited you to join a 50/50 joint investment in ${opportunity.title}. Review the investment terms and complete your acceptance and signature to continue.`,
+
+        action_label:
+          "Review joint investment",
+
+        action_path:
+          "/dashboard/investments",
+
+        source_type:
+          "joint_investment_invitation",
+
+        source_id:
+          invitationId,
+      },
+      {
+        onConflict:
+          "investor_id,event_key",
+
+        ignoreDuplicates:
+          true,
+      },
+    );
+
+
+if (invitationNotificationError) {
+  /*
+   * Notification delivery is secondary.
+   *
+   * The invitation itself has already been created securely.
+   * A notification failure must therefore NOT invalidate the
+   * invitation or prevent the invitation email from being sent.
+   */
+  console.error(
+    "Joint investment invitation dashboard notification failed:",
+    {
+      invitationId,
+      jointSubscriptionId:
+        id,
+      inviteeInvestorId:
+        memberTwo.investor_id,
+      error:
+        invitationNotificationError,
+    },
+  );
+}
+
 
     /*
      * ==========================================================
@@ -645,15 +852,77 @@ export async function POST(
      */
 
     const origin =
-      getAppOrigin(
+    getAppOrigin(
         request,
-      );
+    )
+        .trim()
+        .replace(
+        /\/+$/,
+        "",
+        );
+
+
+    const invitationPath =
+    "/dashboard/investments/joint/invitations/";
 
 
     const invitationUrl =
-      `${origin}/dashboard/investments/joint/invitations/${encodeURIComponent(
+    `${origin}${invitationPath}${encodeURIComponent(
         rawToken,
-      )}`;
+    )}`;
+
+    let parsedInvitationUrl: URL;
+
+try {
+  parsedInvitationUrl =
+    new URL(
+      invitationUrl,
+    );
+} catch {
+  console.error(
+    "Generated joint invitation URL is invalid.",
+  );
+
+  return NextResponse.json(
+    {
+      error:
+        "Unable to generate a valid invitation link.",
+    },
+    {
+      status: 500,
+    },
+  );
+}
+
+
+const expectedPathname =
+  `${invitationPath}${encodeURIComponent(
+    rawToken,
+  )}`;
+
+
+if (
+  parsedInvitationUrl.pathname !==
+  expectedPathname
+) {
+  console.error(
+    "Generated joint invitation URL has an unexpected pathname.",
+    {
+      pathname:
+        parsedInvitationUrl.pathname,
+    },
+  );
+
+  return NextResponse.json(
+    {
+      error:
+        "Unable to generate a valid invitation link.",
+    },
+    {
+      status: 500,
+    },
+  );
+}
 
 
     /*

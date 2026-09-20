@@ -4,6 +4,7 @@ import {
   CircleAlert,
   Clock3,
   ClipboardCheck,
+  UsersRound,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -17,96 +18,192 @@ export default async function AdminSubscriptionsPage() {
   const admin =
     createAdminClient();
 
-  const {
-    data: subscriptions,
-    error,
-  } = await admin
-    .from(
-      "investment_subscriptions",
-    )
-    .select(
-      `
-      id,
-
-      investor_id,
-      opportunity_id,
-
-      commitment_amount,
-      status,
-
-      submitted_at,
-      reviewed_at,
-      created_at,
-
-      investor:profiles!investment_subscriptions_investor_id_fkey (
+  const [
+    individualResult,
+    jointResult,
+  ] = await Promise.all([
+    admin
+      .from(
+        "investment_subscriptions",
+      )
+      .select(
+        `
         id,
-        first_name,
-        last_name,
-        onboarding_status,
-        account_status
+        investor_id,
+        opportunity_id,
+        commitment_amount,
+        status,
+        submitted_at,
+        reviewed_at,
+        created_at,
+
+        investor:profiles!investment_subscriptions_investor_id_fkey (
+          id,
+          first_name,
+          last_name,
+          onboarding_status,
+          account_status
+        ),
+
+        opportunity:investment_opportunities!investment_subscriptions_opportunity_id_fkey (
+          id,
+          slug,
+          title,
+          asset_category,
+          status
+        )
+        `,
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        },
       ),
 
-      opportunity:investment_opportunities!investment_subscriptions_opportunity_id_fkey (
-        id,
-        slug,
-        title,
-        asset_category,
-        status
+    admin
+      .from(
+        "joint_investment_subscriptions",
       )
-      `,
-    )
-    .order(
-      "created_at",
-      {
-        ascending:
-          false,
-      },
-    );
+      .select(
+        `
+        id,
+        opportunity_id,
+        initiated_by,
+        total_commitment_amount,
+        currency,
+        status,
+        submitted_at,
+        reviewed_at,
+        approved_at,
+        created_at,
 
-  if (error) {
+        opportunity:investment_opportunities!joint_investment_subscriptions_opportunity_id_fkey (
+          id,
+          slug,
+          title,
+          asset_category,
+          status
+        ),
+
+        members:joint_investment_members (
+          id,
+          investor_id,
+          member_slot,
+          ownership_bps,
+          funding_obligation_bps,
+          obligation_amount,
+          member_status,
+
+          investor:profiles!joint_investment_members_investor_id_fkey (
+            id,
+            first_name,
+            last_name,
+            onboarding_status,
+            account_status
+          ),
+
+          consents:joint_investment_member_consents (
+            id,
+            consent_status,
+            signed_at
+          )
+        )
+        `,
+      )
+      .neq(
+        "status",
+        "cancelled",
+      )
+      .order(
+        "created_at",
+        {
+          ascending: false,
+        },
+      ),
+  ]);
+
+  if (
+    individualResult.error
+  ) {
     console.error(
-      "Admin subscriptions load error:",
-      error,
+      "Admin individual subscriptions load error:",
+      individualResult.error,
     );
 
     throw new Error(
-      "Unable to load investment subscriptions.",
+      "Unable to load individual investment subscriptions.",
     );
   }
 
-  const records =
-    subscriptions ?? [];
+  if (
+    jointResult.error
+  ) {
+    console.error(
+      "Admin joint subscriptions load error:",
+      jointResult.error,
+    );
 
-  const submittedCount =
-    records.filter(
+    throw new Error(
+      "Unable to load joint investment subscriptions.",
+    );
+  }
+
+  const individualRecords =
+    individualResult.data ?? [];
+
+  const jointRecords =
+    jointResult.data ?? [];
+
+  const individualSubmitted =
+    individualRecords.filter(
       (item) =>
         item.status ===
         "submitted",
     ).length;
 
-  const reviewCount =
-    records.filter(
+  const individualReview =
+    individualRecords.filter(
       (item) =>
         item.status ===
         "under_review",
     ).length;
 
-  const approvedCount =
-    records.filter(
+  const jointSubmitted =
+    jointRecords.filter(
       (item) =>
         item.status ===
-        "approved",
+        "submitted",
     ).length;
 
-  const actionRequiredCount =
-    records.filter(
+  const jointReview =
+    jointRecords.filter(
       (item) =>
         item.status ===
-        "action_required",
+        "under_review",
     ).length;
+
+  const jointApproved =
+    jointRecords.filter(
+      (item) =>
+        item.status ===
+          "approved" ||
+        item.status ===
+          "funding" ||
+        item.status ===
+          "funded",
+    ).length;
+
+  const reviewQueueCount =
+    individualSubmitted +
+    individualReview +
+    jointSubmitted +
+    jointReview;
 
   return (
     <div className="space-y-8">
+      {/* HEADER */}
+
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
           Investment administration
@@ -117,9 +214,10 @@ export default async function AdminSubscriptionsPage() {
         </h1>
 
         <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
-          Review investor capital commitments,
-          offering acknowledgements and subscription
-          decisions.
+          Review individual capital
+          commitments and 50/50 joint
+          investment subscriptions
+          before funding begins.
         </p>
       </div>
 
@@ -127,172 +225,414 @@ export default async function AdminSubscriptionsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
-          label="Submitted"
+          label="Review queue"
           value={
-            submittedCount
+            reviewQueueCount
           }
         />
 
         <SummaryCard
-          label="Under review"
+          label="Individual"
           value={
-            reviewCount
+            individualRecords.length
           }
         />
 
         <SummaryCard
-          label="Approved"
+          label="Joint 50/50"
           value={
-            approvedCount
+            jointRecords.length
           }
         />
 
         <SummaryCard
-          label="Action required"
+          label="Joint approved"
           value={
-            actionRequiredCount
+            jointApproved
           }
         />
       </div>
 
-      {/* QUEUE */}
+      {/* ====================================================
+          JOINT INVESTMENTS
+      ==================================================== */}
 
-      <section className="overflow-hidden rounded-[1.75rem] border border-forest-900/10 bg-white">
-        {records.length ===
-        0 ? (
-          <div className="px-6 py-16 text-center">
-            <ClipboardCheck className="mx-auto size-7 text-stone-300" />
+      <section>
+        <div className="mb-5 flex items-end justify-between gap-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <UsersRound className="size-4 text-gold-600" />
 
-            <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-              No investment subscriptions yet.
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
+                Joint investments
+              </p>
+            </div>
+
+            <h2 className="font-display mt-2 text-3xl font-semibold text-forest-950">
+              Joint 50/50 Queue
             </h2>
 
-            <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-stone-500">
-              Investor subscription requests will
-              appear here after submission.
+            <p className="mt-2 text-sm leading-6 text-stone-500">
+              Review both investors,
+              member agreements and
+              the complete joint
+              commitment before
+              approval.
             </p>
           </div>
-        ) : (
-          <div className="divide-y divide-forest-900/10">
-            {records.map(
-              (
-                subscription,
-              ) => {
-                const investor =
-                  Array.isArray(
-                    subscription.investor,
-                  )
-                    ? subscription.investor[0] ??
-                      null
-                    : subscription.investor;
+        </div>
 
-                const opportunity =
-                  Array.isArray(
-                    subscription.opportunity,
-                  )
-                    ? subscription.opportunity[0] ??
-                      null
-                    : subscription.opportunity;
+        <div className="overflow-hidden rounded-[1.75rem] border border-forest-900/10 bg-white">
+          {jointRecords.length ===
+          0 ? (
+            <div className="px-6 py-14 text-center">
+              <UsersRound className="mx-auto size-7 text-stone-300" />
 
-                const investorName =
-                  investor
-                    ? [
-                        investor.first_name,
-                        investor.last_name,
-                      ]
-                        .filter(Boolean)
-                        .join(" ")
-                    : "Investor";
+              <h3 className="font-display mt-4 text-2xl font-semibold text-forest-950">
+                No joint investments
+                yet.
+              </h3>
 
-                return (
-                  <article
-                    key={
-                      subscription.id
-                    }
-                    className="p-6"
-                  >
-                    <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap gap-2">
-                          <StatusBadge
-                            status={
-                              subscription.status
-                            }
-                          />
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-stone-500">
+                New 50/50 joint
+                investment
+                subscriptions will
+                appear here.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-forest-900/10">
+              {jointRecords.map(
+                (joint) => {
+                  const opportunity =
+                    firstRelation(
+                      joint.opportunity,
+                    );
 
-                          {opportunity?.asset_category ? (
-                            <span className="rounded-full bg-ivory-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-stone-500">
-                              {humanize(
-                                opportunity.asset_category,
-                              )}
+                  const members =
+                    [...(
+                      joint.members ??
+                      []
+                    )].sort(
+                      (
+                        first,
+                        second,
+                      ) =>
+                        Number(
+                          first.member_slot,
+                        ) -
+                        Number(
+                          second.member_slot,
+                        ),
+                    );
+
+                  const memberOne =
+                    members[0] ??
+                    null;
+
+                  const memberTwo =
+                    members[1] ??
+                    null;
+
+                  const memberOneInvestor =
+                    memberOne
+                      ? firstRelation(
+                          memberOne.investor,
+                        )
+                      : null;
+
+                  const memberTwoInvestor =
+                    memberTwo
+                      ? firstRelation(
+                          memberTwo.investor,
+                        )
+                      : null;
+
+                  const memberOneConsent =
+                    memberOne
+                      ? firstRelation(
+                          memberOne.consents,
+                        )
+                      : null;
+
+                  const memberTwoConsent =
+                    memberTwo
+                      ? firstRelation(
+                          memberTwo.consents,
+                        )
+                      : null;
+
+                  const memberOneName =
+                    profileName(
+                      memberOneInvestor,
+                    );
+
+                  const memberTwoName =
+                    profileName(
+                      memberTwoInvestor,
+                    );
+
+                  const signedCount =
+                    [
+                      memberOneConsent,
+                      memberTwoConsent,
+                    ].filter(
+                      (consent) =>
+                        consent?.consent_status ===
+                        "accepted",
+                    ).length;
+
+                  return (
+                    <article
+                      key={
+                        joint.id
+                      }
+                      className="p-6"
+                    >
+                      <div className="flex flex-col gap-7 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap gap-2">
+                            <StatusBadge
+                              status={
+                                joint.status
+                              }
+                            />
+
+                            <span className="rounded-full bg-forest-950 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-gold-300">
+                              Joint 50/50
                             </span>
-                          ) : null}
+
+                            {opportunity?.asset_category ? (
+                              <span className="rounded-full bg-ivory-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-stone-500">
+                                {humanize(
+                                  opportunity.asset_category,
+                                )}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <h3 className="font-display mt-4 text-2xl font-semibold text-forest-950">
+                            {opportunity?.title ??
+                              "Investment opportunity"}
+                          </h3>
+
+                          <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
+                            <DataPoint
+                              label="Total commitment"
+                              value={formatMoney(
+                                Number(
+                                  joint.total_commitment_amount,
+                                ),
+                                joint.currency,
+                              )}
+                            />
+
+                            <DataPoint
+                              label="Investor one"
+                              value={
+                                memberOneName
+                              }
+                            />
+
+                            <DataPoint
+                              label="Investor two"
+                              value={
+                                memberTwoName
+                              }
+                            />
+
+                            <DataPoint
+                              label="Agreements"
+                              value={`${signedCount} / 2 signed`}
+                            />
+
+                            <DataPoint
+                              label="Submitted"
+                              value={
+                                joint.submitted_at
+                                  ? formatDate(
+                                      joint.submitted_at,
+                                    )
+                                  : "Pending"
+                              }
+                            />
+                          </div>
                         </div>
 
-                        <h2 className="font-display mt-4 text-2xl font-semibold text-forest-950">
-                          {opportunity?.title ??
-                            "Investment opportunity"}
-                        </h2>
+                        <Link
+                          href={`/admin/subscriptions/joint/${joint.id}`}
+                          className="focus-ring inline-flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-5 text-sm font-semibold text-white transition hover:bg-forest-800"
+                        >
+                          Review joint investment
 
-                        <p className="mt-2 text-sm font-semibold text-stone-600">
-                          {
-                            investorName
-                          }
-                        </p>
-
-                        <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                          <DataPoint
-                            label="Commitment"
-                            value={formatMoney(
-                              Number(
-                                subscription.commitment_amount,
-                              ),
-                            )}
-                          />
-
-                          <DataPoint
-                            label="Submitted"
-                            value={
-                              subscription.submitted_at
-                                ? formatDate(
-                                    subscription.submitted_at,
-                                  )
-                                : "—"
-                            }
-                          />
-
-                          <DataPoint
-                            label="Reviewed"
-                            value={
-                              subscription.reviewed_at
-                                ? formatDate(
-                                    subscription.reviewed_at,
-                                  )
-                                : "Pending"
-                            }
-                          />
-                        </div>
+                          <ArrowRight className="size-4" />
+                        </Link>
                       </div>
+                    </article>
+                  );
+                },
+              )}
+            </div>
+          )}
+        </div>
+      </section>
 
-                      <Link
-                        href={`/admin/subscriptions/${subscription.id}`}
-                        className="focus-ring inline-flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-5 text-sm font-semibold text-white transition hover:bg-forest-800"
-                      >
-                        Review subscription
+      {/* ====================================================
+          INDIVIDUAL INVESTMENTS
+      ==================================================== */}
 
-                        <ArrowRight className="size-4" />
-                      </Link>
-                    </div>
-                  </article>
-                );
-              },
-            )}
-          </div>
-        )}
+      <section>
+        <div className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
+            Individual investments
+          </p>
+
+          <h2 className="font-display mt-2 text-3xl font-semibold text-forest-950">
+            Individual Queue
+          </h2>
+
+          <p className="mt-2 text-sm leading-6 text-stone-500">
+            Existing individual
+            investment subscription
+            review workflow.
+          </p>
+        </div>
+
+        <div className="overflow-hidden rounded-[1.75rem] border border-forest-900/10 bg-white">
+          {individualRecords.length ===
+          0 ? (
+            <div className="px-6 py-14 text-center">
+              <ClipboardCheck className="mx-auto size-7 text-stone-300" />
+
+              <h3 className="font-display mt-4 text-2xl font-semibold text-forest-950">
+                No individual
+                subscriptions yet.
+              </h3>
+
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-stone-500">
+                Individual investor
+                subscription requests
+                will appear here after
+                submission.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-forest-900/10">
+              {individualRecords.map(
+                (
+                  subscription,
+                ) => {
+                  const investor =
+                    firstRelation(
+                      subscription.investor,
+                    );
+
+                  const opportunity =
+                    firstRelation(
+                      subscription.opportunity,
+                    );
+
+                  const investorName =
+                    profileName(
+                      investor,
+                    );
+
+                  return (
+                    <article
+                      key={
+                        subscription.id
+                      }
+                      className="p-6"
+                    >
+                      <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap gap-2">
+                            <StatusBadge
+                              status={
+                                subscription.status
+                              }
+                            />
+
+                            <span className="rounded-full bg-stone-100 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-stone-600">
+                              Individual
+                            </span>
+
+                            {opportunity?.asset_category ? (
+                              <span className="rounded-full bg-ivory-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-stone-500">
+                                {humanize(
+                                  opportunity.asset_category,
+                                )}
+                              </span>
+                            ) : null}
+                          </div>
+
+                          <h3 className="font-display mt-4 text-2xl font-semibold text-forest-950">
+                            {opportunity?.title ??
+                              "Investment opportunity"}
+                          </h3>
+
+                          <p className="mt-2 text-sm font-semibold text-stone-600">
+                            {investorName}
+                          </p>
+
+                          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                            <DataPoint
+                              label="Commitment"
+                              value={formatMoney(
+                                Number(
+                                  subscription.commitment_amount,
+                                ),
+                              )}
+                            />
+
+                            <DataPoint
+                              label="Submitted"
+                              value={
+                                subscription.submitted_at
+                                  ? formatDate(
+                                      subscription.submitted_at,
+                                    )
+                                  : "—"
+                              }
+                            />
+
+                            <DataPoint
+                              label="Reviewed"
+                              value={
+                                subscription.reviewed_at
+                                  ? formatDate(
+                                      subscription.reviewed_at,
+                                    )
+                                  : "Pending"
+                              }
+                            />
+                          </div>
+                        </div>
+
+                        <Link
+                          href={`/admin/subscriptions/${subscription.id}`}
+                          className="focus-ring inline-flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-5 text-sm font-semibold text-white transition hover:bg-forest-800"
+                        >
+                          Review subscription
+
+                          <ArrowRight className="size-4" />
+                        </Link>
+                      </div>
+                    </article>
+                  );
+                },
+              )}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
 }
+
+/* ============================================================
+ * HELPERS
+ * ============================================================ */
 
 function SummaryCard({
   label,
@@ -339,26 +679,29 @@ function StatusBadge({
 }: {
   status: string;
 }) {
-  const approved =
-    status ===
-    "approved";
+  const success =
+    status === "approved" ||
+    status === "funding" ||
+    status === "funded";
 
   const review =
+    status === "submitted" ||
+    status === "under_review";
+
+  const waiting =
+    status === "draft" ||
     status ===
-      "submitted" ||
-    status ===
-      "under_review";
+      "awaiting_member_acceptance";
 
   const problem =
-    status ===
-      "action_required" ||
-    status ===
-      "rejected";
+    status === "action_required" ||
+    status === "rejected" ||
+    status === "cancelled";
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest ${
-        approved
+        success
           ? "bg-emerald-50 text-emerald-700"
           : review
             ? "bg-amber-50 text-amber-700"
@@ -367,9 +710,9 @@ function StatusBadge({
               : "bg-stone-100 text-stone-600"
       }`}
     >
-      {approved ? (
+      {success ? (
         <CheckCircle2 className="size-3" />
-      ) : review ? (
+      ) : review || waiting ? (
         <Clock3 className="size-3" />
       ) : (
         <CircleAlert className="size-3" />
@@ -379,6 +722,58 @@ function StatusBadge({
         status,
       )}
     </span>
+  );
+}
+
+function firstRelation<T>(
+  value:
+    | T
+    | T[]
+    | null
+    | undefined,
+): T | null {
+  if (
+    Array.isArray(
+      value,
+    )
+  ) {
+    return (
+      value[0] ??
+      null
+    );
+  }
+
+  return value ?? null;
+}
+
+function profileName(
+  profile:
+    | {
+        first_name:
+          | string
+          | null;
+        last_name:
+          | string
+          | null;
+      }
+    | null
+    | undefined,
+) {
+  if (
+    !profile
+  ) {
+    return "Investor";
+  }
+
+  return (
+    [
+      profile.first_name,
+      profile.last_name,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim() ||
+    "Investor"
   );
 }
 
@@ -399,16 +794,15 @@ function humanize(
 
 function formatMoney(
   cents: number,
+  currency = "USD",
 ) {
   return new Intl.NumberFormat(
     "en-US",
     {
-      style:
-        "currency",
-
+      style: "currency",
       currency:
+        currency ||
         "USD",
-
       maximumFractionDigits:
         0,
     },
@@ -423,20 +817,11 @@ function formatDate(
   return new Intl.DateTimeFormat(
     "en-US",
     {
-      year:
-        "numeric",
-
-      month:
-        "short",
-
-      day:
-        "numeric",
-
-      hour:
-        "numeric",
-
-      minute:
-        "2-digit",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
     },
   ).format(
     new Date(
