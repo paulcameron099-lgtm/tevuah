@@ -37,6 +37,8 @@ import {
   JointInvestmentFundingActions,
 } from "@/src/components/investments/joint-investment-funding-actions";
 
+import JointWithdrawalRequest from "@/src/components/investments/joint-withdrawal-request";
+
 /* ============================================================
  * TYPES
  * ============================================================ */
@@ -316,11 +318,6 @@ export default async function JointInvestmentPage({
   const user =
     await getCurrentUser();
 
-    console.log("JOINT PAGE AUTH DEBUG", {
-  userId: user?.id,
-  role: user?.role,
-});
-
   if (!user) {
     redirect("/login");
   }
@@ -404,6 +401,7 @@ export default async function JointInvestmentPage({
     externalFundingResult,
     positionsResult,
     cashAccountResult,
+    currentProfileResult,
   ] = await Promise.all([
     admin
       .from(
@@ -547,6 +545,24 @@ export default async function JointInvestmentPage({
         joint.currency || "USD",
       )
       .maybeSingle(),
+
+    admin
+      .from(
+        "profiles",
+      )
+      .select(
+        `
+        id,
+        first_name,
+        last_name,
+        account_status
+        `,
+      )
+      .eq(
+        "id",
+        user.id,
+      )
+      .maybeSingle(),
   ]);
 
   if (
@@ -584,6 +600,18 @@ export default async function JointInvestmentPage({
       cashAccountResult.error,
     );
   }
+
+  if (
+    currentProfileResult.error
+  ) {
+    console.error(
+      "Joint investor profile load error:",
+      currentProfileResult.error,
+    );
+  }
+
+  const currentProfile =
+    currentProfileResult.data;
 
   const cashAccount =
     cashAccountResult.data;
@@ -722,6 +750,20 @@ export default async function JointInvestmentPage({
           ),
         )
       : 0;
+
+  const withdrawalEligible =
+    joint.parent_status ===
+      "funded" &&
+    Boolean(
+      myPosition &&
+        myPosition.status ===
+          "active",
+    ) &&
+    Boolean(
+      otherPosition &&
+        otherPosition.status ===
+          "active",
+    );
 
   /* ----------------------------------------------------------
    * 5. RENDER
@@ -1332,6 +1374,52 @@ export default async function JointInvestmentPage({
             </div>
           </div>
         </section>
+      ) : null}
+
+      {/* ======================================================
+          JOINT WITHDRAWAL
+      ====================================================== */}
+
+      {withdrawalEligible ? (
+        <JointWithdrawalRequest
+          jointSubscriptionId={
+            joint.joint_subscription_id
+          }
+          opportunityTitle={
+            joint.opportunity_title
+          }
+          totalCommitmentAmountCents={
+            Number(
+              joint.total_commitment_amount,
+            )
+          }
+          currency={
+            currency
+          }
+          actorMemberSlot={
+            Number(
+              joint.current_user_member_slot,
+            )
+          }
+          actorFirstName={
+            currentProfile?.first_name ??
+            null
+          }
+          actorLastName={
+            currentProfile?.last_name ??
+            null
+          }
+          actorAccountStatus={
+            currentProfile?.account_status ??
+            null
+          }
+          otherInvestorFirstName={
+            joint.other_member_first_name
+          }
+          otherInvestorLastName={
+            joint.other_member_last_name
+          }
+        />
       ) : null}
 
       {/* ======================================================

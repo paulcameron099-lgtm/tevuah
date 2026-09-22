@@ -1,6 +1,8 @@
-
- import { ArrowLeft,
+import {
+  ArrowLeft,
+  ArrowRight,
   CheckCircle2,
+  Clock3,
   CircleAlert,
   FileCheck2,
   ShieldCheck,
@@ -18,6 +20,22 @@ import {
 import { JointSubscriptionReviewActions } from "@/src/components/admin/subscriptions/joint-subscription-review-actions";
 import { requireAdmin } from "@/src/lib/auth/require-admin";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+
+type JointWithdrawalSummary = {
+  id: string;
+  joint_subscription_id: string;
+  initiated_by: string;
+  status: string;
+  withdrawal_scope: string;
+  proceeds_allocation: string;
+  proceeds_recipient_investor_id: string | null;
+  requested_at: string;
+  fully_approved_at: string | null;
+  submitted_for_execution_at: string | null;
+  executed_at: string | null;
+  rejected_at: string | null;
+  rejection_reason: string | null;
+};
 
 type PageProps = {
   params: Promise<{
@@ -133,6 +151,41 @@ export default async function AdminJointSubscriptionReviewPage({
 
     notFound();
   }
+
+  const {
+    data: withdrawalData,
+    error: withdrawalError,
+  } = await admin
+    .from("joint_investment_withdrawals")
+    .select(`
+      id,
+      joint_subscription_id,
+      initiated_by,
+      status,
+      withdrawal_scope,
+      proceeds_allocation,
+      proceeds_recipient_investor_id,
+      requested_at,
+      fully_approved_at,
+      submitted_for_execution_at,
+      executed_at,
+      rejected_at,
+      rejection_reason
+    `)
+    .eq("joint_subscription_id", joint.id)
+    .order("requested_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (withdrawalError) {
+    console.error(
+      "Admin joint withdrawal load error:",
+      withdrawalError,
+    );
+  }
+
+  const withdrawal =
+    (withdrawalData as JointWithdrawalSummary | null) ?? null;
 
   const opportunity =
     firstRelation(
@@ -478,6 +531,102 @@ export default async function AdminJointSubscriptionReviewPage({
             </Link>
         </div>
         ) : null}
+
+      {withdrawal ? (
+        <section
+          id="joint-withdrawal"
+          className={`overflow-hidden rounded-[1.75rem] border ${
+            withdrawal.status === "approved"
+              ? "border-gold-500/30 bg-ivory-50"
+              : "border-forest-900/10 bg-white"
+          }`}
+        >
+          <div className="border-b border-forest-900/10 px-6 py-5 sm:px-7">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-gold-500/10 text-gold-700">
+                  <Clock3 className="size-5" />
+                </div>
+
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gold-700">
+                    Joint Withdrawal
+                  </p>
+                  <h2 className="font-display mt-1 text-xl font-semibold text-forest-950">
+                    {withdrawal.status === "approved"
+                      ? "Administrative action required"
+                      : withdrawal.status === "submitted_for_execution"
+                        ? "Approved for execution"
+                        : withdrawal.status === "executed"
+                          ? "Withdrawal executed"
+                          : withdrawal.status === "awaiting_member_approval"
+                            ? "Waiting for investor approval"
+                            : withdrawal.status === "rejected"
+                              ? "Withdrawal rejected"
+                              : "Withdrawal request"}
+                  </h2>
+                </div>
+              </div>
+
+              <span className="inline-flex rounded-full border border-forest-900/10 bg-white px-3 py-1.5 text-xs font-semibold text-forest-900">
+                {humanize(withdrawal.status)}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-7">
+            <p className="max-w-3xl text-sm leading-7 text-stone-600">
+              {withdrawal.status === "approved"
+                ? "Both joint investors have approved and signed the full withdrawal. Review the signed withdrawal evidence and proceeds allocation before submitting it for execution."
+                : withdrawal.status === "submitted_for_execution"
+                  ? "The withdrawal has passed administrative review and is ready for atomic execution."
+                  : withdrawal.status === "executed"
+                    ? "The withdrawal has been executed. Position redemption and Cash Account settlement are recorded in the withdrawal settlement."
+                    : withdrawal.status === "awaiting_member_approval"
+                      ? "A full joint withdrawal has been requested, but both investor approvals have not yet been recorded."
+                      : "This joint investment has a withdrawal record. Open the withdrawal review for its complete lifecycle evidence."}
+            </p>
+
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <Data label="Scope" value="100% of joint position" />
+              <Data
+                label="Requested"
+                value={formatDate(withdrawal.requested_at)}
+              />
+              <Data
+                label="Proceeds"
+                value={
+                  withdrawal.proceeds_allocation === "member_one_full"
+                    ? "100% to Investor A"
+                    : "50/50 ownership split"
+                }
+              />
+              <Data
+                label="Investor approval"
+                value={
+                  withdrawal.fully_approved_at
+                    ? formatDate(withdrawal.fully_approved_at)
+                    : "Pending"
+                }
+              />
+            </div>
+
+            <div className="mt-7 border-t border-forest-900/10 pt-6">
+              <Link
+                href={`/admin/subscriptions/joint/${joint.id}/withdrawals/${withdrawal.id}`}
+                className="focus-ring inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-5 text-sm font-semibold text-white transition hover:bg-forest-800"
+              >
+                {withdrawal.status === "approved"
+                  ? "Review withdrawal"
+                  : withdrawal.status === "submitted_for_execution"
+                    ? "Open execution review"
+                    : "View withdrawal"}
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       <div className="grid gap-8 xl:grid-cols-[1fr_380px]">
         <div className="space-y-8">
