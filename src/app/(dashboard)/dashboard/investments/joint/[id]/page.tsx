@@ -78,6 +78,9 @@ type JointStatus = {
   approved_at:
     | string
     | null;
+  finalized_at:
+    | string
+    | null;
 
   rejection_reason:
     | string
@@ -148,6 +151,9 @@ type FundingObligation = {
   status: string;
 
   funded_at:
+    | string
+    | null;
+  historical_funded_at:
     | string
     | null;
 };
@@ -298,6 +304,9 @@ type Position = {
 
   status: string;
   funded_at: string;
+  created_at: string;
+  historical_funded_at: string | null;
+  historical_created_at: string | null;
 
   joint_subscription_id: string;
   joint_member_id: string;
@@ -402,6 +411,7 @@ export default async function JointInvestmentPage({
     positionsResult,
     cashAccountResult,
     currentProfileResult,
+    historicalParentResult,
   ] = await Promise.all([
     admin
       .from(
@@ -418,7 +428,8 @@ export default async function JointInvestmentPage({
         funded_amount,
         currency,
         status,
-        funded_at
+        funded_at,
+        historical_funded_at
         `,
       )
       .eq(
@@ -513,6 +524,9 @@ export default async function JointInvestmentPage({
         currency,
         status,
         funded_at,
+        created_at,
+        historical_funded_at,
+        historical_created_at,
         joint_subscription_id,
         joint_member_id,
         joint_funding_obligation_id
@@ -563,6 +577,18 @@ export default async function JointInvestmentPage({
         user.id,
       )
       .maybeSingle(),
+
+    admin
+      .from("joint_investment_subscriptions")
+      .select(`
+        historical_submitted_at,
+        historical_reviewed_at,
+        historical_approved_at,
+        historical_finalized_at,
+        finalized_at
+      `)
+      .eq("id", id)
+      .maybeSingle(),
   ]);
 
   if (
@@ -609,6 +635,16 @@ export default async function JointInvestmentPage({
       currentProfileResult.error,
     );
   }
+
+  if (historicalParentResult.error) {
+    console.error(
+      "Joint historical parent dates load error:",
+      historicalParentResult.error,
+    );
+  }
+
+  const historicalParent =
+    historicalParentResult.data;
 
   const currentProfile =
     currentProfileResult.data;
@@ -764,6 +800,40 @@ export default async function JointInvestmentPage({
         otherPosition.status ===
           "active",
     );
+
+  /* ----------------------------------------------------------
+   * INVESTOR-FACING HISTORICAL LIFECYCLE
+   *
+   * Historical dates override only the investor-facing chronology.
+   * Original system timestamps remain unchanged for Admin/audit.
+   * ---------------------------------------------------------- */
+
+  const investorSubmittedAt =
+    historicalParent?.historical_submitted_at ??
+    joint.submitted_at;
+
+  const investorReviewedAt =
+    historicalParent?.historical_reviewed_at ??
+    joint.reviewed_at;
+
+  const investorApprovedAt =
+    historicalParent?.historical_approved_at ??
+    joint.approved_at;
+
+  const investorFundedAt =
+    myObligation?.historical_funded_at ??
+    myObligation?.funded_at ??
+    null;
+
+  const investorFinalizedAt =
+    historicalParent?.historical_finalized_at ??
+    historicalParent?.finalized_at ??
+    joint.finalized_at;
+
+  const investorPositionCreatedAt =
+    myPosition?.historical_created_at ??
+    myPosition?.created_at ??
+    null;
 
   /* ----------------------------------------------------------
    * 5. RENDER
@@ -958,6 +1028,45 @@ export default async function JointInvestmentPage({
           <h2 className="font-display mt-2 text-2xl font-semibold text-forest-950">
             Joint investment lifecycle
           </h2>
+        </div>
+
+        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <DataPoint
+            label="Submitted"
+            value={investorSubmittedAt
+              ? formatDate(investorSubmittedAt)
+              : "Pending"}
+          />
+          <DataPoint
+            label="Reviewed"
+            value={investorReviewedAt
+              ? formatDate(investorReviewedAt)
+              : "Pending"}
+          />
+          <DataPoint
+            label="Approved"
+            value={investorApprovedAt
+              ? formatDate(investorApprovedAt)
+              : "Pending"}
+          />
+          <DataPoint
+            label="Your funding"
+            value={investorFundedAt
+              ? formatDate(investorFundedAt)
+              : "Pending"}
+          />
+          <DataPoint
+            label="Finalized"
+            value={investorFinalizedAt
+              ? formatDate(investorFinalizedAt)
+              : "Pending"}
+          />
+          <DataPoint
+            label="Position created"
+            value={investorPositionCreatedAt
+              ? formatDate(investorPositionCreatedAt)
+              : "Pending"}
+          />
         </div>
 
         <div className="mt-7 grid gap-3 md:grid-cols-4">
@@ -1183,10 +1292,8 @@ export default async function JointInvestmentPage({
               <DataPoint
                 label="Funded"
                 value={
-                  myObligation.funded_at
-                    ? formatDate(
-                        myObligation.funded_at,
-                      )
+                  investorFundedAt
+                    ? formatDate(investorFundedAt)
                     : "Pending"
                 }
               />
@@ -1355,7 +1462,7 @@ export default async function JointInvestmentPage({
                 <DataPoint
                   label="Funded"
                   value={formatDate(
-                    myPosition.funded_at,
+                    myPosition.historical_funded_at ?? myPosition.funded_at,
                   )}
                 />
 

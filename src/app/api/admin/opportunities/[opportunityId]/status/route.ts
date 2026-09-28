@@ -1,9 +1,9 @@
-import {
-  NextResponse,
-} from "next/server";
+import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+
+type OpportunityStatus = "draft" | "published";
 
 type RouteContext = {
   params: Promise<{
@@ -11,460 +11,385 @@ type RouteContext = {
   }>;
 };
 
-type OpportunityStatus =
-  | "draft"
-  | "published"
-  | "closed";
-
-type Payload = {
-  status:
-    OpportunityStatus;
-};
-
 export async function POST(
   request: Request,
-  {
-    params,
-  }: RouteContext,
+  context: RouteContext,
 ) {
   try {
-    /*
-     * --------------------------------------------------
-     * 1. AUTH
-     * --------------------------------------------------
-     */
-    const user =
-      await getCurrentUser();
+    // ---------------------------------------------------------
+    // 1. Authenticate current user
+    // ---------------------------------------------------------
+
+    const currentUser = await getCurrentUser();
+
+    if (!currentUser) {
+      return NextResponse.json(
+        {
+          error: "Unauthorized.",
+        },
+        { status: 401 },
+      );
+    }
 
     if (
-      !user ||
-      (
-        user.role !==
-          "admin" &&
-        user.role !==
-          "super_admin"
+      currentUser.role !== "admin" &&
+      currentUser.role !== "super_admin"
+    ) {
+      return NextResponse.json(
+        {
+          error: "Admin authorization required.",
+        },
+        { status: 403 },
+      );
+    }
+
+    // ---------------------------------------------------------
+    // 2. Resolve route params
+    // ---------------------------------------------------------
+
+    const { opportunityId } = await context.params;
+
+    if (!opportunityId) {
+      return NextResponse.json(
+        {
+          error: "Opportunity ID is required.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // ---------------------------------------------------------
+    // 3. Parse requested status
+    // ---------------------------------------------------------
+
+    let body: {
+      status?: string;
+    };
+
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Invalid request body.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const requestedStatus = body.status?.trim();
+
+    if (!requestedStatus) {
+      return NextResponse.json(
+        {
+          error: "Status is required.",
+        },
+        { status: 400 },
+      );
+    }
+
+    // ---------------------------------------------------------
+    // IMPORTANT:
+    //
+    // Closing is NOT an ordinary status transition anymore.
+    //
+    // Closing/removal must go through:
+    //
+    // admin_remove_or_close_investment_opportunity(...)
+    //
+    // That RPC:
+    // - requires a reason
+    // - checks lifecycle/financial history
+    // - decides hard-delete vs preserve/close
+    // - creates the lifecycle audit record
+    //
+    // This route must never bypass that process.
+    // ---------------------------------------------------------
+
+    if (requestedStatus === "closed") {
+      return NextResponse.json(
+        {
+          error:
+            "Closing an opportunity must use the audited lifecycle action.",
+        },
+        { status: 409 },
+      );
+    }
+
+    const allowedStatuses: OpportunityStatus[] = [
+      "draft",
+      "published",
+    ];
+
+    if (
+      !allowedStatuses.includes(
+        requestedStatus as OpportunityStatus,
       )
     ) {
       return NextResponse.json(
         {
-          error:
-            "Administrator access required.",
+          error: "Invalid opportunity status.",
         },
-        {
-          status: 403,
-        },
+        { status: 400 },
       );
     }
 
-    const {
-      opportunityId,
-    } = await params;
+    const targetStatus =
+      requestedStatus as OpportunityStatus;
 
-    const body =
-      (await request.json()) as Payload;
+    // ---------------------------------------------------------
+    // 4. Load current opportunity
+    // ---------------------------------------------------------
 
-    if (
-      ![
-        "draft",
-        "published",
-        "closed",
-      ].includes(
-        body.status,
-      )
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Invalid opportunity status.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
+    const admin = createAdminClient();
 
-    const admin =
-      createAdminClient();
-
-    /*
-     * --------------------------------------------------
-     * 2. LOAD OPPORTUNITY
-     * --------------------------------------------------
-     */
     const {
       data: opportunity,
       error: opportunityError,
     } = await admin
-      .from(
-        "investment_opportunities",
-      )
-      .select(
-        `
+      .from("investment_opportunities")
+      .select(`
         id,
-        title,
         slug,
-        short_description,
-        full_description,
-
-        asset_category,
-        estate_id,
-        location,
-
+        title,
+        status,
+        published_at,
+        closed_at,
         funding_target,
         minimum_investment,
-
-        expected_duration_months,
-
-        target_return_min,
-        target_return_max,
-        target_return_note,
-
-        cover_image_path,
-
-        status
-        `,
-      )
-      .eq(
-        "id",
-        opportunityId,
-      )
+        asset_category,
+        short_description,
+        full_description
+      `)
+      .eq("id", opportunityId)
       .maybeSingle();
 
+    if (opportunityError) {
+      console.error(
+        "Opportunity status lookup error:",
+        opportunityError,
+      );
+
+      return NextResponse.json(
+        {
+          error: "Failed to load opportunity.",
+        },
+        { status: 500 },
+      );
+    }
+
+    if (!opportunity) {
+      return NextResponse.json(
+        {
+          error: "Opportunity not found.",
+        },
+        { status: 404 },
+      );
+    }
+
+    // ---------------------------------------------------------
+    // 5. Closed is terminal
+    // ---------------------------------------------------------
+
+    if (opportunity.status === "closed") {
+      return NextResponse.json(
+        {
+          error: "Closed opportunities cannot be reopened.",
+        },
+        { status: 409 },
+      );
+    }
+
+    // ---------------------------------------------------------
+    // 6. No-op transition
+    // ---------------------------------------------------------
+
+    if (opportunity.status === targetStatus) {
+      return NextResponse.json({
+        success: true,
+        opportunity: {
+          id: opportunity.id,
+          status: opportunity.status,
+          published_at: opportunity.published_at,
+          closed_at: opportunity.closed_at,
+        },
+      });
+    }
+
+    // ---------------------------------------------------------
+    // 7. Validate allowed transition
+    //
+    // Only:
+    //
+    // draft     -> published
+    // published -> draft
+    //
+    // are permitted here.
+    // ---------------------------------------------------------
+
     if (
-      opportunityError ||
-      !opportunity
+      targetStatus === "published" &&
+      opportunity.status !== "draft"
     ) {
       return NextResponse.json(
         {
           error:
-            "Investment opportunity could not be found.",
+            "Only draft opportunities can be published.",
         },
-        {
-          status: 404,
-        },
+        { status: 409 },
       );
     }
 
-    /*
-     * --------------------------------------------------
-     * 3. PUBLICATION VALIDATION
-     * --------------------------------------------------
-     */
     if (
-      body.status ===
-      "published"
+      targetStatus === "draft" &&
+      opportunity.status !== "published"
     ) {
-      const reasons:
-        string[] = [];
+      return NextResponse.json(
+        {
+          error:
+            "Only published opportunities can be unpublished.",
+        },
+        { status: 409 },
+      );
+    }
 
-      if (
-        !opportunity.title?.trim()
-      ) {
-        reasons.push(
-          "Opportunity title is missing.",
+    // ---------------------------------------------------------
+    // 8. Publication validation
+    // ---------------------------------------------------------
+
+    if (targetStatus === "published") {
+      const validationErrors: string[] = [];
+
+      if (!opportunity.title?.trim()) {
+        validationErrors.push(
+          "Opportunity title is required.",
         );
       }
 
-      if (
-        !opportunity.slug?.trim()
-      ) {
-        reasons.push(
-          "Opportunity URL slug is missing.",
+      if (!opportunity.slug?.trim()) {
+        validationErrors.push(
+          "Opportunity slug is required.",
         );
       }
 
-      if (
-        !opportunity.short_description
-          ?.trim()
-      ) {
-        reasons.push(
-          "Short description is missing.",
-        );
-      }
-
-      if (
-        !opportunity.full_description
-          ?.trim()
-      ) {
-        reasons.push(
-          "Full description is missing.",
-        );
-      }
-
-      if (
-        !opportunity.asset_category
-      ) {
-        reasons.push(
-          "Asset category is missing.",
-        );
-      }
-
-      /*
-       * We require either an assigned estate
-       * OR a meaningful location.
-       */
-      if (
-        !opportunity.estate_id &&
-        !opportunity.location
-          ?.trim()
-      ) {
-        reasons.push(
-          "Estate / asset information is missing.",
+      if (!opportunity.asset_category?.trim()) {
+        validationErrors.push(
+          "Asset category is required.",
         );
       }
 
       if (
         !opportunity.funding_target ||
-        opportunity.funding_target <=
-          0
+        opportunity.funding_target <= 0
       ) {
-        reasons.push(
-          "Funding target is missing.",
+        validationErrors.push(
+          "Funding target must be greater than zero.",
         );
       }
 
       if (
         !opportunity.minimum_investment ||
-        opportunity.minimum_investment <=
-          0
+        opportunity.minimum_investment <= 0
       ) {
-        reasons.push(
-          "Minimum investment is missing.",
+        validationErrors.push(
+          "Minimum investment must be greater than zero.",
         );
       }
 
       if (
-        !opportunity.expected_duration_months ||
-        opportunity.expected_duration_months <=
-          0
+        opportunity.minimum_investment >
+        opportunity.funding_target
       ) {
-        reasons.push(
-          "Expected investment duration is missing.",
+        validationErrors.push(
+          "Minimum investment cannot exceed the funding target.",
         );
       }
 
-      /*
-       * Require either a numeric target-return
-       * range or a return/disclosure note.
-       */
-      const hasReturnRange =
-        opportunity.target_return_min !=
-          null &&
-        opportunity.target_return_max !=
-          null;
-
-      const hasReturnNote =
-        Boolean(
-          opportunity.target_return_note
-            ?.trim(),
-        );
-
-      if (
-        !hasReturnRange &&
-        !hasReturnNote
-      ) {
-        reasons.push(
-          "Expected return presentation is missing.",
+      if (!opportunity.short_description?.trim()) {
+        validationErrors.push(
+          "Short description is required before publication.",
         );
       }
 
-      if (
-        !opportunity.cover_image_path
-      ) {
-        reasons.push(
-          "Cover image is missing.",
+      if (!opportunity.full_description?.trim()) {
+        validationErrors.push(
+          "Full description is required before publication.",
         );
       }
 
-      /*
-       * At least one investment document
-       * must exist before publishing.
-       */
-      const {
-        count:
-          documentCount,
-        error:
-          documentError,
-      } = await admin
-        .from(
-          "investment_opportunity_documents",
-        )
-        .select(
-          "id",
-          {
-            count:
-              "exact",
-
-            head:
-              true,
-          },
-        )
-        .eq(
-          "opportunity_id",
-          opportunityId,
-        );
-
-      if (documentError) {
+      if (validationErrors.length > 0) {
         return NextResponse.json(
           {
             error:
-              "Unable to validate opportunity documents.",
+              "Opportunity is not ready for publication.",
+            validationErrors,
           },
-          {
-            status: 500,
-          },
-        );
-      }
-
-      if (
-        !documentCount ||
-        documentCount < 1
-      ) {
-        reasons.push(
-          "At least one investment document must be uploaded.",
-        );
-      }
-
-      /*
-       * Publication is rejected with all
-       * missing reasons at once.
-       */
-      if (
-        reasons.length > 0
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "This opportunity is not ready to publish.",
-
-            publicationErrors:
-              reasons,
-          },
-          {
-            status: 422,
-          },
+          { status: 400 },
         );
       }
     }
 
-    /*
-     * --------------------------------------------------
-     * 4. STATUS TRANSITION RULES
-     * --------------------------------------------------
-     */
+    // ---------------------------------------------------------
+    // 9. Build safe update
+    // ---------------------------------------------------------
 
-    /*
-     * Closing is only allowed for something
-     * that was actually published.
-     */
-    if (
-      body.status ===
-        "closed" &&
-      opportunity.status !==
-        "published"
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Only a published opportunity can be closed.",
-        },
-        {
-          status: 409,
-        },
-      );
-    }
+    const now = new Date().toISOString();
 
-    /*
-     * Draft can be:
-     * published → draft (unpublish)
-     * closed → draft (reopen for editing)
-     */
-    const now =
-      new Date().toISOString();
-
-    const update: {
-      status:
-        OpportunityStatus;
-
-      published_at?:
-        string | null;
-
-      closed_at?:
-        string | null;
-
-      updated_by:
-        string;
-
-      updated_at:
-        string;
-    } = {
-      status:
-        body.status,
-
-      updated_by:
-        user.id,
-
-      updated_at:
-        now,
+    const updatePayload: Record<string, unknown> = {
+      status: targetStatus,
+      updated_by: currentUser.id,
+      updated_at: now,
     };
 
-    if (
-      body.status ===
-      "published"
-    ) {
-      update.published_at =
-        now;
-
-      update.closed_at =
-        null;
+    if (targetStatus === "published") {
+      /*
+       * Preserve the FIRST publication timestamp.
+       *
+       * If this opportunity was previously published and later
+       * unpublished, published_at must NOT be replaced.
+       *
+       * This is important because published_at is lifecycle
+       * history and is also used by the safe-delete rules.
+       */
+      if (!opportunity.published_at) {
+        updatePayload.published_at = now;
+      }
     }
 
-    if (
-      body.status ===
-      "draft"
-    ) {
-      update.published_at =
-        null;
-
-      update.closed_at =
-        null;
+    if (targetStatus === "draft") {
+      /*
+       * IMPORTANT:
+       *
+       * Do NOT clear published_at.
+       *
+       * A previously published opportunity remains historically
+       * published even after it is unpublished back to draft.
+       *
+       * Also do not touch closed_at here.
+       */
     }
 
-    if (
-      body.status ===
-      "closed"
-    ) {
-      update.closed_at =
-        now;
-    }
+    // ---------------------------------------------------------
+    // 10. Apply transition
+    // ---------------------------------------------------------
 
-    /*
-     * --------------------------------------------------
-     * 5. SAVE
-     * --------------------------------------------------
-     */
     const {
-      data: updated,
+      data: updatedOpportunity,
       error: updateError,
     } = await admin
-      .from(
-        "investment_opportunities",
-      )
-      .update(
-        update,
-      )
-      .eq(
-        "id",
-        opportunityId,
-      )
-      .select(
-        `
+      .from("investment_opportunities")
+      .update(updatePayload)
+      .eq("id", opportunityId)
+      .select(`
         id,
+        slug,
+        title,
         status,
         published_at,
-        closed_at
-        `,
-      )
+        closed_at,
+        updated_by,
+        updated_at
+      `)
       .single();
 
     if (updateError) {
@@ -475,20 +400,19 @@ export async function POST(
 
       return NextResponse.json(
         {
-          error:
-            "Unable to update opportunity status.",
+          error: "Failed to update opportunity status.",
         },
-        {
-          status: 500,
-        },
+        { status: 500 },
       );
     }
 
+    // ---------------------------------------------------------
+    // 11. Success
+    // ---------------------------------------------------------
+
     return NextResponse.json({
       success: true,
-
-      opportunity:
-        updated,
+      opportunity: updatedOpportunity,
     });
   } catch (error) {
     console.error(
@@ -499,11 +423,9 @@ export async function POST(
     return NextResponse.json(
       {
         error:
-          "Something went wrong while updating the opportunity status.",
+          "An unexpected error occurred while updating the opportunity status.",
       },
-      {
-        status: 500,
-      },
+      { status: 500 },
     );
   }
 }

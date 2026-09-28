@@ -63,7 +63,12 @@ type JointInvestmentRecord = {
   ready_for_review: boolean;
 
   submitted_at: string | null;
+  reviewed_at: string | null;
   approved_at: string | null;
+  historical_submitted_at?: string | null;
+  historical_reviewed_at?: string | null;
+  historical_approved_at?: string | null;
+  historical_finalized_at?: string | null;
 
   created_at: string;
   updated_at: string;
@@ -125,6 +130,8 @@ export default async function MyInvestmentsPage() {
 
       submitted_at,
       reviewed_at,
+      historical_submitted_at,
+      historical_reviewed_at,
 
       rejection_reason,
       admin_notes,
@@ -788,9 +795,9 @@ export default async function MyInvestmentsPage() {
                           <DataPoint
                             label="Submitted"
                             value={
-                              subscription.submitted_at
+                              (subscription.historical_submitted_at ?? subscription.submitted_at)
                                 ? formatDate(
-                                    subscription.submitted_at,
+                                    subscription.historical_submitted_at ?? subscription.submitted_at,
                                   )
                                 : "Not submitted"
                             }
@@ -799,9 +806,9 @@ export default async function MyInvestmentsPage() {
                           <DataPoint
                             label="Reviewed"
                             value={
-                              subscription.reviewed_at
+                              (subscription.historical_reviewed_at ?? subscription.reviewed_at)
                                 ? formatDate(
-                                    subscription.reviewed_at,
+                                    subscription.historical_reviewed_at ?? subscription.reviewed_at,
                                   )
                                 : "Pending"
                             }

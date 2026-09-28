@@ -173,7 +173,7 @@ export async function PATCH(
       return NextResponse.json(
         {
           error:
-            "Closed opportunities cannot be edited. Reopen it as a draft first.",
+            "Closed opportunities cannot be edited.",
         },
         {
           status: 409,

@@ -6,6 +6,7 @@ import { getInvestmentNotificationRecipient } from "@/src/lib/email/funding-emai
 import { sendApplicationMail } from "@/src/lib/email/application-mailer";
 import { companySubscriptionSubmittedEmail } from "@/src/lib/email/investment-emails";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+import { createClient } from "@/src/lib/supabase/server";
 
 type RouteContext = {
   params: Promise<{
@@ -18,6 +19,16 @@ type SubscribePayload = {
   offeringAcknowledged: boolean;
   riskAccepted: boolean;
   signature: string;
+};
+
+type SubscriptionRpcResult = {
+  subscription_id: string;
+  reservation_id: string;
+  opportunity_id: string;
+  commitment_amount: number;
+  reserved_amount_cents: number;
+  subscription_status: string;
+  reservation_status: string;
 };
 
 function dollarsToCents(
@@ -85,6 +96,7 @@ export async function POST(
         {
           error:
             accountAccess.reason,
+
           accountStatus:
             accountAccess.status,
         },
@@ -206,11 +218,44 @@ export async function POST(
       );
     }
 
+    /*
+     * Convert the dollar amount received from the UI
+     * into the canonical integer-cent amount used by
+     * the database.
+     */
+    const commitmentAmount =
+      dollarsToCents(
+        investmentAmount,
+      );
+
+    if (
+      !Number.isSafeInteger(
+        commitmentAmount,
+      ) ||
+      commitmentAmount <= 0
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Enter a valid investment amount.",
+        },
+        {
+          status: 400,
+        },
+      );
+    }
+
     const admin =
       createAdminClient();
 
     /* ========================================================
-     * 5. OPPORTUNITY
+     * 5. OPPORTUNITY PRE-CHECK
+     *
+     * These checks provide clear API errors and avoid sending
+     * obviously invalid requests into the RPC.
+     *
+     * They are NOT the final concurrency/security boundary.
+     * The RPC locks and validates the opportunity again.
      * ======================================================== */
 
     const {
@@ -228,7 +273,8 @@ export async function POST(
         status,
         funding_target,
         minimum_investment,
-        total_funded
+        total_funded,
+        funding_closed_at
         `,
       )
       .eq(
@@ -272,13 +318,35 @@ export async function POST(
       );
     }
 
-    /* ========================================================
-     * 6. COMMITMENT VALIDATION
+    /*
+     * funding_closed_at is persistent.
      *
-     * NOTE:
-     * Active capacity reservations are not yet deducted here.
-     * That is handled in the dedicated capacity-hardening step.
-     * The existing behavior is intentionally preserved for now.
+     * Once the opportunity has reached its funding target,
+     * a later redemption/reduction in total_funded must not
+     * automatically reopen it.
+     */
+    if (
+      opportunity.funding_closed_at
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "This investment opportunity is fully funded and closed to new investments.",
+        },
+        {
+          status: 409,
+        },
+      );
+    }
+
+    /* ========================================================
+     * 6. FRIENDLY COMMITMENT PRE-CHECK
+     *
+     * This is intentionally only a preliminary check.
+     *
+     * Active reservations may change immediately after this
+     * query. The RPC below performs the authoritative capacity
+     * calculation while holding the opportunity row lock.
      * ======================================================== */
 
     const fundingTarget =
@@ -294,11 +362,6 @@ export async function POST(
     const totalFunded =
       Number(
         opportunity.total_funded,
-      );
-
-    const commitmentAmount =
-      dollarsToCents(
-        investmentAmount,
       );
 
     const remainingAllocation =
@@ -353,72 +416,96 @@ export async function POST(
     }
 
     /* ========================================================
-     * 7. CREATE A NEW SUBSCRIPTION
+     * 7. ATOMIC SUBSCRIPTION + CAPACITY RESERVATION
      *
      * IMPORTANT:
-     * Every intentional investment submission creates a new
-     * subscription record.
      *
-     * Previous subscriptions for the same investor and
-     * opportunity are never reused, mutated or overwritten.
+     * Use the cookie-authenticated Supabase server client.
+     *
+     * The RPC uses auth.uid() to identify the investor.
+     * Therefore this must NOT use createAdminClient().
+     *
+     * Inside one database transaction the RPC:
+     *
+     *   - verifies the investor
+     *   - locks the opportunity
+     *   - verifies published status
+     *   - verifies funding_closed_at IS NULL
+     *   - validates the minimum investment
+     *   - counts ALL active individual + joint reservations
+     *   - calculates authoritative remaining capacity
+     *   - creates a new individual subscription
+     *   - creates its capacity reservation
+     *   - creates the subscription audit record
+     *
+     * Any failure rolls the whole transaction back.
      * ======================================================== */
 
-    const now =
-      new Date().toISOString();
+    const supabase =
+      await createClient();
 
     const {
-      data: newSubscription,
-      error: insertError,
-    } = await admin
-      .from(
-        "investment_subscriptions",
-      )
-      .insert({
-        investor_id:
-          user.id,
-
-        opportunity_id:
+      data: rpcData,
+      error: rpcError,
+    } = await supabase.rpc(
+      "create_individual_investment_subscription",
+      {
+        p_opportunity_id:
           opportunityId,
 
-        commitment_amount:
+        p_commitment_amount:
           commitmentAmount,
 
-        status:
-          "submitted",
-
-        offering_acknowledged:
+        p_offering_acknowledged:
           true,
 
-        offering_acknowledged_at:
-          now,
-
-        risk_disclosure_accepted:
+        p_risk_accepted:
           true,
 
-        risk_disclosure_accepted_at:
-          now,
-
-        electronic_signature:
+        p_signature:
           signature,
+      },
+    );
 
-        signed_at:
-          now,
+    if (rpcError) {
+      console.error(
+        "Atomic subscription creation error:",
+        rpcError,
+      );
 
-        submitted_at:
-          now,
-      })
-      .select(
-        "id",
-      )
-      .single();
+      /*
+       * Capacity/lifecycle failures are conflicts with the
+       * current authoritative opportunity state.
+       *
+       * We intentionally do not fall back to a direct INSERT.
+       */
+      return NextResponse.json(
+        {
+          error:
+            rpcError.message ||
+            "Unable to submit your investment subscription.",
+        },
+        {
+          status: 409,
+        },
+      );
+    }
+
+    const rpcRows =
+      (rpcData ??
+        []) as SubscriptionRpcResult[];
+
+    const newSubscription =
+      rpcRows[0];
 
     if (
-      insertError ||
-      !newSubscription
+      !newSubscription ||
+      !newSubscription.subscription_id ||
+      !newSubscription.reservation_id
     ) {
       console.error(
-        "Subscription creation error:",
-        insertError,
+        "Atomic subscription RPC returned no subscription/reservation:",
+        rpcData,
       );
 
       return NextResponse.json(
@@ -433,49 +520,55 @@ export async function POST(
     }
 
     const subscriptionId =
-      newSubscription.id;
+      newSubscription.subscription_id;
 
-    /* ========================================================
-     * 8. AUDIT
-     * ======================================================== */
-
-    const {
-      error: auditError,
-    } = await admin
-      .from(
-        "investment_subscription_audit",
-      )
-      .insert({
-        subscription_id:
-          subscriptionId,
-
-        actor_id:
-          user.id,
-
-        action:
-          "subscription_submitted",
-
-        metadata: {
-          opportunityId,
-          commitmentAmount,
-          currency:
-            "USD",
-          repeatInvestmentAllowed:
-            true,
-        },
-      });
-
-    if (auditError) {
+    /*
+     * Defensive invariant.
+     *
+     * A successful individual subscription must have an active
+     * reservation for exactly the submitted commitment.
+     */
+    if (
+      newSubscription.opportunity_id !==
+        opportunityId ||
+      Number(
+        newSubscription.commitment_amount,
+      ) !== commitmentAmount ||
+      Number(
+        newSubscription.reserved_amount_cents,
+      ) !== commitmentAmount ||
+      newSubscription.reservation_status !==
+        "active"
+    ) {
       console.error(
-        "Subscription audit error:",
-        auditError,
+        "Atomic subscription RPC invariant failure:",
+        newSubscription,
+      );
+
+      /*
+       * Do not attempt another subscription here.
+       *
+       * The database transaction already completed, so retrying
+       * could create a second intentional subscription.
+       */
+      return NextResponse.json(
+        {
+          error:
+            "The investment subscription was created, but its confirmation could not be verified. Please review your investments before trying again.",
+        },
+        {
+          status: 500,
+        },
       );
     }
 
     /* ========================================================
-     * 9. COMPANY NOTIFICATION
+     * 8. COMPANY NOTIFICATION
      *
-     * Email failure does not roll back a valid subscription.
+     * Email happens AFTER the canonical database transaction.
+     *
+     * Email failure must never roll back or retry a valid
+     * subscription.
      * ======================================================== */
 
     let companyEmailSent =
@@ -553,6 +646,7 @@ export async function POST(
             {
               to:
                 companyRecipient,
+
               ...email,
             },
           )
@@ -560,7 +654,7 @@ export async function POST(
     }
 
     /* ========================================================
-     * 10. RESPONSE
+     * 9. RESPONSE
      * ======================================================== */
 
     return NextResponse.json(
@@ -569,6 +663,9 @@ export async function POST(
           true,
 
         subscriptionId,
+
+        reservationId:
+          newSubscription.reservation_id,
 
         companyEmailSent,
 

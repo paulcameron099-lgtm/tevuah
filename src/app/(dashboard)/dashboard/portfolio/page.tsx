@@ -60,7 +60,9 @@ export default async function InvestorPortfolioPage() {
       currency,
       status,
       funded_at,
+      historical_funded_at,
       created_at,
+      historical_created_at,
       updated_at,
       opportunity:investment_opportunities!investment_positions_opportunity_id_fkey (
         id,
@@ -87,7 +89,11 @@ export default async function InvestorPortfolioPage() {
     throw new Error("Unable to load your investment portfolio.");
   }
 
-  const records = positions ?? [];
+  const records = [...(positions ?? [])].sort((a, b) => {
+    const aDate = a.historical_funded_at ?? a.funded_at;
+    const bDate = b.historical_funded_at ?? b.funded_at;
+    return new Date(bDate).getTime() - new Date(aDate).getTime();
+  });
 
   /* ==================================================
    * PUBLISHED VALUATIONS
@@ -369,13 +375,25 @@ export default async function InvestorPortfolioPage() {
                         <p className="mt-2 text-sm text-stone-500">{opportunity.location}</p>
                       ) : null}
 
-                      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                      <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
                         <DataPoint label="Current value" value={formatMoney(position.currentValue)} />
                         <DataPoint label="Original principal" value={formatMoney(position.originalPrincipal)} />
                         <DataPoint label="Adjusted basis" value={formatMoney(position.adjustedCostBasis)} />
                         <DataPoint label="Capital returned" value={formatMoney(position.capitalReturned)} />
                         <DataPoint label="Income received" value={formatMoney(position.incomeReceived)} />
                         <DataPoint label="Reported return" value={formatPercent(position.totalReturn)} />
+                        <DataPoint
+                          label="Funded"
+                          value={formatInvestmentDate(
+                            position.historical_funded_at ?? position.funded_at,
+                          )}
+                        />
+                        <DataPoint
+                          label="Position created"
+                          value={formatInvestmentDate(
+                            position.historical_created_at ?? position.created_at,
+                          )}
+                        />
                       </div>
 
                       <p className="mt-5 text-xs text-stone-500">
@@ -483,6 +501,16 @@ function formatSignedMoney(cents: number) {
 
 function formatPercent(value: number) {
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
+}
+
+function formatInvestmentDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 function formatValuationDate(value: string) {

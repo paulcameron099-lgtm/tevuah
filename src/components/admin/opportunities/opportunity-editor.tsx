@@ -20,6 +20,8 @@ import {
   useState,
 } from "react";
 
+import { OpportunityLifecycleAction } from "@/src/components/admin/opportunities/opportunity-lifecycle-action";
+
 type EstateOption = {
   id: string;
   name: string;
@@ -261,111 +263,6 @@ export function OpportunityEditor({
     useState(
       opportunity.targetReturnNote ??
         "",
-    );
-
-  /*
-   * --------------------------------------------------
-   * FUNDING INSTRUCTIONS STATE
-   * --------------------------------------------------
-   */
-  const [
-    fundingPaymentMethod,
-    setFundingPaymentMethod,
-  ] =
-    useState(
-      fundingInstructions?.paymentMethod ??
-        "bank_transfer",
-    );
-
-  const [
-    fundingBankName,
-    setFundingBankName,
-  ] =
-    useState(
-      fundingInstructions?.bankName ??
-        "",
-    );
-
-  const [
-    fundingBeneficiaryName,
-    setFundingBeneficiaryName,
-  ] =
-    useState(
-      fundingInstructions?.beneficiaryName ??
-        "",
-    );
-
-  const [
-    fundingAccountNumber,
-    setFundingAccountNumber,
-  ] =
-    useState(
-      fundingInstructions?.accountNumber ??
-        "",
-    );
-
-  const [
-    fundingRoutingNumber,
-    setFundingRoutingNumber,
-  ] =
-    useState(
-      fundingInstructions?.routingNumber ??
-        "",
-    );
-
-  const [
-    fundingSwiftCode,
-    setFundingSwiftCode,
-  ] =
-    useState(
-      fundingInstructions?.swiftCode ??
-        "",
-    );
-
-  const [
-    fundingIban,
-    setFundingIban,
-  ] =
-    useState(
-      fundingInstructions?.iban ??
-        "",
-    );
-
-  const [
-    fundingBankAddress,
-    setFundingBankAddress,
-  ] =
-    useState(
-      fundingInstructions?.bankAddress ??
-        "",
-    );
-
-  const [
-    fundingReferencePrefix,
-    setFundingReferencePrefix,
-  ] =
-    useState(
-      fundingInstructions
-        ?.paymentReferencePrefix ??
-        "TRINV",
-    );
-
-  const [
-    fundingInstructionsText,
-    setFundingInstructionsText,
-  ] =
-    useState(
-      fundingInstructions?.instructions ??
-        "",
-    );
-
-  const [
-    fundingStatus,
-    setFundingStatus,
-  ] =
-    useState(
-      fundingInstructions?.status ??
-        "inactive",
     );
 
   /*
@@ -869,143 +766,6 @@ export function OpportunityEditor({
     }
   }
 
-  /*
-   * --------------------------------------------------
-   * SAVE FUNDING INSTRUCTIONS
-   * --------------------------------------------------
-   */
-  async function saveFundingInstructions() {
-    setError(null);
-    setSuccess(null);
-
-    if (!fundingBankName.trim()) {
-      setError("Bank name is required.");
-      return;
-    }
-
-    if (!fundingBeneficiaryName.trim()) {
-      setError("Beneficiary name is required.");
-      return;
-    }
-
-    if (
-      !fundingAccountNumber.trim() &&
-      !fundingIban.trim()
-    ) {
-      setError(
-        "Enter either an account number or IBAN.",
-      );
-      return;
-    }
-
-    if (!fundingReferencePrefix.trim()) {
-      setError(
-        "Payment reference prefix is required.",
-      );
-      return;
-    }
-
-    setLoadingAction(
-      "funding",
-    );
-
-    try {
-      const response =
-        await fetch(
-          "/api/admin/opportunity-funding-instructions",
-          {
-            method:
-              "PUT",
-
-            headers: {
-              "Content-Type":
-                "application/json",
-            },
-
-            body:
-              JSON.stringify({
-                opportunityId:
-                  opportunity.id,
-
-                paymentMethod:
-                  fundingPaymentMethod,
-
-                bankName:
-                  fundingBankName.trim(),
-
-                beneficiaryName:
-                  fundingBeneficiaryName.trim(),
-
-                accountNumber:
-                  fundingAccountNumber.trim() ||
-                  null,
-
-                routingNumber:
-                  fundingRoutingNumber.trim() ||
-                  null,
-
-                swiftCode:
-                  fundingSwiftCode.trim() ||
-                  null,
-
-                iban:
-                  fundingIban.trim() ||
-                  null,
-
-                bankAddress:
-                  fundingBankAddress.trim() ||
-                  null,
-
-                paymentReferencePrefix:
-                  fundingReferencePrefix
-                    .trim()
-                    .toUpperCase(),
-
-                instructions:
-                  fundingInstructionsText.trim() ||
-                  null,
-
-                status:
-                  fundingStatus,
-              }),
-          },
-        );
-
-      const result =
-        (await response.json()) as {
-          error?: string;
-        };
-
-      if (!response.ok) {
-        setError(
-          result.error ??
-            "Unable to save funding instructions.",
-        );
-        return;
-      }
-
-      setSuccess(
-        "Funding instructions saved successfully.",
-      );
-
-      router.refresh();
-    } catch (
-      requestError
-    ) {
-      console.error(
-        "Funding instructions request error:",
-        requestError,
-      );
-
-      setError(
-        "Unable to save funding instructions.",
-      );
-    } finally {
-      setLoadingAction(
-        null,
-      );
-    }
-  }
 
   /*
    * --------------------------------------------------
@@ -1156,45 +916,21 @@ export function OpportunityEditor({
                 >
                   Unpublish
                 </button>
-
-                <button
-                  type="button"
-                  disabled={
-                    loadingAction !==
-                    null
-                  }
-                  onClick={() =>
-                    changeStatus(
-                      "closed",
-                    )
-                  }
-                  className="focus-ring inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-red-700 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <XCircle className="size-4" />
-
-                  Close opportunity
-                </button>
               </>
             ) : null}
 
-            {opportunity.status ===
-            "closed" ? (
-              <button
-                type="button"
-                disabled={
-                  loadingAction !==
-                  null
-                }
-                onClick={() =>
-                  changeStatus(
-                    "draft",
-                  )
-                }
-                className="focus-ring inline-flex min-h-11 cursor-pointer items-center rounded-full bg-forest-950 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Reopen as draft
-              </button>
-            ) : null}
+           {opportunity.status ===
+          "closed" ? (
+            <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
+              <p className="text-sm font-semibold text-stone-700">
+                Opportunity closed
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-stone-500">
+                Closed opportunities are preserved as historical records and cannot be reopened.
+              </p>
+            </div>
+          ) : null}
           </div>
         </div>
 
@@ -1524,193 +1260,6 @@ export function OpportunityEditor({
           Save changes
         </button>
       </section>
-
-      {/* ==========================================
-          FUNDING INSTRUCTIONS
-      ========================================== */}
-
-      <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
-          Capital funding
-        </p>
-
-        <h2 className="font-display mt-3 text-3xl font-semibold text-forest-950">
-          Funding Instructions
-        </h2>
-
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
-          Configure the bank-transfer details that approved
-          investors will see when they are ready to fund this
-          opportunity.
-        </p>
-
-        <div className="mt-7 grid gap-5 sm:grid-cols-2">
-          <Field label="Payment method">
-            <select
-              value={fundingPaymentMethod}
-              onChange={(event) =>
-                setFundingPaymentMethod(
-                  event.target.value,
-                )
-              }
-              className={`${inputClass} cursor-pointer`}
-            >
-              <option value="bank_transfer">
-                Bank transfer
-              </option>
-            </select>
-          </Field>
-
-          <Field label="Status">
-            <select
-              value={fundingStatus}
-              onChange={(event) =>
-                setFundingStatus(
-                  event.target.value,
-                )
-              }
-              className={`${inputClass} cursor-pointer`}
-            >
-              <option value="inactive">
-                Inactive
-              </option>
-
-              <option value="active">
-                Active
-              </option>
-            </select>
-          </Field>
-
-          <FundingField
-            label="Bank name"
-            value={fundingBankName}
-            onChange={setFundingBankName}
-          />
-
-          <FundingField
-            label="Beneficiary name"
-            value={fundingBeneficiaryName}
-            onChange={setFundingBeneficiaryName}
-          />
-
-          <FundingField
-            label="Account number"
-            value={fundingAccountNumber}
-            onChange={setFundingAccountNumber}
-          />
-
-          <FundingField
-            label="Routing number"
-            value={fundingRoutingNumber}
-            onChange={setFundingRoutingNumber}
-          />
-
-          <FundingField
-            label="SWIFT / BIC"
-            value={fundingSwiftCode}
-            onChange={setFundingSwiftCode}
-          />
-
-          <FundingField
-            label="IBAN"
-            value={fundingIban}
-            onChange={setFundingIban}
-          />
-
-          <FundingField
-            label="Payment reference prefix"
-            value={fundingReferencePrefix}
-            onChange={setFundingReferencePrefix}
-          />
-        </div>
-
-        <Field
-          label="Bank address"
-          className="mt-6"
-        >
-          <textarea
-            rows={3}
-            value={fundingBankAddress}
-            onChange={(event) =>
-              setFundingBankAddress(
-                event.target.value,
-              )
-            }
-            className={textareaClass}
-          />
-        </Field>
-
-        <Field
-          label="Investor instructions"
-          className="mt-6"
-        >
-          <textarea
-            rows={6}
-            value={fundingInstructionsText}
-            onChange={(event) =>
-              setFundingInstructionsText(
-                event.target.value,
-              )
-            }
-            placeholder="Example: Send the exact approved commitment amount and include the payment reference displayed in the investor dashboard."
-            className={textareaClass}
-          />
-        </Field>
-
-        {fundingStatus ===
-        "active" ? (
-          <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-            <p className="text-sm font-semibold text-emerald-800">
-              Funding instructions are active.
-            </p>
-
-            <p className="mt-1 text-xs leading-6 text-emerald-700">
-              Approved investors for this opportunity can
-              view these instructions on their funding page.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-semibold text-amber-900">
-              Funding instructions are inactive.
-            </p>
-
-            <p className="mt-1 text-xs leading-6 text-amber-800">
-              Investors will see that funding instructions
-              are not currently available.
-            </p>
-          </div>
-        )}
-
-        <button
-          type="button"
-          disabled={
-            loadingAction !==
-            null
-          }
-          onClick={saveFundingInstructions}
-          className="focus-ring mt-6 inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-6 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {loadingAction ===
-          "funding" ? (
-            <>
-              <Loader2 className="size-4 animate-spin" />
-
-              Saving funding instructions...
-            </>
-          ) : (
-            <>
-              <Save className="size-4" />
-
-              Save funding instructions
-            </>
-          )}
-        </button>
-      </section>
-
-      {/* ==========================================
-          COVER IMAGE
-      ========================================== */}
 
     {/* ==========================================
     COVER IMAGE
@@ -2061,6 +1610,22 @@ export function OpportunityEditor({
           )}
         </div>
       </section>
+
+      {/* ==========================================
+          LIFECYCLE ADMINISTRATION
+      ========================================== */}
+
+      <OpportunityLifecycleAction
+        opportunityId={
+          opportunity.id
+        }
+        opportunityTitle={
+          opportunity.title
+        }
+        status={
+          opportunity.status
+        }
+      />
 
       {/* ==========================================
           FEEDBACK

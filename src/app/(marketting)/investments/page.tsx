@@ -50,6 +50,7 @@ export default async function InvestmentsMarketplacePage() {
 
       status,
       published_at,
+      funding_closed_at,
 
       estate:investment_estates (
         id,
@@ -209,21 +210,19 @@ export default async function InvestmentsMarketplacePage() {
                 (
                   opportunity,
                 ) => {
-                  const progress =
-                    opportunity.funding_target >
-                    0
-                      ? Math.min(
-                          100,
+                  const fundingTarget = Number(opportunity.funding_target);
+                  const totalFunded = Number(opportunity.total_funded);
 
-                          Math.round(
-                            (
-                              opportunity.total_funded /
-                              opportunity.funding_target
-                            ) *
-                              100,
-                          ),
-                        )
+                  const progress =
+                    fundingTarget > 0
+                      ? Math.min(100, Math.round((totalFunded / fundingTarget) * 100))
                       : 0;
+
+                  // Persistent closure prevents a later redemption from reopening
+                  // an offering that already reached its target.
+                  const fullyFunded =
+                    Boolean(opportunity.funding_closed_at) ||
+                    (fundingTarget > 0 && totalFunded >= fundingTarget);
 
                   return (
                     <article
@@ -258,8 +257,14 @@ export default async function InvestmentsMarketplacePage() {
                             )}
                           </span>
 
-                          <span className="rounded-full bg-emerald-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-emerald-700">
-                            Open
+                          <span
+                            className={
+                              fullyFunded
+                                ? "rounded-full bg-stone-100 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-stone-700"
+                                : "rounded-full bg-emerald-50 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-emerald-700"
+                            }
+                          >
+                            {fullyFunded ? "Fully Funded · Closed" : "Open"}
                           </span>
                         </div>
 

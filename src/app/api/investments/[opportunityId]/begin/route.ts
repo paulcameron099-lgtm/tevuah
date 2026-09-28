@@ -132,7 +132,8 @@ export async function POST(
         status,
         funding_target,
         minimum_investment,
-        total_funded
+        total_funded,
+        funding_closed_at
         `,
       )
       .eq(
@@ -170,6 +171,33 @@ export async function POST(
         },
       );
     }
+
+    /*
+ * --------------------------------------------------
+ * 6. FUNDING MUST STILL BE OPEN
+ * --------------------------------------------------
+ *
+ * funding_closed_at is persistent.
+ *
+ * Once an opportunity has reached its funding target,
+ * later redemptions or accounting changes must never
+ * reopen the offering automatically.
+ */
+if (
+  opportunity.funding_closed_at
+) {
+  return NextResponse.json(
+    {
+      error:
+        "This opportunity is fully funded and closed to new investments.",
+    },
+    {
+      status: 409,
+    },
+  );
+}
+
+
 
     /*
      * --------------------------------------------------

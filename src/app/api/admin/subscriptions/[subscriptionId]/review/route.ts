@@ -1,12 +1,13 @@
-import { NextResponse,
-} from "next/server";
+import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";
+import { createClient } from "@/src/lib/supabase/server";
 
 import {
   sendApplicationMail,
 } from "@/src/lib/email/application-mailer";
+
 import {
   investorSubscriptionActionRequiredEmail,
   investorSubscriptionApprovedEmail,
@@ -25,10 +26,17 @@ type ReviewAction =
   | "reject";
 
 type ReviewPayload = {
-  action:
-    ReviewAction;
-
+  action: ReviewAction;
   note?: string;
+};
+
+type ReservationReleaseResult = {
+  reservation_id: string;
+  reservation_type: string;
+  parent_id: string;
+  parent_status: string;
+  reservation_status: string;
+  released_at: string | null;
 };
 
 export async function POST(
@@ -43,16 +51,15 @@ export async function POST(
      * 1. ADMIN AUTH
      * --------------------------------------------------
      */
+
     const user =
       await getCurrentUser();
 
     if (
       !user ||
       (
-        user.role !==
-          "admin" &&
-        user.role !==
-          "super_admin"
+        user.role !== "admin" &&
+        user.role !== "super_admin"
       )
     ) {
       return NextResponse.json(
@@ -86,6 +93,7 @@ export async function POST(
      * 2. LOAD SUBSCRIPTION
      * --------------------------------------------------
      */
+
     const {
       data: subscription,
       error: subscriptionError,
@@ -128,6 +136,7 @@ export async function POST(
      * 3. LOAD INVESTOR
      * --------------------------------------------------
      */
+
     const {
       data: investor,
       error: investorError,
@@ -176,6 +185,7 @@ export async function POST(
      * 4. LOAD INVESTOR AUTH EMAIL
      * --------------------------------------------------
      */
+
     const {
       data: authInvestorData,
       error: authInvestorError,
@@ -201,6 +211,7 @@ export async function POST(
      * 5. LOAD OPPORTUNITY
      * --------------------------------------------------
      */
+
     const {
       data: opportunity,
       error: opportunityError,
@@ -240,6 +251,7 @@ export async function POST(
      * 6. PREVENT RE-APPROVAL
      * --------------------------------------------------
      */
+
     if (
       subscription.status ===
       "approved"
@@ -260,13 +272,12 @@ export async function POST(
      * 7. APPROVE
      * --------------------------------------------------
      */
+
     if (
       body.action ===
       "approve"
     ) {
       /*
-       * IMPORTANT:
-       *
        * The SQL RPC itself only permits:
        *
        * submitted
@@ -275,6 +286,7 @@ export async function POST(
        * Therefore action_required cannot
        * accidentally be approved.
        */
+
       const {
         data,
         error: approvalError,
@@ -308,88 +320,93 @@ export async function POST(
       }
 
       /*
- * --------------------------------------------------
- * CREATE FUNDING RECORD
- * --------------------------------------------------
- *
- * Approval means the investor is now
- * permitted to fund the commitment.
- */
-const {
-  data: existingPayment,
-  error: existingPaymentError,
-} = await admin
-  .from(
-    "investment_payments",
-  )
-  .select(
-    `
-    id,
-    status
-    `,
-  )
-  .eq(
-    "subscription_id",
-    subscriptionId,
-  )
-  .maybeSingle();
+       * --------------------------------------------------
+       * CREATE FUNDING RECORD
+       * --------------------------------------------------
+       *
+       * Approval means the investor is now
+       * permitted to fund the commitment.
+       */
 
-if (existingPaymentError) {
-  console.error(
-    "Existing funding payment lookup error:",
-    existingPaymentError,
-  );
-}
+      const {
+        data: existingPayment,
+        error: existingPaymentError,
+      } = await admin
+        .from(
+          "investment_payments",
+        )
+        .select(
+          `
+          id,
+          status
+          `,
+        )
+        .eq(
+          "subscription_id",
+          subscriptionId,
+        )
+        .maybeSingle();
 
-if (!existingPayment) {
-  const {
-    error: paymentCreateError,
-  } = await admin
-    .from(
-      "investment_payments",
-    )
-    .insert({
-      subscription_id:
-        subscription.id,
+      if (existingPaymentError) {
+        console.error(
+          "Existing funding payment lookup error:",
+          existingPaymentError,
+        );
+      }
 
-      investor_id:
-        subscription.investor_id,
+      if (!existingPayment) {
+        const {
+          error: paymentCreateError,
+        } = await admin
+          .from(
+            "investment_payments",
+          )
+          .insert({
+            subscription_id:
+              subscription.id,
 
-      opportunity_id:
-        subscription.opportunity_id,
+            investor_id:
+              subscription.investor_id,
 
-      expected_amount:
-        subscription.commitment_amount,
+            opportunity_id:
+              subscription.opportunity_id,
 
-      currency:
-        "USD",
+            expected_amount:
+              subscription.commitment_amount,
 
-      payment_method:
-        "bank_transfer",
+            currency:
+              "USD",
 
-      status:
-        "awaiting_payment",
-    });
+            payment_method:
+              "bank_transfer",
 
-  if (paymentCreateError) {
-    console.error(
-      "Funding payment creation error:",
-      paymentCreateError,
-    );
+            status:
+              "awaiting_payment",
+          });
 
-    /*
-     * Do not falsely say approval failed.
-     *
-     * Subscription approval already succeeded.
-     * Log this so it can be repaired.
-     */
-  }
-}
+        if (paymentCreateError) {
+          console.error(
+            "Funding payment creation error:",
+            paymentCreateError,
+          );
+
+          /*
+           * Do not falsely say approval failed.
+           *
+           * Subscription approval already succeeded.
+           * Log this so it can be repaired.
+           */
+        }
+      }
+
       /*
        * Investor approval email.
+       *
        * Approval remains valid even when SMTP fails.
        */
+
       let emailSent = false;
+
       let emailWarning:
         | string
         | undefined;
@@ -398,13 +415,17 @@ if (!existingPayment) {
         const email =
           investorSubscriptionApprovedEmail({
             investorName,
+
             opportunityTitle:
               opportunity.title,
+
             commitmentAmountCents:
               Number(
                 subscription.commitment_amount,
               ),
+
             subscriptionId,
+
             origin:
               new URL(
                 request.url,
@@ -415,6 +436,7 @@ if (!existingPayment) {
           await sendApplicationMail({
             to:
               investorEmail,
+
             ...email,
           });
 
@@ -449,6 +471,7 @@ if (!existingPayment) {
      * 8. REQUEST INFORMATION
      * --------------------------------------------------
      */
+
     if (
       body.action ===
       "request_information"
@@ -469,6 +492,7 @@ if (!existingPayment) {
        * Do not request information from
        * a final rejected/approved record.
        */
+
       if (
         subscription.status ===
         "rejected"
@@ -565,6 +589,7 @@ if (!existingPayment) {
       /*
        * Best-effort notification email.
        */
+
       if (investorEmail) {
         try {
           const email =
@@ -613,7 +638,23 @@ if (!existingPayment) {
      * --------------------------------------------------
      * 9. REJECT
      * --------------------------------------------------
+     *
+     * IMPORTANT:
+     *
+     * Rejection MUST go through
+     * admin_release_investment_reservation().
+     *
+     * That RPC atomically:
+     *
+     * - verifies the authenticated admin
+     * - verifies no funded/verified investment exists
+     * - releases the active capacity reservation
+     * - transitions the subscription to rejected
+     *
+     * We must NOT directly update the subscription
+     * to rejected here.
      */
+
     if (
       body.action ===
       "reject"
@@ -630,55 +671,146 @@ if (!existingPayment) {
         );
       }
 
-      const now =
-        new Date().toISOString();
+      if (note.length < 5) {
+        return NextResponse.json(
+          {
+            error:
+              "Enter a clear rejection reason of at least 5 characters.",
+          },
+          {
+            status: 400,
+          },
+        );
+      }
+
+      /*
+       * IMPORTANT:
+       *
+       * Use the cookie-authenticated server client,
+       * NOT createAdminClient(), because the lifecycle
+       * RPC intentionally validates auth.uid().
+       */
+
+      const supabase =
+        await createClient();
 
       const {
-        error: updateError,
-      } = await admin
-        .from(
-          "investment_subscriptions",
-        )
-        .update({
-          status:
-            "rejected",
+        data: releaseData,
+        error: releaseError,
+      } = await supabase.rpc(
+        "admin_release_investment_reservation",
+        {
+          p_subscription_id:
+            subscriptionId,
 
-          rejection_reason:
-            note,
-
-          admin_notes:
+          p_joint_subscription_id:
             null,
 
-          reviewed_at:
-            now,
+          p_reason:
+            note,
 
-          reviewed_by:
-            user.id,
+          p_final_status:
+            "rejected",
+        },
+      );
 
-          updated_at:
-            now,
-        })
-        .eq(
-          "id",
-          subscriptionId,
+      if (releaseError) {
+        console.error(
+          "Subscription rejection/release RPC error:",
+          releaseError,
         );
 
-      if (updateError) {
+        const normalized =
+          releaseError.message.toLowerCase();
+
+        const status =
+          normalized.includes(
+            "administrator access",
+          )
+            ? 403
+            : normalized.includes(
+                  "authentication required",
+                )
+              ? 401
+              : normalized.includes(
+                    "not found",
+                  )
+                ? 404
+                : 409;
+
+        return NextResponse.json(
+          {
+            error:
+              releaseError.message ||
+              "Unable to reject subscription.",
+          },
+          {
+            status,
+          },
+        );
+      }
+
+      const releaseResult =
+        (
+          Array.isArray(releaseData)
+            ? releaseData[0] ?? null
+            : releaseData
+        ) as
+          | ReservationReleaseResult
+          | null;
+
+      /*
+       * Defensive post-condition.
+       *
+       * A successful rejection must return:
+       *
+       * individual_subscription
+       * rejected
+       * released/cancelled reservation
+       */
+
+      if (
+        !releaseResult ||
+        releaseResult.parent_id !==
+          subscriptionId ||
+        releaseResult.parent_status !==
+          "rejected" ||
+        releaseResult.reservation_type !==
+          "individual_subscription" ||
+        ![
+          "released",
+          "cancelled",
+        ].includes(
+          releaseResult.reservation_status,
+        )
+      ) {
         console.error(
-          "Subscription rejection update error:",
-          updateError,
+          "Unexpected subscription rejection RPC result:",
+          releaseResult,
         );
 
         return NextResponse.json(
           {
             error:
-              "Unable to reject subscription.",
+              "Subscription rejection returned an unexpected lifecycle state.",
           },
           {
-            status: 500,
+            status: 409,
           },
         );
       }
+
+      /*
+       * --------------------------------------------------
+       * REJECTION AUDIT
+       * --------------------------------------------------
+       *
+       * The financial/capacity transition has already
+       * completed atomically in the RPC.
+       *
+       * Audit insertion is best-effort here so an audit
+       * delivery issue cannot corrupt reservation state.
+       */
 
       const {
         error: auditError,
@@ -699,6 +831,19 @@ if (!existingPayment) {
           metadata: {
             reason:
               note,
+
+            reservation_id:
+              releaseResult.reservation_id,
+
+            reservation_status:
+              releaseResult.reservation_status,
+
+            released_at:
+              releaseResult.released_at,
+
+            capacity_released:
+              releaseResult.reservation_status ===
+              "released",
           },
         });
 
@@ -708,6 +853,17 @@ if (!existingPayment) {
           auditError,
         );
       }
+
+      /*
+       * --------------------------------------------------
+       * REJECTION EMAIL
+       * --------------------------------------------------
+       *
+       * Best-effort only.
+       *
+       * SMTP failure must never undo a valid database
+       * lifecycle transition.
+       */
 
       if (investorEmail) {
         try {
@@ -750,8 +906,24 @@ if (!existingPayment) {
 
         action:
           "rejected",
+
+        reservationId:
+          releaseResult.reservation_id,
+
+        reservationStatus:
+          releaseResult.reservation_status,
+
+        capacityReleased:
+          releaseResult.reservation_status ===
+          "released",
       });
     }
+
+    /*
+     * --------------------------------------------------
+     * 10. INVALID ACTION
+     * --------------------------------------------------
+     */
 
     return NextResponse.json(
       {
@@ -771,7 +943,9 @@ if (!existingPayment) {
     return NextResponse.json(
       {
         error:
-          "Something went wrong while reviewing the subscription.",
+          error instanceof Error
+            ? error.message
+            : "Something went wrong while reviewing the subscription.",
       },
       {
         status: 500,

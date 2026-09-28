@@ -12,6 +12,7 @@ import {
 import {
   InvestmentStructureSelector,
 } from "@/src/components/investments/investment-structure-selector";
+
 import { checkAccountAccess } from "@/src/lib/auth/account-status";
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";
@@ -83,8 +84,18 @@ export default async function SubscriptionPage({
 
   /*
    * --------------------------------------------------
-   * 4. OPPORTUNITY MUST BE PUBLISHED
+   * 4. OPPORTUNITY MUST STILL BE PUBLICLY AVAILABLE
    * --------------------------------------------------
+   *
+   * Administrative close:
+   *   status = closed
+   *   -> opportunity is unavailable entirely.
+   *
+   * Fully funded:
+   *   status may remain published
+   *   funding_closed_at is persistent
+   *   -> opportunity remains publicly visible,
+   *      but no new investment can begin.
    */
   const {
     data: opportunity,
@@ -103,7 +114,8 @@ export default async function SubscriptionPage({
       funding_target,
       total_funded,
 
-      status
+      status,
+      funding_closed_at
       `,
     )
     .eq(
@@ -116,7 +128,10 @@ export default async function SubscriptionPage({
     error ||
     !opportunity ||
     opportunity.status !==
-      "published"
+      "published" ||
+    Boolean(
+      opportunity.funding_closed_at,
+    )
   ) {
     notFound();
   }
@@ -126,25 +141,48 @@ export default async function SubscriptionPage({
    * 5. AVAILABLE ALLOCATION
    * --------------------------------------------------
    */
-  const remainingAllocationCents =
+  const fundingTargetCents =
     Number(
       opportunity.funding_target,
-    ) -
+    );
+
+  const totalFundedCents =
     Number(
       opportunity.total_funded,
     );
 
+  const minimumInvestmentCents =
+    Number(
+      opportunity.minimum_investment,
+    );
+
+  const remainingAllocationCents =
+    fundingTargetCents -
+    totalFundedCents;
+
+  /*
+   * A subscription cannot begin when:
+   *
+   * 1. No allocation remains.
+   * 2. Remaining allocation is below the
+   *    opportunity minimum.
+   *
+   * The database/API must still enforce
+   * these rules again when capital is
+   * actually committed.
+   */
   if (
     remainingAllocationCents <=
-    0
+      0 ||
+    remainingAllocationCents <
+      minimumInvestmentCents
   ) {
     notFound();
   }
 
   const minimumInvestment =
-    Number(
-      opportunity.minimum_investment,
-    ) / 100;
+    minimumInvestmentCents /
+    100;
 
   const remainingAllocation =
     remainingAllocationCents /
@@ -167,18 +205,18 @@ export default async function SubscriptionPage({
       </Link>
 
       <InvestmentStructureSelector
-      opportunity={{
-        id:
-          opportunity.id,
+        opportunity={{
+          id:
+            opportunity.id,
 
-        title:
-          opportunity.title,
+          title:
+            opportunity.title,
 
-        minimumInvestment,
+          minimumInvestment,
 
-        remainingAllocation,
-      }}
-    />
+          remainingAllocation,
+        }}
+      />
     </div>
   );
 }

@@ -75,6 +75,7 @@ export default async function InvestmentOpportunityPage({
 
       status,
       published_at,
+      funding_closed_at,
 
       estate:investment_estates (
         id,
@@ -222,21 +223,19 @@ export default async function InvestmentOpportunityPage({
     };
   }
 
-  const progress =
-    opportunity.funding_target >
-    0
-      ? Math.min(
-          100,
+  const fundingTarget = Number(opportunity.funding_target);
+  const totalFunded = Number(opportunity.total_funded);
 
-          Math.round(
-            (
-              opportunity.total_funded /
-              opportunity.funding_target
-            ) *
-              100,
-          ),
-        )
+  const progress =
+    fundingTarget > 0
+      ? Math.min(100, Math.round((totalFunded / fundingTarget) * 100))
       : 0;
+
+  // Persistent closure prevents a later redemption from reopening
+  // an offering that already reached its target.
+  const fullyFunded =
+    Boolean(opportunity.funding_closed_at) ||
+    (fundingTarget > 0 && totalFunded >= fundingTarget);
 
   return (
     <main className="bg-ivory-50">
@@ -262,9 +261,8 @@ export default async function InvestmentOpportunityPage({
             <div className="absolute inset-x-0 bottom-0">
               <div className="mx-auto max-w-7xl px-5 pb-12 sm:px-8">
                 <OpportunityHero
-                  opportunity={
-                    opportunity
-                  }
+                  opportunity={opportunity}
+                  fullyFunded={fullyFunded}
                 />
               </div>
             </div>
@@ -272,9 +270,8 @@ export default async function InvestmentOpportunityPage({
         ) : (
           <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
             <OpportunityHero
-              opportunity={
-                opportunity
-              }
+              opportunity={opportunity}
+              fullyFunded={fullyFunded}
             />
           </div>
         )}
@@ -474,14 +471,27 @@ export default async function InvestmentOpportunityPage({
                 </p>
               </div>
 
-              <InvestmentStartAction
-                opportunityId={
-                  opportunity.id
-                }
-                investorState={
-                  investorState
-                }
-              />
+              {fullyFunded ? (
+                <div className="mt-7 rounded-2xl border border-gold-400/25 bg-white/5 p-5">
+                  <div className="flex items-center gap-2 text-gold-300">
+                    <CheckCircle2 className="size-4" />
+                    <span className="text-xs font-semibold uppercase tracking-[0.16em]">
+                      Fully Funded
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm font-semibold text-white">
+                    This opportunity is closed to new investments.
+                  </p>
+                  <p className="mt-2 text-xs leading-6 text-white/50">
+                    The offering reached its funding target and remains visible for investor transparency.
+                  </p>
+                </div>
+              ) : (
+                <InvestmentStartAction
+                  opportunityId={opportunity.id}
+                  investorState={investorState}
+                />
+              )}
 
               <p className="mt-5 text-xs leading-6 text-white/40">
                 Target returns are illustrative and
@@ -500,6 +510,7 @@ export default async function InvestmentOpportunityPage({
 
 function OpportunityHero({
   opportunity,
+  fullyFunded,
 }: {
   opportunity: {
     title: string;
@@ -511,6 +522,7 @@ function OpportunityHero({
       | string
       | null;
   };
+  fullyFunded: boolean;
 }) {
   return (
     <>
@@ -531,7 +543,7 @@ function OpportunityHero({
         </span>
 
         <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-white">
-          Open
+          {fullyFunded ? "Fully Funded · Closed" : "Open"}
         </span>
       </div>
 

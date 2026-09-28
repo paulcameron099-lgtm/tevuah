@@ -13,6 +13,7 @@ import {
 } from "next/navigation";
 
 import { SubscriptionReviewActions } from "@/src/components/admin/subscriptions/subscription-review-actions";
+import { IndividualHistoricalTimelineEditor } from "@/src/components/admin/subscriptions/individual-historical-timeline-editor";
 import { requireAdmin } from "@/src/lib/auth/require-admin";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 
@@ -62,10 +63,13 @@ export default async function AdminSubscriptionReviewPage({
 
       submitted_at,
       reviewed_at,
+      historical_submitted_at,
+      historical_reviewed_at,
 
       rejection_reason,
       admin_notes,
 
+      effective_at,
       created_at,
       updated_at,
 
@@ -91,7 +95,9 @@ export default async function AdminSubscriptionReviewPage({
         status,
         funding_target,
         total_funded,
-        minimum_investment
+        minimum_investment,
+        offering_opened_at,
+        offering_closed_at
       )
       `,
     )
@@ -168,6 +174,55 @@ export default async function AdminSubscriptionReviewPage({
     Number(
       opportunity.total_funded,
     );
+
+  /*
+   * Individual funded position.
+   *
+   * subscription_id is the canonical direct link for an
+   * individual position. joint positions use the separate
+   * joint_subscription_id and are intentionally excluded here.
+   */
+  const {
+    data: investmentPosition,
+    error: positionError,
+  } = await admin
+    .from(
+      "investment_positions",
+    )
+    .select(
+      `
+      id,
+      subscription_id,
+      principal_amount,
+      currency,
+      status,
+      funded_at,
+      historical_funded_at,
+      historical_created_at,
+      effective_at,
+      created_at
+      `,
+    )
+    .eq(
+      "subscription_id",
+      subscriptionId,
+    )
+    .is(
+      "joint_subscription_id",
+      null,
+    )
+    .maybeSingle();
+
+  if (positionError) {
+    console.error(
+      "Investment position load error:",
+      positionError,
+    );
+
+    throw new Error(
+      "Unable to load the funded investment position.",
+    );
+  }
 
   /*
    * Audit history.
@@ -408,6 +463,42 @@ export default async function AdminSubscriptionReviewPage({
               />
             </div>
           </section>
+
+          {/* HISTORICAL INVESTMENT TIMELINE */}
+
+          {investmentPosition ? (
+            <IndividualHistoricalTimelineEditor
+              subscriptionId={subscription.id}
+              historical={{
+                submittedAt: subscription.historical_submitted_at,
+                reviewedAt: subscription.historical_reviewed_at,
+                fundedAt: investmentPosition.historical_funded_at,
+                createdAt: investmentPosition.historical_created_at,
+              }}
+              system={{
+                submittedAt: subscription.submitted_at,
+                reviewedAt: subscription.reviewed_at,
+                fundedAt: investmentPosition.funded_at,
+                createdAt: investmentPosition.created_at,
+              }}
+            />
+          ) : (
+            <section className="rounded-[1.75rem] border border-forest-900/10 bg-ivory-50 p-6 sm:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
+                Historical chronology
+              </p>
+              <h2 className="font-display mt-3 text-2xl font-semibold text-forest-950">
+                Historical Investment Timeline
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-stone-600">
+                Submitted and reviewed dates exist on the subscription, but the complete four-event historical timeline becomes editable here once funding creates the individual investment position.
+              </p>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2">
+                <Data label="Original submitted" value={subscription.submitted_at ? formatDate(subscription.submitted_at) : "Pending"} />
+                <Data label="Original reviewed" value={subscription.reviewed_at ? formatDate(subscription.reviewed_at) : "Pending"} />
+              </div>
+            </section>
+          )}
 
           {/* AUDIT */}
 

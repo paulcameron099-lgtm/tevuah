@@ -99,6 +99,8 @@ export default async function InvestorSubscriptionDetailPage({
 
       submitted_at,
       reviewed_at,
+      historical_submitted_at,
+      historical_reviewed_at,
 
       rejection_reason,
       admin_notes,
@@ -374,9 +376,9 @@ export default async function InvestorSubscriptionDetailPage({
           <DataPoint
             label="Submitted"
             value={
-              subscription.submitted_at
+              (subscription.historical_submitted_at ?? subscription.submitted_at)
                 ? formatDate(
-                    subscription.submitted_at,
+                    subscription.historical_submitted_at ?? subscription.submitted_at,
                   )
                 : "—"
             }
@@ -385,9 +387,9 @@ export default async function InvestorSubscriptionDetailPage({
           <DataPoint
             label="Reviewed"
             value={
-              subscription.reviewed_at
+              (subscription.historical_reviewed_at ?? subscription.reviewed_at)
                 ? formatDate(
-                    subscription.reviewed_at,
+                    subscription.historical_reviewed_at ?? subscription.reviewed_at,
                   )
                 : "Pending"
             }
@@ -480,9 +482,7 @@ export default async function InvestorSubscriptionDetailPage({
                   </p>
 
                   <p className="mt-1 text-xs text-stone-500">
-                    {formatDate(
-                      event.created_at,
-                    )}
+                    Recorded in Tevuah system history
                   </p>
                 </div>
               ),
