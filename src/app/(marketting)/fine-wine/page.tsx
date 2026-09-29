@@ -1,71 +1,389 @@
 import type { Metadata } from "next";
+
 import Image from "next/image";
+import Link from "next/link";
+
 import {
   ArrowDown,
   ArrowUpRight,
   BadgeCheck,
   Boxes,
+  BriefcaseBusiness,
+  CalendarDays,
   FileCheck2,
   ShieldCheck,
   Thermometer,
+  WalletCards,
   Wine,
 } from "lucide-react";
 
-import { OpportunityCard } from "@/src/components/marketing/opportunity-card";
 import { Button } from "@/src/components/ui/button";
 import { Container } from "@/src/components/ui/container";
+
 import { WineHoldingsTable } from "@/src/components/fine-wine/wine-holdings-table";
 import { WinePortfolioMetricCard } from "@/src/components/fine-wine/wine-portfolio-metric";
 import { WinePrincipleCard } from "@/src/components/fine-wine/wine-principle-card";
 import { WineRegionAllocation } from "@/src/components/fine-wine/wine-region-allocation";
+
 import {
   wineCollectionHoldings,
   winePortfolioMetrics,
   winePrinciples,
   wineRegions,
 } from "@/src/data/fine-wine-platform";
-import { opportunities } from "@/src/data/opportunities";
+
+import { createAdminClient } from "@/src/lib/supabase/admin";
+
+/*
+ * --------------------------------------------------
+ * PAGE BEHAVIOUR
+ * --------------------------------------------------
+ *
+ * Fine-wine opportunities are live investment
+ * opportunities created by Admin.
+ *
+ * They are NOT duplicated into another table.
+ *
+ * A published fine-wine opportunity therefore appears:
+ *
+ *   1. /investments
+ *   2. /fine-wine
+ *
+ * The canonical opportunity detail page remains:
+ *
+ *   /investments/[slug]
+ *
+ * --------------------------------------------------
+ */
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Fine Wine",
+
   description:
     "Explore the Tevuah Reserve approach to fine-wine sourcing, provenance, professional storage, custody and portfolio reporting.",
 };
 
-const fineWineOpportunities = opportunities.filter(
-  (opportunity) => opportunity.category === "fine-wine",
-);
+/*
+ * --------------------------------------------------
+ * STATIC EDITORIAL CONTENT
+ * --------------------------------------------------
+ */
 
 const custodyPrinciples = [
   {
     title: "Climate control",
+
     description:
       "Appropriate temperature and humidity conditions are important for long-term storage.",
+
     icon: Thermometer,
   },
+
   {
     title: "Documented custody",
+
     description:
       "Storage location, ownership records and movement history should be clearly recorded.",
+
     icon: Boxes,
   },
+
   {
     title: "Condition review",
+
     description:
       "Selected holdings may require periodic visual or specialist condition checks.",
+
     icon: BadgeCheck,
   },
+
   {
     title: "Insurance framework",
+
     description:
       "High-value collections should have clear insurance and asset-protection arrangements.",
+
     icon: ShieldCheck,
   },
 ];
 
-export default function FineWinePage() {
+/*
+ * --------------------------------------------------
+ * LIVE FINE-WINE OPPORTUNITY TYPE
+ * --------------------------------------------------
+ */
+
+type FineWineOpportunity = {
+  id: string;
+  slug: string;
+  title: string;
+
+  short_description:
+    | string
+    | null;
+
+  location:
+    | string
+    | null;
+
+  asset_category: string;
+
+  funding_target: number;
+  minimum_investment: number;
+  total_funded: number;
+  investor_count: number;
+
+  expected_duration_months:
+    | number
+    | null;
+
+  target_return_min:
+    | number
+    | null;
+
+  target_return_max:
+    | number
+    | null;
+
+  target_return_note:
+    | string
+    | null;
+
+  cover_image_path:
+    | string
+    | null;
+
+  coverImageUrl:
+    | string
+    | null;
+
+  published_at:
+    | string
+    | null;
+
+  funding_closed_at:
+    | string
+    | null;
+};
+
+/*
+ * ==================================================
+ * PAGE
+ * ==================================================
+ */
+
+export default async function FineWinePage() {
+  /*
+   * --------------------------------------------------
+   * 1. LOAD LIVE FINE-WINE OPPORTUNITIES
+   * --------------------------------------------------
+   */
+
+  const admin =
+    createAdminClient();
+
+  const {
+    data:
+      opportunityRows,
+    error:
+      opportunityError,
+  } = await admin
+    .from(
+      "investment_opportunities",
+    )
+    .select(
+      `
+      id,
+      slug,
+      title,
+
+      short_description,
+      location,
+      asset_category,
+
+      funding_target,
+      minimum_investment,
+      total_funded,
+      investor_count,
+
+      expected_duration_months,
+
+      target_return_min,
+      target_return_max,
+      target_return_note,
+
+      cover_image_path,
+
+      published_at,
+      funding_closed_at
+      `,
+    )
+    .eq(
+      "status",
+      "published",
+    )
+    .eq(
+      "asset_category",
+      "fine_wine",
+    )
+    .order(
+      "published_at",
+      {
+        ascending: false,
+      },
+    );
+
+  if (opportunityError) {
+    console.error(
+      "Fine-wine opportunities load error:",
+      opportunityError,
+    );
+
+    throw new Error(
+      "Unable to load fine-wine investment opportunities.",
+    );
+  }
+
+  /*
+   * --------------------------------------------------
+   * 2. CREATE TEMPORARY COVER IMAGE URLS
+   * --------------------------------------------------
+   */
+
+  const fineWineOpportunities: FineWineOpportunity[] =
+    await Promise.all(
+      (
+        opportunityRows ??
+        []
+      ).map(
+        async (
+          opportunity,
+        ) => {
+          let coverImageUrl:
+            | string
+            | null =
+            null;
+
+          if (
+            opportunity.cover_image_path
+          ) {
+            const {
+              data,
+              error:
+                coverError,
+            } =
+              await admin.storage
+                .from(
+                  "investment-media",
+                )
+                .createSignedUrl(
+                  opportunity.cover_image_path,
+                  60 * 30,
+                );
+
+            if (coverError) {
+              console.error(
+                `Fine-wine cover URL error for ${opportunity.id}:`,
+                coverError,
+              );
+            }
+
+            coverImageUrl =
+              data?.signedUrl ??
+              null;
+          }
+
+          return {
+            id:
+              opportunity.id,
+
+            slug:
+              opportunity.slug,
+
+            title:
+              opportunity.title,
+
+            short_description:
+              opportunity.short_description,
+
+            location:
+              opportunity.location,
+
+            asset_category:
+              opportunity.asset_category,
+
+            funding_target:
+              Number(
+                opportunity.funding_target,
+              ),
+
+            minimum_investment:
+              Number(
+                opportunity.minimum_investment,
+              ),
+
+            total_funded:
+              Number(
+                opportunity.total_funded,
+              ),
+
+            investor_count:
+              Number(
+                opportunity.investor_count,
+              ),
+
+            expected_duration_months:
+              opportunity.expected_duration_months,
+
+            target_return_min:
+              opportunity.target_return_min !=
+              null
+                ? Number(
+                    opportunity.target_return_min,
+                  )
+                : null,
+
+            target_return_max:
+              opportunity.target_return_max !=
+              null
+                ? Number(
+                    opportunity.target_return_max,
+                  )
+                : null,
+
+            target_return_note:
+              opportunity.target_return_note,
+
+            cover_image_path:
+              opportunity.cover_image_path,
+
+            coverImageUrl,
+
+            published_at:
+              opportunity.published_at,
+
+            funding_closed_at:
+              opportunity.funding_closed_at,
+          };
+        },
+      ),
+    );
+
+  /*
+   * ==================================================
+   * RENDER
+   * ==================================================
+   */
+
   return (
     <main className="bg-ivory-100">
+      {/* ==========================================
+          HERO
+      ========================================== */}
+
       <section className="relative flex min-h-180 items-end overflow-hidden bg-burgundy-900 pt-19 text-white lg:pt-22">
         <Image
           src="/images/hero/fine-wine-page-hero.jpg"
@@ -102,18 +420,23 @@ export default function FineWinePage() {
             </p>
 
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <Button href="#collection-experience" size="lg">
+              <Button
+                href="#collection-experience"
+                size="lg"
+              >
                 Explore the collection
+
                 <ArrowDown className="size-4" />
               </Button>
 
               <Button
-                href="/investments?category=fine-wine"
+                href="#fine-wine-opportunities"
                 variant="outline"
                 size="lg"
                 className="border-white/25 text-white hover:bg-white/10 hover:text-white"
               >
                 View wine opportunities
+
                 <ArrowUpRight className="size-4" />
               </Button>
             </div>
@@ -153,6 +476,10 @@ export default function FineWinePage() {
         </Container>
       </section>
 
+      {/* ==========================================
+          COLLECTION PRINCIPLES
+      ========================================== */}
+
       <section className="py-16 sm:py-20 lg:py-24">
         <Container>
           <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:items-end lg:gap-20">
@@ -164,7 +491,8 @@ export default function FineWinePage() {
 
             <div>
               <h2 className="font-display max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-burgundy-900 sm:text-5xl lg:text-6xl">
-                Fine wine requires more than selecting a desirable bottle.
+                Fine wine requires more than selecting a desirable
+                bottle.
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
@@ -177,16 +505,31 @@ export default function FineWinePage() {
           </div>
 
           <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {winePrinciples.map((principle, index) => (
-              <WinePrincipleCard
-                key={principle.id}
-                principle={principle}
-                index={index}
-              />
-            ))}
+            {winePrinciples.map(
+              (
+                principle,
+                index,
+              ) => (
+                <WinePrincipleCard
+                  key={
+                    principle.id
+                  }
+                  principle={
+                    principle
+                  }
+                  index={
+                    index
+                  }
+                />
+              ),
+            )}
           </div>
         </Container>
       </section>
+
+      {/* ==========================================
+          COLLECTION EXPERIENCE
+      ========================================== */}
 
       <section
         id="collection-experience"
@@ -204,7 +547,8 @@ export default function FineWinePage() {
               </div>
 
               <h2 className="font-display mt-6 max-w-3xl text-balance text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl lg:text-6xl">
-                See the collection as a portfolio, not simply a cellar.
+                See the collection as a portfolio, not simply a
+                cellar.
               </h2>
 
               <p className="mt-7 max-w-xl text-base leading-8 text-white/60">
@@ -261,17 +605,27 @@ export default function FineWinePage() {
 
                 <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {winePortfolioMetrics.map((metric) => (
-                      <WinePortfolioMetricCard
-                        key={metric.id}
-                        metric={metric}
-                      />
-                    ))}
+                    {winePortfolioMetrics.map(
+                      (
+                        metric,
+                      ) => (
+                        <WinePortfolioMetricCard
+                          key={
+                            metric.id
+                          }
+                          metric={
+                            metric
+                          }
+                        />
+                      ),
+                    )}
                   </div>
 
                   <div className="mt-5">
                     <WineHoldingsTable
-                      holdings={wineCollectionHoldings}
+                      holdings={
+                        wineCollectionHoldings
+                      }
                     />
                   </div>
                 </div>
@@ -289,6 +643,10 @@ export default function FineWinePage() {
           </div>
         </Container>
       </section>
+
+      {/* ==========================================
+          PROVENANCE
+      ========================================== */}
 
       <section className="border-b border-burgundy-900/10 bg-white py-16 sm:py-20 lg:py-24">
         <Container>
@@ -311,7 +669,8 @@ export default function FineWinePage() {
               </p>
 
               <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-burgundy-900 sm:text-5xl">
-                Know what the collection contains and where it came from.
+                Know what the collection contains and where it came
+                from.
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
@@ -326,23 +685,33 @@ export default function FineWinePage() {
                   "Acquisition history",
                   "Storage and custody trail",
                   "Condition and inspection notes",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center gap-3 text-sm font-medium text-burgundy-900"
-                  >
-                    <span className="flex size-7 items-center justify-center rounded-full bg-burgundy-900 text-gold-400">
-                      <BadgeCheck className="size-3.5" />
-                    </span>
+                ].map(
+                  (
+                    item,
+                  ) => (
+                    <div
+                      key={
+                        item
+                      }
+                      className="flex items-center gap-3 text-sm font-medium text-burgundy-900"
+                    >
+                      <span className="flex size-7 items-center justify-center rounded-full bg-burgundy-900 text-gold-400">
+                        <BadgeCheck className="size-3.5" />
+                      </span>
 
-                    {item}
-                  </div>
-                ))}
+                      {item}
+                    </div>
+                  ),
+                )}
               </div>
             </div>
           </div>
         </Container>
       </section>
+
+      {/* ==========================================
+          STORAGE + CUSTODY
+      ========================================== */}
 
       <section className="py-16 sm:py-20 lg:py-24">
         <Container>
@@ -364,26 +733,37 @@ export default function FineWinePage() {
               </p>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                {custodyPrinciples.map((item) => {
-                  const Icon = item.icon;
+                {custodyPrinciples.map(
+                  (
+                    item,
+                  ) => {
+                    const Icon =
+                      item.icon;
 
-                  return (
-                    <article
-                      key={item.title}
-                      className="rounded-[1.25rem] border border-burgundy-900/10 bg-white p-5"
-                    >
-                      <Icon className="size-5 text-gold-600" />
+                    return (
+                      <article
+                        key={
+                          item.title
+                        }
+                        className="rounded-[1.25rem] border border-burgundy-900/10 bg-white p-5"
+                      >
+                        <Icon className="size-5 text-gold-600" />
 
-                      <h3 className="mt-4 font-semibold text-burgundy-900">
-                        {item.title}
-                      </h3>
+                        <h3 className="mt-4 font-semibold text-burgundy-900">
+                          {
+                            item.title
+                          }
+                        </h3>
 
-                      <p className="mt-2 text-xs leading-6 text-stone-600">
-                        {item.description}
-                      </p>
-                    </article>
-                  );
-                })}
+                        <p className="mt-2 text-xs leading-6 text-stone-600">
+                          {
+                            item.description
+                          }
+                        </p>
+                      </article>
+                    );
+                  },
+                )}
               </div>
             </div>
 
@@ -401,6 +781,10 @@ export default function FineWinePage() {
           </div>
         </Container>
       </section>
+
+      {/* ==========================================
+          REGIONAL ALLOCATION
+      ========================================== */}
 
       <section className="border-y border-burgundy-900/10 bg-white py-16 sm:py-20 lg:py-24">
         <Container>
@@ -421,10 +805,18 @@ export default function FineWinePage() {
               </p>
             </div>
 
-            <WineRegionAllocation regions={wineRegions} />
+            <WineRegionAllocation
+              regions={
+                wineRegions
+              }
+            />
           </div>
         </Container>
       </section>
+
+      {/* ==========================================
+          INVESTMENT RISKS
+      ========================================== */}
 
       <section className="bg-burgundy-900 py-16 text-white sm:py-20 lg:py-24">
         <Container>
@@ -464,15 +856,22 @@ export default function FineWinePage() {
                   "Changing demand and market pricing",
                   "Physical damage or storage failure",
                   "Valuation uncertainty",
-                ].map((risk) => (
-                  <div
-                    key={risk}
-                    className="flex items-start gap-3 text-sm leading-7 text-white/70"
-                  >
-                    <ShieldCheck className="mt-1 size-4 shrink-0 text-gold-400" />
-                    {risk}
-                  </div>
-                ))}
+                ].map(
+                  (
+                    risk,
+                  ) => (
+                    <div
+                      key={
+                        risk
+                      }
+                      className="flex items-start gap-3 text-sm leading-7 text-white/70"
+                    >
+                      <ShieldCheck className="mt-1 size-4 shrink-0 text-gold-400" />
+
+                      {risk}
+                    </div>
+                  ),
+                )}
               </div>
 
               <div className="mt-9 rounded-3xl border border-white/10 bg-white/5 p-6">
@@ -488,42 +887,91 @@ export default function FineWinePage() {
         </Container>
       </section>
 
-      {fineWineOpportunities.length > 0 ? (
-        <section className="py-16 sm:py-20 lg:py-24">
-          <Container>
-            <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-                  Fine-wine opportunities
-                </p>
+      {/* ==========================================
+          LIVE FINE-WINE OPPORTUNITIES
+      ========================================== */}
 
-                <h2 className="font-display mt-5 max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-burgundy-900 sm:text-5xl">
-                  Explore illustrative collection opportunities.
-                </h2>
-              </div>
+      <section
+        id="fine-wine-opportunities"
+        className="py-16 sm:py-20 lg:py-24"
+      >
+        <Container>
+          <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
+                Fine-wine opportunities
+              </p>
 
-              <Button
-                href="/investments?category=fine-wine"
-                variant="secondary"
-                size="lg"
-                className="w-fit"
-              >
-                View all fine-wine opportunities
-                <ArrowUpRight className="size-4" />
-              </Button>
+              <h2 className="font-display mt-5 max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-burgundy-900 sm:text-5xl">
+                Explore current fine-wine investment opportunities.
+              </h2>
+
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-stone-600">
+                Published fine-wine opportunities created by Tevuah
+                Reserve administrators appear here automatically and
+                remain part of the main investment marketplace.
+              </p>
             </div>
 
+            <Button
+              href="/investments"
+              variant="secondary"
+              size="lg"
+              className="w-fit"
+            >
+              View all investments
+
+              <ArrowUpRight className="size-4" />
+            </Button>
+          </div>
+
+          {fineWineOpportunities.length >
+          0 ? (
             <div className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
-              {fineWineOpportunities.map((opportunity) => (
-                <OpportunityCard
-                  key={opportunity.id}
-                  opportunity={opportunity}
-                />
-              ))}
+              {fineWineOpportunities.map(
+                (
+                  opportunity,
+                ) => (
+                  <LiveFineWineOpportunityCard
+                    key={
+                      opportunity.id
+                    }
+                    opportunity={
+                      opportunity
+                    }
+                  />
+                ),
+              )}
             </div>
-          </Container>
-        </section>
-      ) : null}
+          ) : (
+            <div className="mt-10 rounded-[1.75rem] border border-burgundy-900/10 bg-white px-6 py-14 text-center sm:px-10">
+              <BriefcaseBusiness className="mx-auto size-7 text-stone-300" />
+
+              <h3 className="font-display mt-4 text-3xl font-semibold text-burgundy-900">
+                No fine-wine opportunities are currently open.
+              </h3>
+
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-7 text-stone-500">
+                Published opportunities with the Fine Wine asset
+                category will automatically appear here.
+              </p>
+
+              <Link
+                href="/investments"
+                className="focus-ring mt-6 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-burgundy-900 px-5 text-sm font-semibold text-white transition hover:bg-burgundy-800"
+              >
+                Explore all investments
+
+                <ArrowUpRight className="size-4" />
+              </Link>
+            </div>
+          )}
+        </Container>
+      </section>
+
+      {/* ==========================================
+          FINAL CTA
+      ========================================== */}
 
       <section className="bg-forest-950 py-16 text-white sm:py-20 lg:py-24">
         <Container>
@@ -539,16 +987,16 @@ export default function FineWinePage() {
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/60">
-                Later, authenticated investors will be able to
-                review their wine holdings, documents, valuation
-                history and transaction activity directly inside
-                the Tevuah Reserve dashboard.
+                Authenticated investors can review their investment
+                positions, documents, valuation history and
+                transaction activity directly inside the Tevuah
+                Reserve dashboard.
               </p>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
               <Button
-                href="/investments?category=fine-wine"
+                href="#fine-wine-opportunities"
                 size="lg"
               >
                 Explore wine investments
@@ -568,4 +1016,327 @@ export default function FineWinePage() {
       </section>
     </main>
   );
+}
+
+/*
+ * ==================================================
+ * LIVE OPPORTUNITY CARD
+ * ==================================================
+ */
+
+function LiveFineWineOpportunityCard({
+  opportunity,
+}: {
+  opportunity: FineWineOpportunity;
+}) {
+  const fundingTarget =
+    Number(
+      opportunity.funding_target,
+    );
+
+  const totalFunded =
+    Number(
+      opportunity.total_funded,
+    );
+
+  const progress =
+    fundingTarget > 0
+      ? Math.min(
+          100,
+          Math.round(
+            (
+              totalFunded /
+              fundingTarget
+            ) * 100,
+          ),
+        )
+      : 0;
+
+  /*
+   * funding_closed_at is permanent once an offering
+   * reaches its target. This prevents a later
+   * redemption from visually reopening the offering.
+   */
+  const fullyFunded =
+    Boolean(
+      opportunity.funding_closed_at,
+    ) ||
+    (
+      fundingTarget >
+        0 &&
+      totalFunded >=
+        fundingTarget
+    );
+
+  const opportunityHref =
+    `/investments/${opportunity.slug}`;
+
+  return (
+    <article className="group flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-burgundy-900/10 bg-white shadow-[0_18px_60px_rgba(43,10,20,0.06)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(43,10,20,0.11)]">
+      {/* IMAGE */}
+
+      <Link
+        href={
+          opportunityHref
+        }
+        aria-label={`View ${opportunity.title}`}
+        className="relative block h-64 overflow-hidden bg-burgundy-900"
+      >
+        {opportunity.coverImageUrl ? (
+          <img
+            src={
+              opportunity.coverImageUrl
+            }
+            alt={
+              opportunity.title
+            }
+            className="size-full object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
+          />
+        ) : (
+          <div className="flex size-full items-center justify-center bg-burgundy-900">
+            <Wine className="size-10 text-white/20" />
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-linear-to-t from-burgundy-950/80 via-transparent to-burgundy-950/15" />
+
+        <div className="absolute left-5 right-5 top-5 flex items-start justify-between gap-4">
+          <span className="rounded-full border border-white/20 bg-burgundy-950/50 px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.15em] text-white backdrop-blur-md">
+            Fine Wine
+          </span>
+
+          <span
+            className={
+              fullyFunded
+                ? "rounded-full bg-white/90 px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-burgundy-900"
+                : "rounded-full bg-emerald-500/90 px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white"
+            }
+          >
+            {fullyFunded
+              ? "Fully Funded"
+              : "Open"}
+          </span>
+        </div>
+
+        <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-4">
+          <div>
+            {opportunity.location ? (
+              <p className="text-sm font-medium text-white/80">
+                {
+                  opportunity.location
+                }
+              </p>
+            ) : (
+              <p className="text-sm font-medium text-white/60">
+                Fine-wine investment
+              </p>
+            )}
+          </div>
+
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-md transition group-hover:border-gold-400 group-hover:bg-gold-500 group-hover:text-forest-950">
+            <ArrowUpRight className="size-5" />
+          </span>
+        </div>
+      </Link>
+
+      {/* CONTENT */}
+
+      <div className="flex flex-1 flex-col p-6 sm:p-7">
+        <div>
+          <h3 className="font-display text-[2rem] leading-[1.05] font-medium tracking-[-0.03em] text-burgundy-900">
+            <Link
+              href={
+                opportunityHref
+              }
+              className="transition-colors hover:text-olive-700"
+            >
+              {
+                opportunity.title
+              }
+            </Link>
+          </h3>
+
+          <p className="mt-4 line-clamp-3 text-sm leading-7 text-stone-700">
+            {opportunity.short_description ??
+              "Fine-wine investment opportunity available through Tevuah Reserve."}
+          </p>
+        </div>
+
+        {/* FUNDING */}
+
+        <div className="mt-7">
+          <div className="flex items-center justify-between gap-4 text-xs">
+            <span className="font-semibold text-burgundy-900">
+              Funding progress
+            </span>
+
+            <span className="text-stone-500">
+              {progress}%
+            </span>
+          </div>
+
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-burgundy-900/10">
+            <div
+              className="h-full rounded-full bg-burgundy-900"
+              style={{
+                width:
+                  `${progress}%`,
+              }}
+            />
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-4 text-xs text-stone-500">
+            <span>
+              {formatMoney(
+                opportunity.total_funded,
+              )}{" "}
+              funded
+            </span>
+
+            <span>
+              {formatMoney(
+                opportunity.funding_target,
+              )}{" "}
+              target
+            </span>
+          </div>
+        </div>
+
+        {/* DATA */}
+
+        <dl className="mt-7 grid grid-cols-2 gap-x-5 gap-y-5 border-y border-burgundy-900/10 py-6">
+          <div className="flex gap-3">
+            <WalletCards className="mt-0.5 size-4 shrink-0 text-gold-600" />
+
+            <div>
+              <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                Minimum
+              </dt>
+
+              <dd className="mt-1 text-sm font-semibold text-burgundy-900">
+                {formatMoney(
+                  opportunity.minimum_investment,
+                )}
+              </dd>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <CalendarDays className="mt-0.5 size-4 shrink-0 text-gold-600" />
+
+            <div>
+              <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                Duration
+              </dt>
+
+              <dd className="mt-1 text-sm font-semibold text-burgundy-900">
+                {opportunity.expected_duration_months
+                  ? `${opportunity.expected_duration_months} months`
+                  : "See details"}
+              </dd>
+            </div>
+          </div>
+
+          <div className="col-span-2 flex gap-3">
+            <ShieldCheck className="mt-0.5 size-4 shrink-0 text-gold-600" />
+
+            <div>
+              <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.12em] text-stone-500">
+                Target return
+              </dt>
+
+              <dd className="mt-1 text-sm font-semibold text-burgundy-900">
+                {returnDisplay(
+                  opportunity.target_return_min,
+                  opportunity.target_return_max,
+                )}
+              </dd>
+
+              {opportunity.target_return_note ? (
+                <p className="mt-1 text-xs leading-5 text-stone-500">
+                  {
+                    opportunity.target_return_note
+                  }
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </dl>
+
+        {/* CTA */}
+
+        <div className="mt-auto pt-6">
+          <Link
+            href={
+              opportunityHref
+            }
+            className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-burgundy-900 px-5 text-sm font-semibold text-white transition hover:bg-burgundy-800"
+          >
+            View opportunity
+
+            <ArrowUpRight className="size-4" />
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/*
+ * ==================================================
+ * FORMATTERS
+ * ==================================================
+ */
+
+function formatMoney(
+  cents: number,
+) {
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style:
+        "currency",
+
+      currency:
+        "USD",
+
+      maximumFractionDigits:
+        0,
+    },
+  ).format(
+    Number(
+      cents,
+    ) / 100,
+  );
+}
+
+function returnDisplay(
+  minimum:
+    | number
+    | null,
+
+  maximum:
+    | number
+    | null,
+) {
+  if (
+    minimum != null &&
+    maximum != null
+  ) {
+    return `${minimum}%–${maximum}%`;
+  }
+
+  if (
+    minimum != null
+  ) {
+    return `${minimum}% target`;
+  }
+
+  if (
+    maximum != null
+  ) {
+    return `Up to ${maximum}%`;
+  }
+
+  return "See details";
 }

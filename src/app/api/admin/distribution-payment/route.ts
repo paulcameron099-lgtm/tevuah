@@ -34,6 +34,35 @@ type Payload = {
   paymentReference?: string;
 };
 
+type MarkPaidResult = {
+  success?: boolean;
+  alreadyPaid?: boolean;
+
+  investorDistributionId?: string;
+  distributionId?: string;
+
+  investorId?: string;
+  positionId?: string;
+
+  jointSubscriptionId?: string | null;
+  jointMemberId?: string | null;
+  jointFundingObligationId?: string | null;
+
+  cashLedgerId?: string | null;
+  cashCredited?: boolean;
+  cashAmountCredited?: number;
+  cashBalanceAfter?: number | null;
+
+  paidCount?: number;
+  totalCount?: number;
+  remainingUnpaid?: number;
+  distributionPaid?: boolean;
+
+  basisReduction?: number;
+
+  paymentReference?: string | null;
+};
+
 export async function POST(
   request: Request,
 ) {
@@ -202,13 +231,9 @@ export async function POST(
        * LOAD INDIVIDUAL INVESTOR ALLOCATION
        * --------------------------------------------------
        *
-       * IMPORTANT:
-       *
-       * net_amount is the amount belonging to THIS
-       * investor.
-       *
+       * net_amount belongs only to this investor/member.
        * Never use the parent distribution total when
-       * communicating an individual investor payment.
+       * communicating an individual payment.
        */
       const {
         data: allocation,
@@ -220,11 +245,11 @@ export async function POST(
         )
         .select(
           `
-          id,
-          distribution_id,
-          investor_id,
-          net_amount,
-          status
+            id,
+            distribution_id,
+            investor_id,
+            net_amount,
+            status
           `,
         )
         .eq(
@@ -253,29 +278,26 @@ export async function POST(
         );
       }
 
-      if (
-        allocation.status ===
-        "paid"
-      ) {
-        return NextResponse.json(
-          {
-            error:
-              "This investor distribution has already been paid.",
-          },
-          {
-            status: 409,
-          },
-        );
-      }
-
+      /*
+       * Both states are allowed through:
+       *
+       * processing:
+       *   first canonical payment.
+       *
+       * paid:
+       *   idempotent retry. The database RPC verifies
+       *   that the matching cash ledger credit exists.
+       */
       if (
         allocation.status !==
-        "processing"
+          "processing" &&
+        allocation.status !==
+          "paid"
       ) {
         return NextResponse.json(
           {
             error:
-              "This investor distribution is not currently processing.",
+              "This investor distribution is not currently processing or paid.",
           },
           {
             status: 409,
@@ -298,11 +320,11 @@ export async function POST(
         )
         .select(
           `
-          id,
-          opportunity_id,
-          title,
-          distribution_type,
-          currency
+            id,
+            opportunity_id,
+            title,
+            distribution_type,
+            currency
           `,
         )
         .eq(
@@ -346,8 +368,8 @@ export async function POST(
         )
         .select(
           `
-          id,
-          title
+            id,
+            title
           `,
         )
         .eq(
@@ -381,8 +403,22 @@ export async function POST(
        * 5. CANONICAL PAID TRANSACTION
        * ==================================================
        *
-       * The database RPC must succeed BEFORE any
-       * notification/email is sent.
+       * This RPC is the authoritative financial
+       * transaction.
+       *
+       * For a first payment it:
+       * - validates the allocation
+       * - credits the investor cash account
+       * - writes the immutable distribution ledger
+       * - preserves joint-member provenance
+       * - marks the allocation paid
+       * - adjusts basis when applicable
+       * - completes the parent when appropriate
+       *
+       * For an already-paid allocation it verifies the
+       * matching cash ledger and returns alreadyPaid.
+       *
+       * It must succeed BEFORE notification/email.
        */
       const {
         data,
@@ -419,10 +455,70 @@ export async function POST(
         );
       }
 
+      const paymentResult =
+        data as MarkPaidResult | null;
+
+      if (!paymentResult?.success) {
+        console.error(
+          "mark_investor_distribution_paid returned an invalid result:",
+          data,
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Distribution payment completed without a valid confirmation result.",
+          },
+          {
+            status: 500,
+          },
+        );
+      }
+
       /*
        * ==================================================
-       * 6. PAID DASHBOARD NOTIFICATION
+       * 6. IDEMPOTENT RETRY
        * ==================================================
+       *
+       * The database has already verified that this
+       * allocation is paid and that its matching cash
+       * ledger credit exists.
+       *
+       * Do NOT:
+       * - credit cash again
+       * - create another notification
+       * - send another email
+       */
+      if (
+        paymentResult.alreadyPaid ===
+        true
+      ) {
+        return NextResponse.json({
+          success: true,
+
+          action:
+            "mark_paid",
+
+          alreadyPaid:
+            true,
+
+          result:
+            paymentResult,
+
+          notificationCreated:
+            false,
+
+          emailSent:
+            false,
+        });
+      }
+
+      /*
+       * ==================================================
+       * 7. PAID DASHBOARD NOTIFICATION
+       * ==================================================
+       *
+       * Only executed for the first successful payment.
        */
       const amountCents =
         Number(
@@ -479,11 +575,14 @@ export async function POST(
 
       /*
        * ==================================================
-       * 7. PAID EMAIL
+       * 8. PAID EMAIL
        * ==================================================
        *
-       * Email is best-effort because the payment RPC
-       * has already succeeded.
+       * Email is best-effort because the canonical
+       * financial transaction has already succeeded.
+       *
+       * A mail failure must never turn a successful
+       * financial transaction into an API failure.
        */
       let emailSent =
         false;
@@ -584,7 +683,7 @@ export async function POST(
 
       /*
        * ==================================================
-       * 8. SUCCESS
+       * 9. SUCCESS
        * ==================================================
        */
       return NextResponse.json({
@@ -593,8 +692,11 @@ export async function POST(
         action:
           "mark_paid",
 
+        alreadyPaid:
+          false,
+
         result:
-          data,
+          paymentResult,
 
         notificationCreated:
           notificationResult.created,
@@ -605,7 +707,7 @@ export async function POST(
 
     /*
      * ==================================================
-     * 9. INVALID ACTION
+     * 10. INVALID ACTION
      * ==================================================
      */
     return NextResponse.json(

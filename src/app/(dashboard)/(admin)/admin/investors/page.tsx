@@ -6,6 +6,8 @@ import { InvestorDirectory } from "@/src/components/admin/investors/investor-dir
 import { requireAdmin } from "@/src/lib/auth/require-admin";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { AdminCreateInvestorButton } from "@/src/components/admin/investors/admin-create-investor-button";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /*
  * Supabase Auth users are paginated.
