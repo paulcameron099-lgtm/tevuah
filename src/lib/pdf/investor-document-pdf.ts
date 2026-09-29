@@ -22,7 +22,20 @@ type DocumentPdfOptions = {
 
 const PAGE_WIDTH = 612;
 const PAGE_HEIGHT = 792;
+
 const MARGIN = 48;
+
+const HEADER_HEIGHT = 122;
+const CONTENT_TOP = PAGE_HEIGHT - 157;
+
+/*
+ * Everything below this Y value is reserved for the footer.
+ *
+ * Content is never allowed to enter this region.
+ */
+const FOOTER_LINE_Y = 66;
+const FOOTER_TEXT_Y = 42;
+const CONTENT_BOTTOM = 92;
 
 const COLORS = {
   forest: rgb(0.075, 0.165, 0.125),
@@ -41,118 +54,47 @@ type Context = {
   regular: PDFFont;
   bold: PDFFont;
   y: number;
+  pageNumber: number;
 };
 
 export async function buildInvestorDocumentPdf(
   options: DocumentPdfOptions,
 ) {
-  const pdf =
-    await PDFDocument.create();
+  const pdf = await PDFDocument.create();
 
-  const regular =
-    await pdf.embedFont(
-      StandardFonts.Helvetica,
-    );
+  const regular = await pdf.embedFont(
+    StandardFonts.Helvetica,
+  );
 
-  const bold =
-    await pdf.embedFont(
-      StandardFonts.HelveticaBold,
-    );
+  const bold = await pdf.embedFont(
+    StandardFonts.HelveticaBold,
+  );
 
-  const page =
-    pdf.addPage([
-      PAGE_WIDTH,
-      PAGE_HEIGHT,
-    ]);
+  const page = pdf.addPage([
+    PAGE_WIDTH,
+    PAGE_HEIGHT,
+  ]);
 
   const ctx: Context = {
     pdf,
     page,
     regular,
     bold,
-    y:
-      PAGE_HEIGHT -
-      MARGIN,
+    y: PAGE_HEIGHT - MARGIN,
+    pageNumber: 1,
   };
 
-  /*
-   * ==================================================
-   * BRAND HEADER
-   * ==================================================
-   */
-
-  ctx.page.drawRectangle({
-    x: 0,
-    y:
-      PAGE_HEIGHT -
-      122,
-    width:
-      PAGE_WIDTH,
-    height:
-      122,
-    color:
-      COLORS.forest,
-  });
-
-  drawText(
+  drawBrandHeader(
     ctx,
-    "TEVUAH RESERVE",
-    {
-      x:
-        MARGIN,
-      y:
-        PAGE_HEIGHT -
-        52,
-      size: 11,
-      bold: true,
-      color:
-        COLORS.gold,
-    },
+    options.documentLabel,
   );
 
-  drawText(
-    ctx,
-    options.documentLabel.toUpperCase(),
-    {
-      x:
-        MARGIN,
-      y:
-        PAGE_HEIGHT -
-        83,
-      size: 21,
-      bold: true,
-      color:
-        COLORS.white,
-    },
-  );
-
-  drawText(
-    ctx,
-    "Investor Records & Reporting",
-    {
-      x:
-        MARGIN,
-      y:
-        PAGE_HEIGHT -
-        104,
-      size: 9,
-      color:
-        rgb(
-          0.78,
-          0.82,
-          0.79,
-        ),
-    },
-  );
-
-  ctx.y =
-    PAGE_HEIGHT -
-    157;
+  ctx.y = CONTENT_TOP;
 
   /*
-   * ==================================================
+   * ==========================================================
    * DOCUMENT TITLE
-   * ==================================================
+   * ==========================================================
    */
 
   drawWrappedText(
@@ -161,8 +103,7 @@ export async function buildInvestorDocumentPdf(
     {
       size: 22,
       bold: true,
-      color:
-        COLORS.forest,
+      color: COLORS.forest,
       maxWidth:
         PAGE_WIDTH -
         MARGIN * 2,
@@ -170,9 +111,7 @@ export async function buildInvestorDocumentPdf(
     },
   );
 
-  if (
-    options.subtitle
-  ) {
+  if (options.subtitle) {
     ctx.y -= 5;
 
     drawWrappedText(
@@ -180,8 +119,7 @@ export async function buildInvestorDocumentPdf(
       options.subtitle,
       {
         size: 10,
-        color:
-          COLORS.stone,
+        color: COLORS.stone,
         maxWidth:
           PAGE_WIDTH -
           MARGIN * 2,
@@ -193,23 +131,27 @@ export async function buildInvestorDocumentPdf(
   ctx.y -= 18;
 
   /*
-   * ==================================================
+   * ==========================================================
    * DOCUMENT META
-   * ==================================================
+   * ==========================================================
    */
+
+  ensureSpace(
+    ctx,
+    84 + 28,
+    options.documentLabel,
+  );
 
   drawMetaBox(
     ctx,
     [
       {
-        label:
-          "Investor",
+        label: "Investor",
         value:
           options.investorName,
       },
       {
-        label:
-          "Reference",
+        label: "Reference",
         value:
           options.reference,
       },
@@ -225,77 +167,68 @@ export async function buildInvestorDocumentPdf(
   ctx.y -= 28;
 
   /*
-   * ==================================================
+   * ==========================================================
    * DETAILS
-   * ==================================================
+   * ==========================================================
    */
 
-  drawText(
+  ensureSpace(
+    ctx,
+    40,
+    options.documentLabel,
+  );
+
+  drawSectionLabel(
     ctx,
     "DOCUMENT DETAILS",
-    {
-      x:
-        MARGIN,
-      y:
-        ctx.y,
-      size: 9,
-      bold: true,
-      color:
-        COLORS.gold,
-    },
   );
 
   ctx.y -= 20;
 
   for (
     const row of
-      options.rows
+    options.rows
   ) {
     drawDetailRow(
       ctx,
       row.label,
       row.value,
+      options.documentLabel,
     );
   }
+
+  /*
+   * ==========================================================
+   * NOTES
+   * ==========================================================
+   */
 
   if (
     options.notes?.length
   ) {
     ctx.y -= 20;
 
-    drawText(
+    ensureSpace(
+      ctx,
+      40,
+      options.documentLabel,
+    );
+
+    drawSectionLabel(
       ctx,
       "IMPORTANT INFORMATION",
-      {
-        x:
-          MARGIN,
-        y:
-          ctx.y,
-        size: 9,
-        bold: true,
-        color:
-          COLORS.gold,
-      },
     );
 
     ctx.y -= 18;
 
     for (
       const note of
-        options.notes
+      options.notes
     ) {
-      drawWrappedText(
+      drawNote(
         ctx,
-        `- ${note}`,
-        {
-          size: 9,
-          color:
-            COLORS.stone,
-          maxWidth:
-            PAGE_WIDTH -
-            MARGIN * 2,
-          lineHeight: 14,
-        },
+        note,
+        options.documentLabel,
       );
 
       ctx.y -= 5;
@@ -303,46 +236,28 @@ export async function buildInvestorDocumentPdf(
   }
 
   /*
-   * ==================================================
-   * FOOTER
-   * ==================================================
+   * Footer is drawn on every page only after all content has
+   * been laid out.
    */
+  const pages =
+    pdf.getPages();
 
-  const footerY = 42;
-
-  ctx.page.drawLine({
-    start: {
-      x:
-        MARGIN,
-      y:
-        footerY +
-        24,
-    },
-    end: {
-      x:
-        PAGE_WIDTH -
-        MARGIN,
-      y:
-        footerY +
-        24,
-    },
-    thickness:
-      0.8,
-    color:
-      COLORS.border,
-  });
-
-  drawText(
-    ctx,
-    "Tevuah Reserve - Confidential Investor Record",
-    {
-      x:
-        MARGIN,
-      y:
-        footerY,
-      size: 8,
-      color:
-        COLORS.stoneLight,
+  pages.forEach(
+    (
+      pdfPage,
+      index,
+    ) => {
+      drawFooter(
+        {
+          ...ctx,
+          page:
+            pdfPage,
+          pageNumber:
+            index + 1,
+        },
+        index + 1,
+        pages.length,
+      );
     },
   );
 
@@ -356,6 +271,242 @@ export async function buildInvestorDocumentPdf(
   ) as ArrayBuffer;
 }
 
+/*
+ * ============================================================
+ * PAGE STRUCTURE
+ * ============================================================
+ */
+
+function addContinuationPage(
+  ctx: Context,
+  documentLabel: string,
+) {
+  ctx.page =
+    ctx.pdf.addPage([
+      PAGE_WIDTH,
+      PAGE_HEIGHT,
+    ]);
+
+  ctx.pageNumber += 1;
+
+  drawContinuationHeader(
+    ctx,
+    documentLabel,
+  );
+
+  ctx.y =
+    PAGE_HEIGHT -
+    92;
+}
+
+function ensureSpace(
+  ctx: Context,
+  requiredHeight: number,
+  documentLabel: string,
+) {
+  if (
+    ctx.y -
+      requiredHeight >=
+    CONTENT_BOTTOM
+  ) {
+    return;
+  }
+
+  addContinuationPage(
+    ctx,
+    documentLabel,
+  );
+}
+
+function drawBrandHeader(
+  ctx: Context,
+  documentLabel: string,
+) {
+  ctx.page.drawRectangle({
+    x: 0,
+    y:
+      PAGE_HEIGHT -
+      HEADER_HEIGHT,
+    width:
+      PAGE_WIDTH,
+    height:
+      HEADER_HEIGHT,
+    color:
+      COLORS.forest,
+  });
+
+  drawText(
+    ctx,
+    "TEVUAH RESERVE",
+    {
+      x: MARGIN,
+      y:
+        PAGE_HEIGHT -
+        52,
+      size: 11,
+      bold: true,
+      color:
+        COLORS.gold,
+    },
+  );
+
+  drawText(
+    ctx,
+    documentLabel.toUpperCase(),
+    {
+      x: MARGIN,
+      y:
+        PAGE_HEIGHT -
+        83,
+      size: 21,
+      bold: true,
+      color:
+        COLORS.white,
+    },
+  );
+
+  drawText(
+    ctx,
+    "Investor Records & Reporting",
+    {
+      x: MARGIN,
+      y:
+        PAGE_HEIGHT -
+        104,
+      size: 9,
+      color:
+        rgb(
+          0.78,
+          0.82,
+          0.79,
+        ),
+    },
+  );
+}
+
+function drawContinuationHeader(
+  ctx: Context,
+  documentLabel: string,
+) {
+  drawText(
+    ctx,
+    "TEVUAH RESERVE",
+    {
+      x: MARGIN,
+      y:
+        PAGE_HEIGHT -
+        48,
+      size: 10,
+      bold: true,
+      color:
+        COLORS.gold,
+    },
+  );
+
+  drawText(
+    ctx,
+    documentLabel.toUpperCase(),
+    {
+      x: MARGIN,
+      y:
+        PAGE_HEIGHT -
+        67,
+      size: 8,
+      bold: true,
+      color:
+        COLORS.forest,
+    },
+  );
+
+  ctx.page.drawLine({
+    start: {
+      x: MARGIN,
+      y:
+        PAGE_HEIGHT -
+        77,
+    },
+    end: {
+      x:
+        PAGE_WIDTH -
+        MARGIN,
+      y:
+        PAGE_HEIGHT -
+        77,
+    },
+    thickness: 0.8,
+    color:
+      COLORS.border,
+  });
+}
+
+function drawFooter(
+  ctx: Context,
+  pageNumber: number,
+  totalPages: number,
+) {
+  ctx.page.drawLine({
+    start: {
+      x: MARGIN,
+      y:
+        FOOTER_LINE_Y,
+    },
+    end: {
+      x:
+        PAGE_WIDTH -
+        MARGIN,
+      y:
+        FOOTER_LINE_Y,
+    },
+    thickness: 0.8,
+    color:
+      COLORS.border,
+  });
+
+  drawText(
+    ctx,
+    "Tevuah Reserve - Confidential Investor Record",
+    {
+      x: MARGIN,
+      y:
+        FOOTER_TEXT_Y,
+      size: 7.5,
+      color:
+        COLORS.stoneLight,
+    },
+  );
+
+  const pageLabel =
+    `Page ${pageNumber} of ${totalPages}`;
+
+  const pageLabelWidth =
+    ctx.regular.widthOfTextAtSize(
+      pageLabel,
+      7.5,
+    );
+
+  drawText(
+    ctx,
+    pageLabel,
+    {
+      x:
+        PAGE_WIDTH -
+        MARGIN -
+        pageLabelWidth,
+      y:
+        FOOTER_TEXT_Y,
+      size: 7.5,
+      color:
+        COLORS.stoneLight,
+    },
+  );
+}
+
+/*
+ * ============================================================
+ * META
+ * ============================================================
+ */
+
 function drawMetaBox(
   ctx: Context,
   rows: Array<{
@@ -363,12 +514,10 @@ function drawMetaBox(
     value: string;
   }>,
 ) {
-  const boxHeight =
-    84;
+  const boxHeight = 84;
 
   ctx.page.drawRectangle({
-    x:
-      MARGIN,
+    x: MARGIN,
     y:
       ctx.y -
       boxHeight,
@@ -381,8 +530,7 @@ function drawMetaBox(
       COLORS.ivory,
     borderColor:
       COLORS.border,
-    borderWidth:
-      0.8,
+    borderWidth: 0.8,
   });
 
   const columnWidth =
@@ -433,8 +581,7 @@ function drawMetaBox(
           maxWidth:
             columnWidth -
             30,
-          lineHeight:
-            12,
+          lineHeight: 12,
         },
       );
     },
@@ -444,13 +591,51 @@ function drawMetaBox(
     boxHeight;
 }
 
+/*
+ * ============================================================
+ * DETAIL ROWS
+ * ============================================================
+ */
+
 function drawDetailRow(
   ctx: Context,
   label: string,
   value: string,
+  documentLabel: string,
 ) {
-  const leftWidth =
-    165;
+  const leftWidth = 165;
+
+  const valueWidth =
+    PAGE_WIDTH -
+    MARGIN * 2 -
+    leftWidth;
+
+  const lines =
+    wrapText(
+      value,
+      ctx.regular,
+      10,
+      valueWidth,
+    );
+
+  const consumed =
+    Math.max(
+      32,
+      lines.length *
+        14 +
+        14,
+    );
+
+  /*
+   * We calculate row height before drawing anything.
+   * This prevents a row from being split across pages and
+   * prevents its separator from entering the footer.
+   */
+  ensureSpace(
+    ctx,
+    consumed,
+    documentLabel,
+  );
 
   const rowTop =
     ctx.y;
@@ -459,26 +644,16 @@ function drawDetailRow(
     ctx,
     label,
     {
-      x:
-        MARGIN,
+      x: MARGIN,
       y:
-        rowTop,
+        rowTop -
+        2,
       size: 9,
       bold: true,
       color:
         COLORS.stone,
     },
   );
-
-  const lines =
-    wrapText(
-      value,
-      ctx.regular,
-      10,
-      PAGE_WIDTH -
-        MARGIN * 2 -
-        leftWidth,
-    );
 
   lines.forEach(
     (
@@ -494,6 +669,7 @@ function drawDetailRow(
             leftWidth,
           y:
             rowTop -
+            2 -
             index * 14,
           size: 10,
           color:
@@ -503,34 +679,25 @@ function drawDetailRow(
     },
   );
 
-  const consumed =
-    Math.max(
-      26,
-      lines.length *
-        14 +
-        10,
-    );
+  const separatorY =
+    rowTop -
+    consumed +
+    8;
 
   ctx.page.drawLine({
     start: {
-      x:
-        MARGIN,
+      x: MARGIN,
       y:
-        rowTop -
-        consumed +
-        8,
+        separatorY,
     },
     end: {
       x:
         PAGE_WIDTH -
         MARGIN,
       y:
-        rowTop -
-        consumed +
-        8,
+        separatorY,
     },
-    thickness:
-      0.6,
+    thickness: 0.6,
     color:
       COLORS.border,
   });
@@ -538,6 +705,84 @@ function drawDetailRow(
   ctx.y -=
     consumed;
 }
+
+/*
+ * ============================================================
+ * NOTES
+ * ============================================================
+ */
+
+function drawNote(
+  ctx: Context,
+  note: string,
+  documentLabel: string,
+) {
+  const value =
+    `- ${note}`;
+
+  const lines =
+    wrapText(
+      value,
+      ctx.regular,
+      9,
+      PAGE_WIDTH -
+        MARGIN * 2,
+    );
+
+  const requiredHeight =
+    lines.length *
+      14 +
+    4;
+
+  ensureSpace(
+    ctx,
+    requiredHeight,
+    documentLabel,
+  );
+
+  for (
+    const line of
+    lines
+  ) {
+    drawText(
+      ctx,
+      line,
+      {
+        x: MARGIN,
+        y: ctx.y,
+        size: 9,
+        color:
+          COLORS.stone,
+      },
+    );
+
+    ctx.y -= 14;
+  }
+}
+
+function drawSectionLabel(
+  ctx: Context,
+  value: string,
+) {
+  drawText(
+    ctx,
+    value,
+    {
+      x: MARGIN,
+      y: ctx.y,
+      size: 9,
+      bold: true,
+      color:
+        COLORS.gold,
+    },
+  );
+}
+
+/*
+ * ============================================================
+ * WRAPPED TEXT
+ * ============================================================
+ */
 
 function drawWrappedText(
   ctx: Context,
@@ -566,16 +811,15 @@ function drawWrappedText(
     );
 
   for (
-    const line of lines
+    const line of
+    lines
   ) {
     drawText(
       ctx,
       line,
       {
-        x:
-          MARGIN,
-        y:
-          ctx.y,
+        x: MARGIN,
+        y: ctx.y,
         size:
           options.size,
         bold:
@@ -698,12 +942,46 @@ function wrapText(
   const lines:
     string[] = [];
 
-  let current =
-    "";
+  let current = "";
 
   for (
-    const word of words
+    const word of
+    words
   ) {
+    /*
+     * Long UUIDs, transaction hashes and references do not
+     * contain spaces. Break them safely instead of allowing
+     * them to run outside the document.
+     */
+    if (
+      font.widthOfTextAtSize(
+        word,
+        size,
+      ) > maxWidth
+    ) {
+      if (current) {
+        lines.push(
+          current,
+        );
+
+        current = "";
+      }
+
+      const chunks =
+        breakLongWord(
+          word,
+          font,
+          size,
+          maxWidth,
+        );
+
+      lines.push(
+        ...chunks,
+      );
+
+      continue;
+    }
+
     const candidate =
       current
         ? `${current} ${word}`
@@ -718,9 +996,7 @@ function wrapText(
       current =
         candidate;
     } else {
-      if (
-        current
-      ) {
+      if (current) {
         lines.push(
           current,
         );
@@ -731,9 +1007,7 @@ function wrapText(
     }
   }
 
-  if (
-    current
-  ) {
+  if (current) {
     lines.push(
       current,
     );
@@ -744,10 +1018,59 @@ function wrapText(
     : [""];
 }
 
+function breakLongWord(
+  word: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+) {
+  const chunks:
+    string[] = [];
+
+  let current = "";
+
+  for (
+    const character of
+    word
+  ) {
+    const candidate =
+      current +
+      character;
+
+    if (
+      current &&
+      font.widthOfTextAtSize(
+        candidate,
+        size,
+      ) > maxWidth
+    ) {
+      chunks.push(
+        current,
+      );
+
+      current =
+        character;
+    } else {
+      current =
+        candidate;
+    }
+  }
+
+  if (current) {
+    chunks.push(
+      current,
+    );
+  }
+
+  return chunks;
+}
+
 function sanitizePdfText(
   value: string,
 ) {
-  return value
+  return String(
+    value ?? "",
+  )
     .replaceAll(
       "—",
       "-",
@@ -772,7 +1095,9 @@ function sanitizePdfText(
 
 export function formatDocumentMoney(
   cents:
-    number | null | undefined,
+    number |
+    null |
+    undefined,
   currency =
     "USD",
 ) {
@@ -796,11 +1121,11 @@ export function formatDocumentMoney(
 
 export function formatDocumentDate(
   value:
-    string | null | undefined,
+    string |
+    null |
+    undefined,
 ) {
-  if (
-    !value
-  ) {
+  if (!value) {
     return "Not available";
   }
 
