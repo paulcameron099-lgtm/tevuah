@@ -1,5 +1,7 @@
 import type { WineRegion } from "@/src/data/fine-wine-platform";
 
+import { FineWineProgress } from "@/src/components/fine-wine/fine-wine-motion";
+
 type WineRegionAllocationProps = {
   regions: WineRegion[];
 };
@@ -28,11 +30,8 @@ export function WineRegionAllocation({
           </div>
 
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-burgundy-900/10">
-            <div
-              className="h-full rounded-full bg-gold-500"
-              style={{
-                width: `${region.allocation}%`,
-              }}
+            <FineWineProgress
+              progress={region.allocation}
             />
           </div>
 

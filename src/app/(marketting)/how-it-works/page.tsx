@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+
 import Image from "next/image";
+
 import {
   ArrowDown,
   ArrowUpRight,
@@ -9,6 +11,18 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import {
+  HowHeroImage,
+  HowHeroLine,
+  HowHeroOverlay,
+  HowHeroReveal,
+  HowImageReveal,
+  HowListItem,
+  HowReveal,
+  HowRevealSoft,
+  HowStagger,
+  HowStaggerItem,
+} from "@/src/components/how-it-works/how-it-works-motion";
 import { InvestorProcessCard } from "@/src/components/how-it-works/investor-process-card";
 import { InvestorRequirementCard } from "@/src/components/how-it-works/investor-requirement-card";
 import { Button } from "@/src/components/ui/button";
@@ -24,62 +38,121 @@ export const metadata: Metadata = {
     "Understand the Tevuah Reserve investor journey from discovering opportunities and completing verification to funding, portfolio monitoring and reporting.",
 };
 
+const verificationPoints = [
+  "Identity and address verification",
+  "Investor classification",
+  "Suitability or appropriateness review",
+  "Source-of-funds checks where required",
+];
+
+const reviewPoints = [
+  "Investment thesis",
+  "Financial assumptions",
+  "Risk factors",
+  "Documents",
+  "Operator information",
+  "Project timeline",
+];
+
+const monitoringPoints = [
+  {
+    title: "Portfolio overview",
+    text: "Review holdings, investment amounts and portfolio allocation.",
+  },
+  {
+    title: "Estate and project updates",
+    text: "Follow milestones, operating activity and selected AgTech reporting.",
+  },
+  {
+    title: "Documents",
+    text: "Access agreements, statements, reports and future tax documentation.",
+  },
+  {
+    title: "Transactions and distributions",
+    text: "Review funding history, fees and any investment distributions.",
+  },
+];
+
 export default function HowItWorksPage() {
   return (
     <main className="bg-ivory-100">
+      {/* HERO */}
+
       <section className="relative flex min-h-180 items-end overflow-hidden bg-forest-950 pt-19 text-white lg:pt-22">
-        <Image
-          src="/images/hero/how-it-works-page-hero.jpg"
-          alt="Estate review representing the Tevuah Reserve investor process"
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
+        <HowHeroImage className="absolute inset-0">
+          <Image
+            src="/images/hero/how-it-works-page-hero.jpg"
+            alt="Estate review representing the Tevuah Reserve investor process"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        </HowHeroImage>
+
+        <HowHeroOverlay
+          className="absolute inset-0 bg-linear-to-r from-forest-950 via-forest-950/82 to-forest-950/25"
+          delay={0.03}
         />
 
-        <div className="absolute inset-0 bg-linear-to-r from-forest-950 via-forest-950/82 to-forest-950/25" />
-        <div className="absolute inset-0 bg-linear-to-t from-forest-950/88 via-transparent to-forest-950/15" />
+        <HowHeroOverlay
+          className="absolute inset-0 bg-linear-to-t from-forest-950/88 via-transparent to-forest-950/15"
+          delay={0.08}
+        />
 
         <Container className="relative z-10 pb-16 pt-24 lg:pb-20">
           <div className="max-w-5xl">
-            <div className="flex items-center gap-3">
-              <span className="h-px w-10 bg-gold-400" />
+            <HowHeroReveal delay={0.1}>
+              <div className="flex items-center gap-3">
+                <HowHeroLine className="h-px w-10 origin-left bg-gold-400" />
 
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold-400">
-                How it works
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold-400">
+                  How it works
+                </p>
+              </div>
+            </HowHeroReveal>
+
+            <HowHeroReveal delay={0.2}>
+              <h1 className="font-display mt-7 max-w-5xl text-balance text-5xl leading-[0.94] font-medium tracking-[-0.045em] sm:text-6xl lg:text-8xl">
+                A clear path from discovery to portfolio ownership.
+              </h1>
+            </HowHeroReveal>
+
+            <HowHeroReveal delay={0.32}>
+              <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
+                Tevuah Reserve is designed to guide investors through
+                opportunity discovery, verification, investment review,
+                funding and long-term portfolio monitoring.
               </p>
-            </div>
+            </HowHeroReveal>
 
-            <h1 className="font-display mt-7 max-w-5xl text-balance text-5xl leading-[0.94] font-medium tracking-[-0.045em] sm:text-6xl lg:text-8xl">
-              A clear path from discovery to portfolio ownership.
-            </h1>
+            <HowHeroReveal delay={0.42}>
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+                <Button href="#investor-journey" size="lg">
+                  Explore the process
+                  <ArrowDown className="size-4" />
+                </Button>
 
-            <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-              Tevuah Reserve is designed to guide investors through
-              opportunity discovery, verification, investment review,
-              funding and long-term portfolio monitoring.
-            </p>
-
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <Button href="#investor-journey" size="lg">
-                Explore the process
-                <ArrowDown className="size-4" />
-              </Button>
-
-              <Button
-                href="/investments"
-                variant="outline"
-                size="lg"
-                className="border-white/25 text-white hover:bg-white/10 hover:text-white"
-              >
-                Explore investments
-                <ArrowUpRight className="size-4" />
-              </Button>
-            </div>
+                <Button
+                  href="/investments"
+                  variant="outline"
+                  size="lg"
+                  className="border-white/25 text-white hover:bg-white/10 hover:text-white"
+                >
+                  Explore investments
+                  <ArrowUpRight className="size-4" />
+                </Button>
+              </div>
+            </HowHeroReveal>
           </div>
 
-          <div className="mt-14 grid gap-6 border-t border-white/15 pt-7 sm:grid-cols-3">
-            <div>
+          <HowStagger
+            className="mt-14 grid gap-6 border-t border-white/15 pt-7 sm:grid-cols-3"
+            delay={0.48}
+            stagger={0.1}
+            amount={0.04}
+          >
+            <HowStaggerItem>
               <p className="text-xs uppercase tracking-[0.15em] text-white/40">
                 Before investing
               </p>
@@ -87,9 +160,9 @@ export default function HowItWorksPage() {
               <p className="mt-2 text-sm font-semibold">
                 Review and verification
               </p>
-            </div>
+            </HowStaggerItem>
 
-            <div>
+            <HowStaggerItem>
               <p className="text-xs uppercase tracking-[0.15em] text-white/40">
                 During investment
               </p>
@@ -97,9 +170,9 @@ export default function HowItWorksPage() {
               <p className="mt-2 text-sm font-semibold">
                 Commitment and funding
               </p>
-            </div>
+            </HowStaggerItem>
 
-            <div>
+            <HowStaggerItem>
               <p className="text-xs uppercase tracking-[0.15em] text-white/40">
                 After investment
               </p>
@@ -107,10 +180,12 @@ export default function HowItWorksPage() {
               <p className="mt-2 text-sm font-semibold">
                 Monitoring and reporting
               </p>
-            </div>
-          </div>
+            </HowStaggerItem>
+          </HowStagger>
         </Container>
       </section>
+
+      {/* INVESTOR JOURNEY */}
 
       <section
         id="investor-journey"
@@ -118,13 +193,13 @@ export default function HowItWorksPage() {
       >
         <Container>
           <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-end lg:gap-20">
-            <div>
+            <HowRevealSoft>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
                 Investor journey
               </p>
-            </div>
+            </HowRevealSoft>
 
-            <div>
+            <HowReveal>
               <h2 className="font-display max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl lg:text-6xl">
                 Eight stages designed around clarity and control.
               </h2>
@@ -134,24 +209,31 @@ export default function HowItWorksPage() {
                 making investment decisions appear simpler or safer than
                 they really are.
               </p>
-            </div>
+            </HowReveal>
           </div>
 
-          <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <HowStagger
+            className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4"
+            stagger={0.08}
+          >
             {investorProcessSteps.map((step) => (
-              <InvestorProcessCard
+              <HowStaggerItem
                 key={step.id}
-                step={step}
-              />
+                className="h-full"
+              >
+                <InvestorProcessCard step={step} />
+              </HowStaggerItem>
             ))}
-          </div>
+          </HowStagger>
         </Container>
       </section>
+
+      {/* VERIFICATION */}
 
       <section className="border-y border-forest-900/10 bg-white py-16 sm:py-20 lg:py-24">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
-            <div className="relative min-h-135 overflow-hidden rounded-4xl">
+            <HowImageReveal className="relative min-h-135 overflow-hidden rounded-4xl">
               <Image
                 src="/images/how-it-works/investor-verification.jpg"
                 alt="Investor verification and document review"
@@ -161,9 +243,9 @@ export default function HowItWorksPage() {
               />
 
               <div className="absolute inset-0 bg-linear-to-t from-forest-950/65 via-transparent to-transparent" />
-            </div>
+            </HowImageReveal>
 
-            <div>
+            <HowReveal>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
                 Investor verification
               </p>
@@ -179,39 +261,42 @@ export default function HowItWorksPage() {
                 jurisdiction.
               </p>
 
-              <div className="mt-8 space-y-4">
-                {[
-                  "Identity and address verification",
-                  "Investor classification",
-                  "Suitability or appropriateness review",
-                  "Source-of-funds checks where required",
-                ].map((item) => (
-                  <div
+              <HowStagger
+                className="mt-8 space-y-4"
+                stagger={0.07}
+                amount={0.15}
+              >
+                {verificationPoints.map((item) => (
+                  <HowListItem
                     key={item}
                     className="flex items-start gap-3 text-sm font-medium text-forest-950"
                   >
                     <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-gold-600" />
                     {item}
-                  </div>
+                  </HowListItem>
                 ))}
-              </div>
+              </HowStagger>
 
-              <div className="mt-9 rounded-3xl border border-gold-500/25 bg-gold-500/5 p-6">
-                <p className="text-xs leading-6 text-stone-700">
-                  The exact onboarding requirements must eventually be
-                  determined by qualified legal and compliance advisers for
-                  the jurisdictions where Tevuah Reserve operates.
-                </p>
-              </div>
-            </div>
+              <HowRevealSoft delay={0.08}>
+                <div className="mt-9 rounded-3xl border border-gold-500/25 bg-gold-500/5 p-6">
+                  <p className="text-xs leading-6 text-stone-700">
+                    The exact onboarding requirements must eventually be
+                    determined by qualified legal and compliance advisers for
+                    the jurisdictions where Tevuah Reserve operates.
+                  </p>
+                </div>
+              </HowRevealSoft>
+            </HowReveal>
           </div>
         </Container>
       </section>
 
+      {/* OPPORTUNITY REVIEW */}
+
       <section className="py-16 sm:py-20 lg:py-24">
         <Container>
           <div className="grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-20">
-            <div>
+            <HowReveal>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
                 Opportunity review
               </p>
@@ -226,40 +311,37 @@ export default function HowItWorksPage() {
                 timeline and material risks in one place.
               </p>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                {[
-                  "Investment thesis",
-                  "Financial assumptions",
-                  "Risk factors",
-                  "Documents",
-                  "Operator information",
-                  "Project timeline",
-                ].map((item) => (
-                  <div
-                    key={item}
-                    className="rounded-xl border border-forest-900/10 bg-white p-5"
-                  >
-                    <FileCheck2 className="size-5 text-gold-600" />
-
-                    <p className="mt-4 text-sm font-semibold text-forest-950">
-                      {item}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <Button
-                href="/investments"
-                variant="secondary"
-                size="lg"
-                className="mt-9"
+              <HowStagger
+                className="mt-8 grid gap-4 sm:grid-cols-2"
+                stagger={0.07}
               >
-                Browse opportunities
-                <ArrowUpRight className="size-4" />
-              </Button>
-            </div>
+                {reviewPoints.map((item) => (
+                  <HowStaggerItem key={item}>
+                    <div className="rounded-xl border border-forest-900/10 bg-white p-5">
+                      <FileCheck2 className="size-5 text-gold-600" />
 
-            <div className="relative min-h-140 overflow-hidden rounded-4xl">
+                      <p className="mt-4 text-sm font-semibold text-forest-950">
+                        {item}
+                      </p>
+                    </div>
+                  </HowStaggerItem>
+                ))}
+              </HowStagger>
+
+              <HowRevealSoft delay={0.08}>
+                <Button
+                  href="/investments"
+                  variant="secondary"
+                  size="lg"
+                  className="mt-9"
+                >
+                  Browse opportunities
+                  <ArrowUpRight className="size-4" />
+                </Button>
+              </HowRevealSoft>
+            </HowReveal>
+
+            <HowImageReveal className="relative min-h-140 overflow-hidden rounded-4xl">
               <Image
                 src="/images/how-it-works/opportunity-review.jpg"
                 alt="Investment opportunity review"
@@ -269,15 +351,17 @@ export default function HowItWorksPage() {
               />
 
               <div className="absolute inset-0 bg-linear-to-t from-forest-950/60 via-transparent to-transparent" />
-            </div>
+            </HowImageReveal>
           </div>
         </Container>
       </section>
 
+      {/* BEFORE FUNDING */}
+
       <section className="bg-forest-950 py-16 text-white sm:py-20 lg:py-24">
         <Container>
           <div className="grid gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:items-start lg:gap-20">
-            <div>
+            <HowReveal>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-400">
                 Before funding
               </p>
@@ -291,24 +375,31 @@ export default function HowItWorksPage() {
                 investor, opportunity and documentation requirements have
                 been satisfied.
               </p>
-            </div>
+            </HowReveal>
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <HowStagger
+              className="grid gap-5 md:grid-cols-2"
+              stagger={0.09}
+            >
               {investorRequirements.map((requirement) => (
-                <InvestorRequirementCard
+                <HowStaggerItem
                   key={requirement.id}
-                  requirement={requirement}
-                />
+                  className="h-full"
+                >
+                  <InvestorRequirementCard requirement={requirement} />
+                </HowStaggerItem>
               ))}
-            </div>
+            </HowStagger>
           </div>
         </Container>
       </section>
 
+      {/* AFTER INVESTMENT */}
+
       <section className="border-b border-forest-900/10 bg-white py-16 sm:py-20 lg:py-24">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
-            <div className="relative min-h-135 overflow-hidden rounded-4xl">
+            <HowImageReveal className="relative min-h-135 overflow-hidden rounded-4xl">
               <Image
                 src="/images/how-it-works/portfolio-monitoring.jpg"
                 alt="Investor portfolio monitoring"
@@ -319,23 +410,25 @@ export default function HowItWorksPage() {
 
               <div className="absolute inset-0 bg-linear-to-t from-forest-950/55 via-transparent to-transparent" />
 
-              <div className="absolute bottom-6 left-6 right-6 rounded-3xl border border-white/15 bg-forest-950/65 p-5 text-white backdrop-blur-md sm:bottom-8 sm:left-8 sm:right-auto sm:max-w-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-400">
-                  Investor dashboard
-                </p>
+              <HowRevealSoft className="absolute bottom-6 left-6 right-6 sm:bottom-8 sm:left-8 sm:right-auto sm:max-w-sm">
+                <div className="rounded-3xl border border-white/15 bg-forest-950/65 p-5 text-white backdrop-blur-md">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-400">
+                    Investor dashboard
+                  </p>
 
-                <p className="font-display mt-3 text-2xl font-semibold">
-                  Portfolio monitoring
-                </p>
+                  <p className="font-display mt-3 text-2xl font-semibold">
+                    Portfolio monitoring
+                  </p>
 
-                <p className="mt-2 text-xs leading-6 text-white/55">
-                  Future dashboard interface for investments, updates,
-                  documents and distributions.
-                </p>
-              </div>
-            </div>
+                  <p className="mt-2 text-xs leading-6 text-white/55">
+                    Future dashboard interface for investments, updates,
+                    documents and distributions.
+                  </p>
+                </div>
+              </HowRevealSoft>
+            </HowImageReveal>
 
-            <div>
+            <HowReveal>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
                 After investment
               </p>
@@ -350,26 +443,12 @@ export default function HowItWorksPage() {
                 only when capital is requested or distributed.
               </p>
 
-              <div className="mt-8 space-y-5">
-                {[
-                  {
-                    title: "Portfolio overview",
-                    text: "Review holdings, investment amounts and portfolio allocation.",
-                  },
-                  {
-                    title: "Estate and project updates",
-                    text: "Follow milestones, operating activity and selected AgTech reporting.",
-                  },
-                  {
-                    title: "Documents",
-                    text: "Access agreements, statements, reports and future tax documentation.",
-                  },
-                  {
-                    title: "Transactions and distributions",
-                    text: "Review funding history, fees and any investment distributions.",
-                  },
-                ].map((item) => (
-                  <div
+              <HowStagger
+                className="mt-8 space-y-5"
+                stagger={0.07}
+              >
+                {monitoringPoints.map((item) => (
+                  <HowStaggerItem
                     key={item.title}
                     className="border-t border-forest-900/10 pt-5"
                   >
@@ -380,17 +459,19 @@ export default function HowItWorksPage() {
                     <p className="mt-2 text-sm leading-7 text-stone-600">
                       {item.text}
                     </p>
-                  </div>
+                  </HowStaggerItem>
                 ))}
-              </div>
-            </div>
+              </HowStagger>
+            </HowReveal>
           </div>
         </Container>
       </section>
 
+      {/* INVESTOR RESPONSIBILITIES */}
+
       <section className="py-16 sm:py-20 lg:py-24">
         <Container>
-          <div className="mx-auto max-w-5xl text-center">
+          <HowReveal className="mx-auto max-w-5xl text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
               Investor responsibilities
             </p>
@@ -405,9 +486,14 @@ export default function HowItWorksPage() {
               information, understanding the risks and deciding whether an
               opportunity is appropriate for their circumstances.
             </p>
+          </HowReveal>
 
-            <div className="mt-10 grid gap-5 text-left md:grid-cols-3">
-              <article className="rounded-3xl border border-forest-900/10 bg-white p-6">
+          <HowStagger
+            className="mx-auto mt-10 grid max-w-5xl gap-5 text-left md:grid-cols-3"
+            stagger={0.09}
+          >
+            <HowStaggerItem>
+              <article className="h-full rounded-3xl border border-forest-900/10 bg-white p-6">
                 <ShieldCheck className="size-5 text-gold-600" />
 
                 <h3 className="font-display mt-5 text-2xl font-semibold text-forest-950">
@@ -419,8 +505,10 @@ export default function HowItWorksPage() {
                   periods and limited liquidity.
                 </p>
               </article>
+            </HowStaggerItem>
 
-              <article className="rounded-3xl border border-forest-900/10 bg-white p-6">
+            <HowStaggerItem>
+              <article className="h-full rounded-3xl border border-forest-900/10 bg-white p-6">
                 <FileCheck2 className="size-5 text-gold-600" />
 
                 <h3 className="font-display mt-5 text-2xl font-semibold text-forest-950">
@@ -432,8 +520,10 @@ export default function HowItWorksPage() {
                   making a commitment.
                 </p>
               </article>
+            </HowStaggerItem>
 
-              <article className="rounded-3xl border border-forest-900/10 bg-white p-6">
+            <HowStaggerItem>
+              <article className="h-full rounded-3xl border border-forest-900/10 bg-white p-6">
                 <BadgeCheck className="size-5 text-gold-600" />
 
                 <h3 className="font-display mt-5 text-2xl font-semibold text-forest-950">
@@ -445,15 +535,17 @@ export default function HowItWorksPage() {
                   than pressure investors into making decisions.
                 </p>
               </article>
-            </div>
-          </div>
+            </HowStaggerItem>
+          </HowStagger>
         </Container>
       </section>
+
+      {/* FINAL CTA */}
 
       <section className="bg-forest-950 py-16 text-white sm:py-20 lg:py-24">
         <Container>
           <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
-            <div>
+            <HowReveal>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-400">
                 Ready to explore
               </p>
@@ -467,22 +559,16 @@ export default function HowItWorksPage() {
                 complete verification workflow will be added during the next
                 application phase.
               </p>
-            </div>
+            </HowReveal>
 
-            <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
+            <HowRevealSoft
+              className="flex flex-col gap-3 sm:flex-row lg:justify-end"
+              delay={0.08}
+            >
               <Button href="/investments" size="lg">
                 Explore investments
               </Button>
-
-              <Button
-                href="/register"
-                variant="outline"
-                size="lg"
-                className="border-white/25 text-white hover:bg-white/10 hover:text-white"
-              >
-                Create investor account
-              </Button>
-            </div>
+            </HowRevealSoft>
           </div>
         </Container>
       </section>

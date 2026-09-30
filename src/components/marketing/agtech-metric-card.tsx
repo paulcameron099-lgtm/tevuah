@@ -1,3 +1,8 @@
+"use client";
+
+import { motion, useReducedMotion } from "motion/react";
+
+import { premiumEase } from "@/src/components/motion/premium-motion";
 import type { AgTechMetric } from "@/src/data/agtech-metrics";
 
 type AgTechMetricCardProps = {
@@ -8,6 +13,7 @@ export function AgTechMetricCard({
   metric,
 }: AgTechMetricCardProps) {
   const Icon = metric.icon;
+  const reduceMotion = useReducedMotion();
 
   return (
     <article className="rounded-2xl border border-white/10 bg-white/6 p-5 backdrop-blur-md">
@@ -36,8 +42,27 @@ export function AgTechMetricCard({
       </div>
 
       <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full bg-gold-500"
+        <motion.div
+          className="h-full origin-left rounded-full bg-gold-500"
+          initial={
+            reduceMotion
+              ? false
+              : {
+                  scaleX: 0,
+                }
+          }
+          whileInView={{
+            scaleX: 1,
+          }}
+          viewport={{
+            once: true,
+            amount: 0.8,
+          }}
+          transition={{
+            duration: 0.9,
+            delay: reduceMotion ? 0 : 0.18,
+            ease: premiumEase,
+          }}
           style={{
             width: `${metric.progress}%`,
           }}

@@ -1,6 +1,5 @@
 import {
   ArrowLeft,
-  CalendarDays,
   CheckCircle2,
   FileText,
   MapPin,
@@ -14,6 +13,16 @@ import {
 } from "next/navigation";
 
 import { InvestmentStartAction } from "@/src/components/investments/investment-start-action";
+import {
+  OpportunityHeroImage,
+  OpportunityHeroOverlay,
+  OpportunityHeroReveal,
+  OpportunityProgress,
+  OpportunityReveal,
+  OpportunityStagger,
+  OpportunityStaggerItem,
+  OpportunitySummaryReveal,
+} from "@/src/components/investments/opportunity-motion";
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 
@@ -108,9 +117,6 @@ export default async function InvestmentOpportunityPage({
    * --------------------------------------------------
    * NORMALIZE ESTATE RELATION
    * --------------------------------------------------
-   *
-   * Supabase can infer nested relations as arrays.
-   * Normalize it once before rendering.
    */
   const estate =
     Array.isArray(
@@ -153,12 +159,6 @@ export default async function InvestmentOpportunityPage({
    * --------------------------------------------------
    * 3. INVESTMENT DOCUMENTS
    * --------------------------------------------------
-   *
-   * These are not exposed directly.
-   * We only expose document metadata here.
-   *
-   * Signed investor document access can be
-   * implemented with permission checks.
    */
   const {
     data: documents,
@@ -223,19 +223,37 @@ export default async function InvestmentOpportunityPage({
     };
   }
 
-  const fundingTarget = Number(opportunity.funding_target);
-  const totalFunded = Number(opportunity.total_funded);
+  const fundingTarget =
+    Number(
+      opportunity.funding_target,
+    );
+
+  const totalFunded =
+    Number(
+      opportunity.total_funded,
+    );
 
   const progress =
     fundingTarget > 0
-      ? Math.min(100, Math.round((totalFunded / fundingTarget) * 100))
+      ? Math.min(
+          100,
+          Math.round(
+            (totalFunded /
+              fundingTarget) *
+              100,
+          ),
+        )
       : 0;
 
   // Persistent closure prevents a later redemption from reopening
   // an offering that already reached its target.
   const fullyFunded =
-    Boolean(opportunity.funding_closed_at) ||
-    (fundingTarget > 0 && totalFunded >= fundingTarget);
+    Boolean(
+      opportunity.funding_closed_at,
+    ) ||
+    (fundingTarget > 0 &&
+      totalFunded >=
+        fundingTarget);
 
   return (
     <main className="bg-ivory-50">
@@ -246,23 +264,29 @@ export default async function InvestmentOpportunityPage({
       <section className="bg-forest-950 text-white">
         {coverImageUrl ? (
           <div className="relative h-110 overflow-hidden">
-            <img
-              src={
-                coverImageUrl
-              }
-              alt={
-                opportunity.title
-              }
-              className="size-full object-cover opacity-55"
-            />
+            <OpportunityHeroImage className="absolute inset-0">
+              <img
+                src={
+                  coverImageUrl
+                }
+                alt={
+                  opportunity.title
+                }
+                className="size-full object-cover opacity-55"
+              />
+            </OpportunityHeroImage>
 
-            <div className="absolute inset-0 bg-linear-to-t from-forest-950 via-forest-950/30 to-transparent" />
+            <OpportunityHeroOverlay className="absolute inset-0 bg-linear-to-t from-forest-950 via-forest-950/30 to-transparent" />
 
             <div className="absolute inset-x-0 bottom-0">
               <div className="mx-auto max-w-7xl px-5 pb-12 sm:px-8">
                 <OpportunityHero
-                  opportunity={opportunity}
-                  fullyFunded={fullyFunded}
+                  opportunity={
+                    opportunity
+                  }
+                  fullyFunded={
+                    fullyFunded
+                  }
                 />
               </div>
             </div>
@@ -270,8 +294,12 @@ export default async function InvestmentOpportunityPage({
         ) : (
           <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
             <OpportunityHero
-              opportunity={opportunity}
-              fullyFunded={fullyFunded}
+              opportunity={
+                opportunity
+              }
+              fullyFunded={
+                fullyFunded
+              }
             />
           </div>
         )}
@@ -286,115 +314,125 @@ export default async function InvestmentOpportunityPage({
           <div className="space-y-8">
             {/* OVERVIEW */}
 
-            <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
-                Opportunity overview
-              </p>
+            <OpportunityReveal>
+              <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
+                  Opportunity overview
+                </p>
 
-              <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-                Investment thesis
-              </h2>
+                <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
+                  Investment thesis
+                </h2>
 
-              <div className="mt-5 whitespace-pre-line text-sm leading-8 text-stone-600">
-                {opportunity.full_description ??
-                  opportunity.short_description}
-              </div>
-            </section>
+                <div className="mt-5 whitespace-pre-line text-sm leading-8 text-stone-600">
+                  {opportunity.full_description ??
+                    opportunity.short_description}
+                </div>
+              </section>
+            </OpportunityReveal>
 
             {/* ESTATE */}
 
             {estate ? (
-              <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
-                  Estate / underlying asset
-                </p>
+              <OpportunityReveal delay={0.04}>
+                <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-600">
+                    Estate / underlying asset
+                  </p>
 
-                <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-                  {
-                    estate.name
-                  }
-                </h2>
+                  <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
+                    {
+                      estate.name
+                    }
+                  </h2>
 
-                <p className="mt-4 text-sm leading-7 text-stone-600">
-                  {estate.description ??
-                    "Underlying asset assigned to this investment opportunity."}
-                </p>
+                  <p className="mt-4 text-sm leading-7 text-stone-600">
+                    {estate.description ??
+                      "Underlying asset assigned to this investment opportunity."}
+                  </p>
 
-                <div className="mt-6 flex flex-wrap gap-3">
-                  {estate.region ? (
-                    <span className="rounded-full bg-ivory-50 px-3 py-1.5 text-xs font-semibold text-forest-950">
-                      {
-                        estate.region
-                      }
-                    </span>
-                  ) : null}
+                  <OpportunityStagger className="mt-6 flex flex-wrap gap-3">
+                    {estate.region ? (
+                      <OpportunityStaggerItem>
+                        <span className="inline-flex rounded-full bg-ivory-50 px-3 py-1.5 text-xs font-semibold text-forest-950">
+                          {
+                            estate.region
+                          }
+                        </span>
+                      </OpportunityStaggerItem>
+                    ) : null}
 
-                  {estate.country ? (
-                    <span className="rounded-full bg-ivory-50 px-3 py-1.5 text-xs font-semibold text-forest-950">
-                      {
-                        estate.country
-                      }
-                    </span>
-                  ) : null}
-                </div>
-              </section>
+                    {estate.country ? (
+                      <OpportunityStaggerItem>
+                        <span className="inline-flex rounded-full bg-ivory-50 px-3 py-1.5 text-xs font-semibold text-forest-950">
+                          {
+                            estate.country
+                          }
+                        </span>
+                      </OpportunityStaggerItem>
+                    ) : null}
+                  </OpportunityStagger>
+                </section>
+              </OpportunityReveal>
             ) : null}
 
             {/* DOCUMENTS */}
 
-            <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
-              <FileText className="size-5 text-gold-600" />
+            <OpportunityReveal delay={0.04}>
+              <section className="rounded-[1.75rem] border border-forest-900/10 bg-white p-6 sm:p-8">
+                <FileText className="size-5 text-gold-600" />
 
-              <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
-                Investment documents
-              </h2>
+                <h2 className="font-display mt-4 text-3xl font-semibold text-forest-950">
+                  Investment documents
+                </h2>
 
-              <p className="mt-3 text-sm leading-7 text-stone-600">
-                Private investment documents are
-                available through controlled account
-                access.
-              </p>
-
-              <div className="mt-6 space-y-3">
-                {(documents ?? []).map(
-                  (
-                    document,
-                  ) => (
-                    <div
-                      key={
-                        document.id
-                      }
-                      className="flex items-center gap-3 rounded-xl border border-forest-900/10 bg-ivory-50 p-4"
-                    >
-                      <FileText className="size-4 shrink-0 text-gold-600" />
-
-                      <div>
-                        <p className="text-sm font-semibold text-forest-950">
-                          {
-                            document.label
-                          }
-                        </p>
-
-                        <p className="mt-1 text-xs text-stone-500">
-                          {humanize(
-                            document.document_type,
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  ),
-                )}
+                <p className="mt-3 text-sm leading-7 text-stone-600">
+                  Private investment documents are
+                  available through controlled account
+                  access.
+                </p>
 
                 {(documents ?? [])
-                  .length ===
-                0 ? (
-                  <p className="text-sm text-stone-500">
+                  .length > 0 ? (
+                  <OpportunityStagger className="mt-6 space-y-3">
+                    {(documents ?? []).map(
+                      (
+                        document,
+                      ) => (
+                        <OpportunityStaggerItem
+                          key={
+                            document.id
+                          }
+                        >
+                          <div className="flex items-center gap-3 rounded-xl border border-forest-900/10 bg-ivory-50 p-4">
+                            <FileText className="size-4 shrink-0 text-gold-600" />
+
+                            <div>
+                              <p className="text-sm font-semibold text-forest-950">
+                                {
+                                  document.label
+                                }
+                              </p>
+
+                              <p className="mt-1 text-xs text-stone-500">
+                                {humanize(
+                                  document.document_type,
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </OpportunityStaggerItem>
+                      ),
+                    )}
+                  </OpportunityStagger>
+                ) : (
+                  <p className="mt-6 text-sm text-stone-500">
                     No investor documents are currently
                     available.
                   </p>
-                ) : null}
-              </div>
-            </section>
+                )}
+              </section>
+            </OpportunityReveal>
           </div>
 
           {/* ========================================
@@ -402,105 +440,122 @@ export default async function InvestmentOpportunityPage({
           ======================================== */}
 
           <aside className="lg:sticky lg:top-28 lg:self-start">
-            <div className="rounded-[1.75rem] bg-forest-950 p-6 text-white sm:p-7">
-              <ShieldCheck className="size-5 text-gold-400" />
+            <OpportunitySummaryReveal>
+              <div className="rounded-[1.75rem] bg-forest-950 p-6 text-white sm:p-7">
+                <ShieldCheck className="size-5 text-gold-400" />
 
-              <h2 className="font-display mt-5 text-3xl font-semibold">
-                Investment summary
-              </h2>
+                <h2 className="font-display mt-5 text-3xl font-semibold">
+                  Investment summary
+                </h2>
 
-              <div className="mt-7 space-y-5">
-                <SideData
-                  label="Funding target"
-                  value={formatMoney(
-                    opportunity.funding_target,
-                  )}
-                />
+                <OpportunityStagger className="mt-7 space-y-5">
+                  <OpportunityStaggerItem>
+                    <SideData
+                      label="Funding target"
+                      value={formatMoney(
+                        opportunity.funding_target,
+                      )}
+                    />
+                  </OpportunityStaggerItem>
 
-                <SideData
-                  label="Minimum investment"
-                  value={formatMoney(
-                    opportunity.minimum_investment,
-                  )}
-                />
+                  <OpportunityStaggerItem>
+                    <SideData
+                      label="Minimum investment"
+                      value={formatMoney(
+                        opportunity.minimum_investment,
+                      )}
+                    />
+                  </OpportunityStaggerItem>
 
-                <SideData
-                  label="Expected duration"
-                  value={
-                    opportunity.expected_duration_months
-                      ? `${opportunity.expected_duration_months} months`
-                      : "See offering materials"
-                  }
-                />
+                  <OpportunityStaggerItem>
+                    <SideData
+                      label="Expected duration"
+                      value={
+                        opportunity.expected_duration_months
+                          ? `${opportunity.expected_duration_months} months`
+                          : "See offering materials"
+                      }
+                    />
+                  </OpportunityStaggerItem>
 
-                <SideData
-                  label="Target return"
-                  value={returnDisplay(
-                    opportunity.target_return_min,
-                    opportunity.target_return_max,
-                  )}
-                />
-              </div>
+                  <OpportunityStaggerItem>
+                    <SideData
+                      label="Target return"
+                      value={returnDisplay(
+                        opportunity.target_return_min,
+                        opportunity.target_return_max,
+                      )}
+                    />
+                  </OpportunityStaggerItem>
+                </OpportunityStagger>
 
-              <div className="mt-7 border-t border-white/10 pt-6">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold">
-                    Funding progress
-                  </span>
+                <div className="mt-7 border-t border-white/10 pt-6">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold">
+                      Funding progress
+                    </span>
 
-                  <span className="text-white/50">
-                    {progress}%
-                  </span>
-                </div>
-
-                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className="h-full rounded-full bg-gold-400"
-                    style={{
-                      width:
-                        `${progress}%`,
-                    }}
-                  />
-                </div>
-
-                <p className="mt-3 text-xs text-white/50">
-                  {formatMoney(
-                    opportunity.total_funded,
-                  )}{" "}
-                  currently funded
-                </p>
-              </div>
-
-              {fullyFunded ? (
-                <div className="mt-7 rounded-2xl border border-gold-400/25 bg-white/5 p-5">
-                  <div className="flex items-center gap-2 text-gold-300">
-                    <CheckCircle2 className="size-4" />
-                    <span className="text-xs font-semibold uppercase tracking-[0.16em]">
-                      Fully Funded
+                    <span className="text-white/50">
+                      {progress}%
                     </span>
                   </div>
-                  <p className="mt-3 text-sm font-semibold text-white">
-                    This opportunity is closed to new investments.
-                  </p>
-                  <p className="mt-2 text-xs leading-6 text-white/50">
-                    The offering reached its funding target and remains visible for investor transparency.
+
+                  <OpportunityProgress
+                    progress={
+                      progress
+                    }
+                    className="mt-3 h-2"
+                  />
+
+                  <p className="mt-3 text-xs text-white/50">
+                    {formatMoney(
+                      opportunity.total_funded,
+                    )}{" "}
+                    currently funded
                   </p>
                 </div>
-              ) : (
-                <InvestmentStartAction
-                  opportunityId={opportunity.id}
-                  investorState={investorState}
-                />
-              )}
 
-              <p className="mt-5 text-xs leading-6 text-white/40">
-                Target returns are illustrative and
-                are not guaranteed. Private-market
-                investments involve risk, including
-                potential loss of capital and
-                illiquidity.
-              </p>
-            </div>
+                {fullyFunded ? (
+                  <OpportunityReveal>
+                    <div className="mt-7 rounded-2xl border border-gold-400/25 bg-white/5 p-5">
+                      <div className="flex items-center gap-2 text-gold-300">
+                        <CheckCircle2 className="size-4" />
+
+                        <span className="text-xs font-semibold uppercase tracking-[0.16em]">
+                          Fully Funded
+                        </span>
+                      </div>
+
+                      <p className="mt-3 text-sm font-semibold text-white">
+                        This opportunity is closed to new investments.
+                      </p>
+
+                      <p className="mt-2 text-xs leading-6 text-white/50">
+                        The offering reached its funding target and remains
+                        visible for investor transparency.
+                      </p>
+                    </div>
+                  </OpportunityReveal>
+                ) : (
+                  <InvestmentStartAction
+                    opportunityId={
+                      opportunity.id
+                    }
+                    investorState={
+                      investorState
+                    }
+                  />
+                )}
+
+                <p className="mt-5 text-xs leading-6 text-white/40">
+                  Target returns are illustrative and
+                  are not guaranteed. Private-market
+                  investments involve risk, including
+                  potential loss of capital and
+                  illiquidity.
+                </p>
+              </div>
+            </OpportunitySummaryReveal>
           </aside>
         </div>
       </section>
@@ -514,57 +569,75 @@ function OpportunityHero({
 }: {
   opportunity: {
     title: string;
+
     short_description:
       | string
       | null;
+
     asset_category: string;
+
     location:
       | string
       | null;
   };
+
   fullyFunded: boolean;
 }) {
   return (
     <>
-      <Link
-        href="/investments"
-        className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-white/70 transition hover:text-white"
-      >
-        <ArrowLeft className="size-4" />
+      <OpportunityHeroReveal delay={0.06}>
+        <Link
+          href="/investments"
+          className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-white/70 transition hover:text-white"
+        >
+          <ArrowLeft className="size-4" />
 
-        All opportunities
-      </Link>
+          All opportunities
+        </Link>
+      </OpportunityHeroReveal>
 
-      <div className="mt-8 flex flex-wrap gap-2">
-        <span className="rounded-full bg-gold-400 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-forest-950">
-          {humanize(
-            opportunity.asset_category,
-          )}
-        </span>
+      <OpportunityHeroReveal delay={0.14}>
+        <div className="mt-8 flex flex-wrap gap-2">
+          <span className="rounded-full bg-gold-400 px-3 py-1 text-[0.65rem] font-bold uppercase tracking-widest text-forest-950">
+            {humanize(
+              opportunity.asset_category,
+            )}
+          </span>
 
-        <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-white">
-          {fullyFunded ? "Fully Funded · Closed" : "Open"}
-        </span>
-      </div>
+          <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-widest text-white">
+            {fullyFunded
+              ? "Fully Funded · Closed"
+              : "Open"}
+          </span>
+        </div>
+      </OpportunityHeroReveal>
 
-      <h1 className="font-display mt-5 max-w-4xl text-5xl font-semibold tracking-[-0.045em] sm:text-6xl">
-        {opportunity.title}
-      </h1>
+      <OpportunityHeroReveal delay={0.23}>
+        <h1 className="font-display mt-5 max-w-4xl text-5xl font-semibold tracking-[-0.045em] sm:text-6xl">
+          {
+            opportunity.title
+          }
+        </h1>
+      </OpportunityHeroReveal>
 
-      <p className="mt-5 max-w-2xl text-base leading-8 text-white/65">
-        {
-          opportunity.short_description
-        }
-      </p>
+      <OpportunityHeroReveal delay={0.32}>
+        <p className="mt-5 max-w-2xl text-base leading-8 text-white/65">
+          {
+            opportunity.short_description
+          }
+        </p>
+      </OpportunityHeroReveal>
 
       {opportunity.location ? (
-        <div className="mt-5 flex items-center gap-2 text-sm text-white/60">
-          <MapPin className="size-4" />
+        <OpportunityHeroReveal delay={0.4}>
+          <div className="mt-5 flex items-center gap-2 text-sm text-white/60">
+            <MapPin className="size-4" />
 
-          {
-            opportunity.location
-          }
-        </div>
+            {
+              opportunity.location
+            }
+          </div>
+        </OpportunityHeroReveal>
       ) : null}
     </>
   );

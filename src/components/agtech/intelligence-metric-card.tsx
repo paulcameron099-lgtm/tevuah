@@ -1,4 +1,5 @@
 import type { IntelligenceMetric } from "@/src/data/agtech-platform";
+import { AgTechProgress } from "@/src/components/agtech/agtech-motion";
 
 type IntelligenceMetricCardProps = {
   metric: IntelligenceMetric;
@@ -41,13 +42,8 @@ export function IntelligenceMetricCard({
       </div>
 
       <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full bg-gold-500"
-          style={{
-            width: `${metric.progress}%`,
-          }}
-        />
-      </div>
+      <AgTechProgress progress={metric.progress} />
+    </div>
     </article>
   );
 }

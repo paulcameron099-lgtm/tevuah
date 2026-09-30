@@ -35,11 +35,6 @@ const sharedFaqs = [
       "No. The opportunity, figures, documents and project information shown on this page are demonstration content for the Tevuah Reserve platform.",
   },
   {
-    question: "Does registration commit me to invest?",
-    answer:
-      "No. Registering interest or creating an account does not create an investment commitment or guarantee access to a future offering.",
-  },
-  {
     question: "Are the projected figures guaranteed?",
     answer:
       "No. Financial assumptions and projections are uncertain and must never be presented as guaranteed outcomes.",

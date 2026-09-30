@@ -77,10 +77,6 @@ export const footerNavigation: NavigationGroup[] = [
         href: "/insights",
       },
       {
-        label: "Careers",
-        href: "/careers",
-      },
-      {
         label: "Contact",
         href: "/contact",
       },
@@ -92,10 +88,6 @@ export const footerNavigation: NavigationGroup[] = [
       {
         label: "How It Works",
         href: "/how-it-works",
-      },
-      {
-        label: "Investor Education",
-        href: "/investor-education",
       },
       {
         label: "Frequently Asked Questions",
