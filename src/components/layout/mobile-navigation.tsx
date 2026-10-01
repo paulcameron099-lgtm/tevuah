@@ -1,11 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, X } from "lucide-react";
-import { useEffect } from "react";
 
-import { mainNavigation } from "@/src/config/navigation";
-import { cn } from "@/src/lib/utils";
+import {
+  ArrowUpRight,
+  X,
+} from "lucide-react";
+
+import {
+  useEffect,
+} from "react";
+
+import {
+  usePathname,
+} from "next/navigation";
+
+import {
+  mobileNavigation,
+} from "@/src/config/navigation";
+
+import {
+  cn,
+} from "@/src/lib/utils";
+
+import {
+  MobileBackdrop,
+  MobileDrawer,
+  MobileNavigationItem,
+} from "./header-motion";
 
 type MobileNavigationProps = {
   open: boolean;
@@ -16,56 +38,78 @@ export function MobileNavigation({
   open,
   onClose,
 }: MobileNavigationProps) {
+  const pathname = usePathname();
+
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    const previousOverflow = document.body.style.overflow;
+    const previousOverflow =
+      document.body.style.overflow;
 
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+      "hidden";
 
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleEscape = (
+      event: KeyboardEvent,
+    ) => {
       if (event.key === "Escape") {
         onClose();
       }
     };
 
-    window.addEventListener("keydown", handleEscape);
+    window.addEventListener(
+      "keydown",
+      handleEscape,
+    );
 
     return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow =
+        previousOverflow;
+
+      window.removeEventListener(
+        "keydown",
+        handleEscape,
+      );
     };
   }, [open, onClose]);
 
   return (
-   <div
-  id="mobile-navigation"
-  aria-hidden={!open}
+    <div
+      id="mobile-navigation"
+      aria-hidden={!open}
       className={cn(
         "fixed inset-0 z-100 lg:hidden",
-        open ? "pointer-events-auto" : "pointer-events-none",
+        open
+          ? "pointer-events-auto"
+          : "pointer-events-none",
       )}
     >
-      <button
-        type="button"
-        aria-label="Close navigation overlay"
-        onClick={onClose}
-        className={cn(
-          "absolute inset-0 bg-forest-950/65 backdrop-blur-sm transition-opacity duration-300",
-          open ? "opacity-100" : "opacity-0",
-        )}
-      />
+      {/* ==========================================
+          BACKDROP
+      ========================================== */}
 
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Mobile navigation"
-        className={cn(
-          "absolute right-0 top-0 flex h-full w-[min(88%,420px)] flex-col bg-ivory-50 shadow-2xl transition-transform duration-500 ease-out",
-          open ? "translate-x-0" : "translate-x-full",
-        )}
+      <MobileBackdrop
+        open={open}
+        className="absolute inset-0"
+      >
+        <button
+          type="button"
+          aria-label="Close navigation overlay"
+          onClick={onClose}
+          tabIndex={open ? 0 : -1}
+          className="absolute inset-0 size-full bg-forest-950/65 backdrop-blur-sm"
+        />
+      </MobileBackdrop>
+
+      {/* ==========================================
+          DRAWER
+      ========================================== */}
+
+      <MobileDrawer
+        open={open}
+        className="absolute right-0 top-0 flex h-full w-[min(90%,430px)] flex-col bg-ivory-50 shadow-2xl"
       >
         <div className="flex items-center justify-between border-b border-forest-900/10 px-6 py-5">
           <div>
@@ -82,48 +126,115 @@ export function MobileNavigation({
             type="button"
             aria-label="Close navigation"
             onClick={onClose}
+            tabIndex={open ? 0 : -1}
             className="focus-ring flex size-11 items-center justify-center rounded-full border border-forest-900/10 bg-white text-forest-950 transition hover:bg-ivory-100"
           >
             <X className="size-5" />
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-6 py-7">
-          <ul className="space-y-1">
-            {mainNavigation.map((item, index) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={onClose}
-                  className="group flex items-center justify-between border-b border-forest-900/10 py-4"
-                >
-                  <span className="flex items-center gap-4">
-                    <span className="text-xs font-semibold text-gold-600">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
+        {/* ========================================
+            NAVIGATION
+        ======================================== */}
 
-                    <span className="font-display text-2xl font-medium text-forest-950 transition-colors group-hover:text-olive-700">
-                      {item.label}
-                    </span>
-                  </span>
+        <nav
+          aria-label="Mobile navigation"
+          className="flex-1 overflow-y-auto px-6 py-5"
+        >
+          <ul>
+            {mobileNavigation.map(
+              (item, index) => {
+                const active =
+                  pathname === item.href ||
+                  pathname.startsWith(
+                    `${item.href}/`,
+                  );
 
-                  <ArrowUpRight className="size-4 text-stone-500 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </Link>
-              </li>
-            ))}
+                return (
+                  <MobileNavigationItem
+                    key={item.href}
+                    open={open}
+                    index={index}
+                  >
+                    <Link
+                      href={item.href}
+                      onClick={onClose}
+                      tabIndex={
+                        open ? 0 : -1
+                      }
+                      aria-current={
+                        active
+                          ? "page"
+                          : undefined
+                      }
+                      className={cn(
+                        "group flex items-center justify-between border-b border-forest-900/10 py-3.5",
+                        active &&
+                          "border-gold-600/30",
+                      )}
+                    >
+                      <span className="flex items-center gap-4">
+                        <span
+                          className={cn(
+                            "text-[0.68rem] font-semibold",
+                            active
+                              ? "text-gold-700"
+                              : "text-gold-600",
+                          )}
+                        >
+                          {String(
+                            index + 1,
+                          ).padStart(
+                            2,
+                            "0",
+                          )}
+                        </span>
+
+                        <span
+                          className={cn(
+                            "font-display text-[1.35rem] font-medium transition-colors sm:text-2xl",
+                            active
+                              ? "text-olive-700"
+                              : "text-forest-950 group-hover:text-olive-700",
+                          )}
+                        >
+                          {item.label}
+                        </span>
+                      </span>
+
+                      <ArrowUpRight
+                        className={cn(
+                          "size-4 transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5",
+                          active
+                            ? "text-gold-600"
+                            : "text-stone-500",
+                        )}
+                      />
+                    </Link>
+                  </MobileNavigationItem>
+                );
+              },
+            )}
           </ul>
         </nav>
 
+        {/* ========================================
+            ACTIONS
+        ======================================== */}
+
         <div className="border-t border-forest-900/10 bg-forest-950 p-6 text-white">
           <p className="text-sm leading-6 text-white/65">
-            Discover carefully presented opportunities across cultivated land,
-            agricultural technology and fine wine.
+            Discover carefully presented
+            opportunities across cultivated
+            land, agricultural technology and
+            fine wine.
           </p>
 
           <div className="mt-5 grid grid-cols-2 gap-3">
             <Link
               href="/login"
               onClick={onClose}
+              tabIndex={open ? 0 : -1}
               className="focus-ring inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 text-sm font-semibold transition hover:bg-white/10"
             >
               Sign in
@@ -132,13 +243,14 @@ export function MobileNavigation({
             <Link
               href="/investments"
               onClick={onClose}
+              tabIndex={open ? 0 : -1}
               className="focus-ring inline-flex min-h-12 items-center justify-center rounded-full bg-gold-500 px-4 text-center text-sm font-semibold text-forest-950 transition hover:bg-gold-400"
             >
               Explore
             </Link>
           </div>
         </div>
-      </div>
+      </MobileDrawer>
     </div>
   );
 }

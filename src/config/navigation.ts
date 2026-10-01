@@ -4,11 +4,12 @@ import type {
   NavigationItem,
 } from "@/src/types/navigation";
 
-export const mainNavigation: NavigationItem[] = [
+export const mainNavigation = [
   {
     label: "About",
     href: "/about",
   },
+  
   {
     label: "Investments",
     href: "/investments",
@@ -29,11 +30,42 @@ export const mainNavigation: NavigationItem[] = [
     label: "Fine Wine",
     href: "/fine-wine",
   },
+] as const;
+
+export const moreNavigation = [
+  {
+    label: "FAQ",
+    href: "/faq",
+    description:
+      "Answers to common questions about investor access, opportunities and the investment process.",
+  },
+  {
+    label: "Risk Disclosure",
+    href: "/risk-disclosure",
+    description:
+      "Important information about the risks associated with private investments.",
+  },
+  {
+    label: "Contact",
+    href: "/contact",
+    description:
+      "Speak with Tevuah Reserve about opportunities, investor access and portfolio considerations.",
+  },
   {
     label: "Insights",
     href: "/insights",
+    description:
+      "Perspectives on cultivated assets, agricultural technology, fine wine and private markets.",
   },
-];
+] as const;
+
+export const mobileNavigation = [
+  ...mainNavigation,
+  ...moreNavigation.map(({ label, href }) => ({
+    label,
+    href,
+  })),
+] as const;
 
 export const footerNavigation: NavigationGroup[] = [
   {
@@ -113,10 +145,6 @@ export const footerNavigation: NavigationGroup[] = [
       {
         label: "Cookie Policy",
         href: "/cookies",
-      },
-      {
-        label: "AML Policy",
-        href: "/aml-policy",
       },
       {
         label: "Complaints",

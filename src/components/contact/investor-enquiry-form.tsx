@@ -1,24 +1,32 @@
 "use client";
 
 import {
-  useMemo,
+  FormEvent,
   useState,
 } from "react";
 
 import {
-  ArrowUpRight,
+  AlertCircle,
+  ArrowRight,
   CheckCircle2,
+  LoaderCircle,
 } from "lucide-react";
 
 type InvestorEnquiryFormProps = {
   email: string;
 };
 
+type FormStatus =
+  | "idle"
+  | "submitting"
+  | "success"
+  | "error";
+
 const inputClassName =
-  "mt-2 min-h-13 w-full rounded-xl border border-forest-900/10 bg-white px-4 text-sm text-forest-950 outline-none transition placeholder:text-stone-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/10";
+  "mt-2 min-h-13 w-full rounded-xl border border-forest-900/10 bg-white px-4 text-sm text-forest-950 outline-none transition placeholder:text-stone-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/10 disabled:cursor-not-allowed disabled:opacity-60";
 
 const textareaClassName =
-  "mt-2 min-h-36 w-full resize-y rounded-xl border border-forest-900/10 bg-white px-4 py-3 text-sm leading-7 text-forest-950 outline-none transition placeholder:text-stone-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/10";
+  "mt-2 min-h-36 w-full resize-y rounded-xl border border-forest-900/10 bg-white px-4 py-3 text-sm leading-7 text-forest-950 outline-none transition placeholder:text-stone-400 focus:border-gold-500 focus:ring-2 focus:ring-gold-500/10 disabled:cursor-not-allowed disabled:opacity-60";
 
 export function InvestorEnquiryForm({
   email,
@@ -38,8 +46,10 @@ export function InvestorEnquiryForm({
   const [interest, setInterest] =
     useState("General investment enquiry");
 
-  const [investmentRange, setInvestmentRange] =
-    useState("Prefer to discuss");
+  const [
+    investmentRange,
+    setInvestmentRange,
+  ] = useState("Prefer to discuss");
 
   const [message, setMessage] =
     useState("");
@@ -47,66 +57,104 @@ export function InvestorEnquiryForm({
   const [acknowledged, setAcknowledged] =
     useState(false);
 
-  const mailtoHref = useMemo(() => {
-    const fullName =
-      `${firstName} ${lastName}`.trim();
+  const [status, setStatus] =
+    useState<FormStatus>("idle");
 
-    const subject =
-      `Investor enquiry — ${
-        fullName || "Prospective investor"
-      }`;
+  const [statusMessage, setStatusMessage] =
+    useState("");
 
-    const body = [
-      "Tevuah Reserve Investor Enquiry",
-      "",
-      `Name: ${fullName || "Not provided"}`,
-      `Email: ${
-        emailAddress || "Not provided"
-      }`,
-      `Country / jurisdiction: ${
-        country || "Not provided"
-      }`,
-      `Primary interest: ${interest}`,
-      `Indicative investment range: ${investmentRange}`,
-      "",
-      "Enquiry:",
-      message || "No additional message provided.",
-      "",
-      "I understand that submitting an enquiry does not create an investor account, reserve an allocation or constitute investment advice.",
-    ].join("\n");
+  const isSubmitting =
+    status === "submitting";
 
-    return `mailto:${email}?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(body)}`;
-  }, [
-    acknowledged,
-    country,
-    email,
-    emailAddress,
-    firstName,
-    interest,
-    investmentRange,
-    lastName,
-    message,
-  ]);
-
-  const canContinue =
+  const canSubmit =
     firstName.trim().length > 0 &&
     lastName.trim().length > 0 &&
     emailAddress.trim().length > 0 &&
-    acknowledged;
+    acknowledged &&
+    !isSubmitting;
+
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (!canSubmit) {
+      return;
+    }
+
+    setStatus("submitting");
+    setStatusMessage("");
+
+    try {
+      const response = await fetch(
+        "/api/contact/investor-enquiry",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            email: emailAddress,
+            country,
+            interest,
+            investmentRange,
+            message,
+            acknowledged,
+          }),
+        },
+      );
+
+      const result = (await response.json()) as {
+        ok?: boolean;
+        message?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.error ||
+            "We could not send your enquiry.",
+        );
+      }
+
+      setStatus("success");
+
+      setStatusMessage(
+        result.message ||
+          "Your enquiry has been sent to Tevuah Reserve.",
+      );
+
+      setFirstName("");
+      setLastName("");
+      setEmailAddress("");
+      setCountry("");
+      setInterest(
+        "General investment enquiry",
+      );
+      setInvestmentRange(
+        "Prefer to discuss",
+      );
+      setMessage("");
+      setAcknowledged(false);
+    } catch (error) {
+      setStatus("error");
+
+      setStatusMessage(
+        error instanceof Error
+          ? error.message
+          : "We could not send your enquiry. Please try again.",
+      );
+    }
+  }
 
   return (
     <form
-      onSubmit={(event) => {
-        event.preventDefault();
-
-        if (!canContinue) {
-          return;
-        }
-
-        window.location.href = mailtoHref;
-      }}
+      onSubmit={handleSubmit}
       className="rounded-4xl border border-forest-900/10 bg-white p-6 shadow-[0_30px_80px_rgba(18,38,30,0.08)] sm:p-8 lg:p-10"
     >
       <div className="border-b border-forest-900/10 pb-7">
@@ -119,8 +167,8 @@ export function InvestorEnquiryForm({
         </h2>
 
         <p className="mt-4 max-w-xl text-sm leading-7 text-stone-600">
-          Tell us what you are interested in.
-          A member of the Tevuah Reserve team can
+          Tell us what you are interested in. A
+          member of the Tevuah Reserve team can
           then discuss the relevant process and
           available information with you.
         </p>
@@ -133,12 +181,20 @@ export function InvestorEnquiryForm({
           <input
             required
             value={firstName}
-            onChange={(event) =>
-              setFirstName(event.target.value)
-            }
+            onChange={(event) => {
+              setFirstName(
+                event.target.value,
+              );
+
+              if (status !== "idle") {
+                setStatus("idle");
+                setStatusMessage("");
+              }
+            }}
             className={inputClassName}
             placeholder="First name"
             autoComplete="given-name"
+            disabled={isSubmitting}
           />
         </label>
 
@@ -148,12 +204,20 @@ export function InvestorEnquiryForm({
           <input
             required
             value={lastName}
-            onChange={(event) =>
-              setLastName(event.target.value)
-            }
+            onChange={(event) => {
+              setLastName(
+                event.target.value,
+              );
+
+              if (status !== "idle") {
+                setStatus("idle");
+                setStatusMessage("");
+              }
+            }}
             className={inputClassName}
             placeholder="Last name"
             autoComplete="family-name"
+            disabled={isSubmitting}
           />
         </label>
 
@@ -164,12 +228,20 @@ export function InvestorEnquiryForm({
             required
             type="email"
             value={emailAddress}
-            onChange={(event) =>
-              setEmailAddress(event.target.value)
-            }
+            onChange={(event) => {
+              setEmailAddress(
+                event.target.value,
+              );
+
+              if (status !== "idle") {
+                setStatus("idle");
+                setStatusMessage("");
+              }
+            }}
             className={inputClassName}
             placeholder="name@example.com"
             autoComplete="email"
+            disabled={isSubmitting}
           />
         </label>
 
@@ -178,12 +250,20 @@ export function InvestorEnquiryForm({
 
           <input
             value={country}
-            onChange={(event) =>
-              setCountry(event.target.value)
-            }
+            onChange={(event) => {
+              setCountry(
+                event.target.value,
+              );
+
+              if (status !== "idle") {
+                setStatus("idle");
+                setStatusMessage("");
+              }
+            }}
             className={inputClassName}
             placeholder="Country of residence"
             autoComplete="country-name"
+            disabled={isSubmitting}
           />
         </label>
 
@@ -192,10 +272,18 @@ export function InvestorEnquiryForm({
 
           <select
             value={interest}
-            onChange={(event) =>
-              setInterest(event.target.value)
-            }
+            onChange={(event) => {
+              setInterest(
+                event.target.value,
+              );
+
+              if (status !== "idle") {
+                setStatus("idle");
+                setStatusMessage("");
+              }
+            }}
             className={inputClassName}
+            disabled={isSubmitting}
           >
             <option>
               General investment enquiry
@@ -232,19 +320,42 @@ export function InvestorEnquiryForm({
 
           <select
             value={investmentRange}
-            onChange={(event) =>
+            onChange={(event) => {
               setInvestmentRange(
                 event.target.value,
-              )
-            }
+              );
+
+              if (status !== "idle") {
+                setStatus("idle");
+                setStatusMessage("");
+              }
+            }}
             className={inputClassName}
+            disabled={isSubmitting}
           >
-            <option>Prefer to discuss</option>
-            <option>Under $100,000</option>
-            <option>$100,000 – $249,999</option>
-            <option>$250,000 – $499,999</option>
-            <option>$500,000 – $999,999</option>
-            <option>$1,000,000+</option>
+            <option>
+              Prefer to discuss
+            </option>
+
+            <option>
+              Under $100,000
+            </option>
+
+            <option>
+              $100,000 – $249,999
+            </option>
+
+            <option>
+              $250,000 – $499,999
+            </option>
+
+            <option>
+              $500,000 – $999,999
+            </option>
+
+            <option>
+              $1,000,000+
+            </option>
           </select>
         </label>
       </div>
@@ -254,11 +365,19 @@ export function InvestorEnquiryForm({
 
         <textarea
           value={message}
-          onChange={(event) =>
-            setMessage(event.target.value)
-          }
+          onChange={(event) => {
+            setMessage(
+              event.target.value,
+            );
+
+            if (status !== "idle") {
+              setStatus("idle");
+              setStatusMessage("");
+            }
+          }}
           className={textareaClassName}
           placeholder="Tell us about the opportunities you are considering, your investment objectives, questions about the platform, or the type of portfolio discussion you would like to have."
+          disabled={isSubmitting}
         />
       </label>
 
@@ -266,12 +385,18 @@ export function InvestorEnquiryForm({
         <input
           type="checkbox"
           checked={acknowledged}
-          onChange={(event) =>
+          onChange={(event) => {
             setAcknowledged(
               event.target.checked,
-            )
-          }
+            );
+
+            if (status !== "idle") {
+              setStatus("idle");
+              setStatusMessage("");
+            }
+          }}
           className="mt-1 size-4 accent-forest-950"
+          disabled={isSubmitting}
         />
 
         <span className="text-xs leading-6 text-stone-600">
@@ -284,24 +409,80 @@ export function InvestorEnquiryForm({
         </span>
       </label>
 
+      {status === "success" ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mt-7 flex items-start gap-3 rounded-2xl border border-forest-900/10 bg-forest-950/4 p-4"
+        >
+          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-gold-600" />
+
+          <div>
+            <p className="text-sm font-semibold text-forest-950">
+              Enquiry sent
+            </p>
+
+            <p className="mt-1 text-xs leading-6 text-stone-600">
+              {statusMessage}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
+      {status === "error" ? (
+        <div
+          role="alert"
+          className="mt-7 flex items-start gap-3 rounded-2xl border border-red-900/10 bg-red-50 p-4"
+        >
+          <AlertCircle className="mt-0.5 size-5 shrink-0 text-red-700" />
+
+          <div>
+            <p className="text-sm font-semibold text-red-900">
+              Enquiry not sent
+            </p>
+
+            <p className="mt-1 text-xs leading-6 text-red-800/70">
+              {statusMessage}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       <button
         type="submit"
-        disabled={!canContinue}
-        className="focus-ring mt-7 inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-forest-950 px-7 text-sm font-semibold text-white transition hover:bg-forest-900 disabled:cursor-not-allowed disabled:opacity-40"
+        disabled={!canSubmit}
+        className="focus-ring group mt-7 inline-flex min-h-13 items-center justify-center gap-2 rounded-full bg-forest-950 px-7 text-sm font-semibold text-white transition hover:bg-forest-900 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        Prepare enquiry
+        {isSubmitting ? (
+          <>
+            <LoaderCircle className="size-4 animate-spin" />
 
-        <ArrowUpRight className="size-4" />
+            Sending enquiry...
+          </>
+        ) : (
+          <>
+            Send enquiry
+
+            <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </>
+        )}
       </button>
 
       <div className="mt-6 flex items-start gap-3 border-t border-forest-900/10 pt-6">
         <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-gold-600" />
 
         <p className="text-xs leading-6 text-stone-500">
-          Your email application will open with
-          the information above prepared for
-          Tevuah Reserve. You can review it before
-          sending.
+          Your enquiry is sent directly to
+          Tevuah Reserve. If you experience a
+          problem with the form, you can contact
+          us at{" "}
+          <a
+            href={`mailto:${email}`}
+            className="font-semibold text-forest-950 transition hover:text-gold-600"
+          >
+            {email}
+          </a>
+          .
         </p>
       </div>
     </form>

@@ -153,3 +153,17 @@ export async function sendApplicationMail(
     };
   }
 }
+
+export function getInvestorEnquiryRecipient() {
+  return (
+    env(
+      "INVESTOR_ENQUIRY_EMAIL",
+      "CONTACT_EMAIL",
+    ) ||
+    env(
+      "SMTP_USER",
+      "SMTP_USERNAME",
+      "EMAIL_SMTP_USER",
+    )
+  );
+}
