@@ -1,5 +1,10 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import {
+  cookies,
+} from "next/headers";
+
+import {
+  NextResponse,
+} from "next/server";
 
 import {
   AUTH_ACTIVATION_COOKIE,
@@ -24,7 +29,8 @@ function noStoreJson(
     {
       status,
       headers: {
-        "Cache-Control": "no-store",
+        "Cache-Control":
+          "no-store",
       },
     },
   );
@@ -44,14 +50,6 @@ export async function POST(
         )?.value,
       );
 
-    /*
-     * A normal authenticated session is not
-     * sufficient to change a password through
-     * this endpoint.
-     *
-     * The user must have arrived through a
-     * verified invite or recovery activation.
-     */
     if (!activation) {
       return noStoreJson(
         {
@@ -100,8 +98,8 @@ export async function POST(
       await createClient();
 
     /*
-     * Verify the Supabase session created by
-     * /auth/confirm.
+     * Verify the authenticated user created by
+     * the invite/recovery verification flow.
      */
     const {
       data: userData,
@@ -120,18 +118,14 @@ export async function POST(
       return noStoreJson(
         {
           error:
-            "Your authenticated activation session is no longer valid. Please use a fresh invitation or password-reset link.",
+            "Your authenticated activation session is no longer valid. Please use a fresh activation link.",
         },
         401,
       );
     }
 
     /*
-     * Critical security binding:
-     *
-     * The authenticated Supabase user must be
-     * the exact user represented by the signed
-     * activation authorization.
+     * Critical identity binding.
      */
     if (
       userData.user.id !==
@@ -142,8 +136,10 @@ export async function POST(
         {
           activationUserId:
             activation.userId,
+
           authenticatedUserId:
             userData.user.id,
+
           purpose:
             activation.purpose,
         },
@@ -167,8 +163,7 @@ export async function POST(
     }
 
     /*
-     * Change the password for the verified
-     * investor account.
+     * Perform the password write.
      */
     const {
       data: updateData,
@@ -198,8 +193,7 @@ export async function POST(
     }
 
     /*
-     * Defensive identity verification after
-     * the password update.
+     * Defensive post-update identity check.
      */
     if (
       updateData.user.id !==
@@ -210,6 +204,7 @@ export async function POST(
         {
           activationUserId:
             activation.userId,
+
           updatedUserId:
             updateData.user.id,
         },
@@ -233,30 +228,70 @@ export async function POST(
     }
 
     /*
-     * Password setup/reset has now been consumed.
-     *
-     * Delete ONLY the one-time activation
-     * authorization.
-     *
-     * IMPORTANT:
-     * Do NOT sign out the Supabase session.
-     * The investor should continue directly
-     * into the authenticated dashboard.
+     * The one-time activation authorization
+     * has now been consumed.
      */
     cookieStore.delete(
       AUTH_ACTIVATION_COOKIE,
     );
 
+    /*
+     * RECOVERY:
+     *
+     * User requested Forgot Password.
+     * After resetting the password we deliberately
+     * end the temporary recovery session.
+     *
+     * They will be sent to /login and authenticate
+     * normally with the new password.
+     */
+    if (
+      activation.purpose ===
+      "recovery"
+    ) {
+      const {
+        error: signOutError,
+      } =
+        await supabase.auth.signOut({
+          scope: "local",
+        });
+
+      if (signOutError) {
+        console.error(
+          "Post-recovery sign-out error:",
+          signOutError,
+        );
+      }
+
+      return noStoreJson(
+        {
+          success: true,
+          purpose: "recovery",
+        },
+        200,
+      );
+    }
+
+    /*
+     * INVITATION:
+     *
+     * DO NOT sign the investor out.
+     *
+     * verifyOtp() authenticated this exact investor,
+     * updateUser() created their password,
+     * and the session remains authenticated.
+     *
+     * The browser will now go directly to /dashboard.
+     */
     return noStoreJson(
       {
         success: true,
+        purpose: "invite",
+        userId:
+          updateData.user.id,
         email:
           updateData.user.email ??
           null,
-        userId:
-          updateData.user.id,
-        purpose:
-          activation.purpose,
       },
       200,
     );

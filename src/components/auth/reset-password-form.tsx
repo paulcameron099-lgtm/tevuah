@@ -9,10 +9,7 @@ import {
 } from "lucide-react";
 
 import {
-  useRouter,
-} from "next/navigation";
-
-import {
+  useRef,
   useState,
 } from "react";
 
@@ -23,49 +20,92 @@ type ResetPasswordFormProps = {
 export function ResetPasswordForm({
   mode = "reset",
 }: ResetPasswordFormProps) {
-  const router =
-    useRouter();
-
   const isCreateMode =
     mode === "create";
+
+  const passwordRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    );
+
+  const confirmPasswordRef =
+    useRef<HTMLInputElement | null>(
+      null,
+    );
 
   const [
     password,
     setPassword,
-  ] =
-    useState("");
+  ] = useState("");
 
   const [
     confirmPassword,
     setConfirmPassword,
-  ] =
-    useState("");
+  ] = useState("");
 
   const [
     showPassword,
     setShowPassword,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     showConfirmPassword,
     setShowConfirmPassword,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     loading,
     setLoading,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     error,
     setError,
-  ] =
-    useState<string | null>(
-      null,
+  ] = useState<string | null>(
+    null,
+  );
+
+  function togglePassword() {
+    const input =
+      passwordRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    const nextVisible =
+      input.type === "password";
+
+    input.type =
+      nextVisible
+        ? "text"
+        : "password";
+
+    setShowPassword(
+      nextVisible,
     );
+  }
+
+  function toggleConfirmPassword() {
+    const input =
+      confirmPasswordRef.current;
+
+    if (!input) {
+      return;
+    }
+
+    const nextVisible =
+      input.type === "password";
+
+    input.type =
+      nextVisible
+        ? "text"
+        : "password";
+
+    setShowConfirmPassword(
+      nextVisible,
+    );
+  }
 
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>,
@@ -119,7 +159,7 @@ export function ResetPasswordForm({
             },
 
             credentials:
-              "same-origin",
+              "include",
 
             cache:
               "no-store",
@@ -135,8 +175,6 @@ export function ResetPasswordForm({
       const result =
         (await response.json()) as {
           success?: boolean;
-          email?: string | null;
-          userId?: string;
           purpose?:
             | "invite"
             | "recovery";
@@ -160,26 +198,39 @@ export function ResetPasswordForm({
       }
 
       /*
-       * The server has:
+       * AUTH REDIRECTION RULES
        *
-       * 1. verified the activation authorization
-       * 2. verified the exact authenticated user
-       * 3. changed that user's password
-       * 4. consumed the activation authorization
-       * 5. intentionally preserved the Supabase session
+       * Invite:
+       * password created
+       * -> authenticated investor dashboard
        *
-       * Continue directly into the authenticated
-       * investor dashboard.
+       * Recovery:
+       * password changed
+       * -> normal sign-in page
+       *
+       * Use a hard browser navigation here.
+       * Do not use router.replace() across this
+       * authentication/session boundary.
        */
-      router.replace(
-        "/dashboard",
-      );
+      if (
+        result.purpose ===
+          "invite" ||
+        isCreateMode
+      ) {
+        window.location.replace(
+          "/dashboard",
+        );
 
-      router.refresh();
-    } catch (error) {
+        return;
+      }
+
+      window.location.replace(
+        "/login?password=updated",
+      );
+    } catch (submitError) {
       console.error(
         "Password submission error:",
-        error,
+        submitError,
       );
 
       setError(
@@ -215,55 +266,119 @@ export function ResetPasswordForm({
         </div>
       ) : null}
 
-      <PasswordField
-        label={
-          isCreateMode
+      <div className="block">
+        <label
+          htmlFor="new-password"
+          className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-stone-600"
+        >
+          {isCreateMode
             ? "Create password"
-            : "New password"
-        }
-        value={
-          password
-        }
-        showPassword={
-          showPassword
-        }
-        onChange={
-          setPassword
-        }
-        onToggle={() =>
-          setShowPassword(
-            (
-              current,
-            ) =>
-              !current,
-          )
-        }
-      />
+            : "New password"}
+        </label>
 
-      <PasswordField
-        label={
-          isCreateMode
-            ? "Confirm password"
-            : "Confirm new password"
-        }
-        value={
-          confirmPassword
-        }
-        showPassword={
-          showConfirmPassword
-        }
-        onChange={
-          setConfirmPassword
-        }
-        onToggle={() =>
-          setShowConfirmPassword(
-            (
-              current,
+        <div className="relative">
+          <input
+            ref={
+              passwordRef
+            }
+            id="new-password"
+            name="new-password"
+            type="password"
+            required
+            autoComplete="new-password"
+            value={
+              password
+            }
+            onChange={(
+              event,
             ) =>
-              !current,
-          )
-        }
-      />
+              setPassword(
+                event.target.value,
+              )
+            }
+            className="focus-ring min-h-13 w-full rounded-xl border border-forest-900/10 bg-white px-4 pr-14 text-sm text-forest-950 outline-none"
+          />
+
+          <button
+            type="button"
+            onClick={
+              togglePassword
+            }
+            aria-label={
+              showPassword
+                ? "Hide password"
+                : "Show password"
+            }
+            aria-pressed={
+              showPassword
+            }
+            className="absolute right-2 top-1/2 z-20 flex size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-stone-500 transition hover:bg-ivory-100 hover:text-forest-950"
+          >
+            {showPassword ? (
+              <EyeOff className="pointer-events-none size-5" />
+            ) : (
+              <Eye className="pointer-events-none size-5" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="block">
+        <label
+          htmlFor="confirm-new-password"
+          className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-stone-600"
+        >
+          {isCreateMode
+            ? "Confirm password"
+            : "Confirm new password"}
+        </label>
+
+        <div className="relative">
+          <input
+            ref={
+              confirmPasswordRef
+            }
+            id="confirm-new-password"
+            name="confirm-new-password"
+            type="password"
+            required
+            autoComplete="new-password"
+            value={
+              confirmPassword
+            }
+            onChange={(
+              event,
+            ) =>
+              setConfirmPassword(
+                event.target.value,
+              )
+            }
+            className="focus-ring min-h-13 w-full rounded-xl border border-forest-900/10 bg-white px-4 pr-14 text-sm text-forest-950 outline-none"
+          />
+
+          <button
+            type="button"
+            onClick={
+              toggleConfirmPassword
+            }
+            aria-label={
+              showConfirmPassword
+                ? "Hide password"
+                : "Show password"
+            }
+            aria-pressed={
+              showConfirmPassword
+            }
+            className="absolute right-2 top-1/2 z-20 flex size-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-stone-500 transition hover:bg-ivory-100 hover:text-forest-950"
+          >
+            {showConfirmPassword ? (
+              <EyeOff className="pointer-events-none size-5" />
+            ) : (
+              <Eye className="pointer-events-none size-5" />
+            )}
+          </button>
+        </div>
+      </div>
 
       <div className="rounded-xl border border-forest-900/10 bg-ivory-100 p-4">
         <p className="text-xs leading-6 text-stone-600">
@@ -301,78 +416,5 @@ export function ResetPasswordForm({
         Return to sign in
       </Link>
     </form>
-  );
-}
-
-type PasswordFieldProps = {
-  label: string;
-  value: string;
-  showPassword: boolean;
-
-  onChange: (
-    value: string,
-  ) => void;
-
-  onToggle: () => void;
-};
-
-function PasswordField({
-  label,
-  value,
-  showPassword,
-  onChange,
-  onToggle,
-}: PasswordFieldProps) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">
-        {label}
-      </span>
-
-      <div className="relative">
-        <input
-          type={
-            showPassword
-              ? "text"
-              : "password"
-          }
-          required
-          autoComplete="new-password"
-          value={
-            value
-          }
-          onChange={(
-            event,
-          ) =>
-            onChange(
-              event.target.value,
-            )
-          }
-          className="focus-ring min-h-13 w-full rounded-xl border border-forest-900/10 bg-white px-4 pr-12 text-sm text-forest-950 outline-none"
-        />
-
-        <button
-          type="button"
-          onClick={
-            onToggle
-          }
-          aria-label={
-            showPassword
-              ? "Hide password"
-              : "Show password"
-          }
-          aria-pressed={
-            showPassword
-          }
-          className="absolute right-3 top-1/2 z-10 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-stone-500 transition hover:bg-ivory-100 hover:text-forest-950"
-        >
-          {showPassword ? (
-            <EyeOff className="size-4" />
-          ) : (
-            <Eye className="size-4" />
-          )}
-        </button>
-      </div>
-    </label>
   );
 }
