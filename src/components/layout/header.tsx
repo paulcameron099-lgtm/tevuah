@@ -6,7 +6,7 @@ import {
   ArrowUpRight,
   ChevronDown,
   CircleHelp,
-  ContactRound,
+  Mail,
   FileWarning,
   Menu,
   Newspaper,
@@ -53,12 +53,24 @@ import {
   MobileNavigation,
 } from "./mobile-navigation";
 
-const moreIcons = {
-  "/faq": CircleHelp,
-  "/risk-disclosure": FileWarning,
-  "/contact": ContactRound,
-  "/insights": Newspaper,
-} as const;
+function getMoreIcon(href: string) {
+  switch (href) {
+    case "/faq":
+      return CircleHelp;
+
+    case "/risk-disclosure":
+      return FileWarning;
+
+    case "/contact":
+      return Mail;
+
+    case "/insights":
+      return Newspaper;
+
+    default:
+      return ArrowUpRight;
+  }
+}
 
 export function Header() {
   const pathname = usePathname();
@@ -353,10 +365,7 @@ export function Header() {
                               `${item.href}/`,
                             );
 
-                          const Icon =
-                            moreIcons[
-                              item.href as keyof typeof moreIcons
-                            ];
+                          const Icon = getMoreIcon(item.href);
 
                           return (
                             <Link

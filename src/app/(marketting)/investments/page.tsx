@@ -239,7 +239,7 @@ export default async function InvestmentsMarketplacePage() {
               </div>
             </MarketplaceReveal>
           ) : (
-            <MarketplaceGrid className="mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
               {records.map(
                 (
                   opportunity,
@@ -414,7 +414,7 @@ export default async function InvestmentsMarketplacePage() {
                   );
                 },
               )}
-            </MarketplaceGrid>
+            </div>
           )}
         </div>
       </section>

@@ -876,7 +876,7 @@ export default async function FineWinePage() {
           </div>
 
           {fineWineOpportunities.length > 0 ? (
-            <FineWineStagger className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
               {fineWineOpportunities.map(
                 (opportunity) => (
                   <FineWineStaggerItem
@@ -889,7 +889,7 @@ export default async function FineWinePage() {
                   </FineWineStaggerItem>
                 ),
               )}
-            </FineWineStagger>
+            </div>
           ) : (
             <FineWineReveal>
               <div className="mt-10 rounded-[1.75rem] border border-burgundy-900/10 bg-white px-6 py-14 text-center sm:px-10">

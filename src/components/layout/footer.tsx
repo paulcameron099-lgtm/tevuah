@@ -42,13 +42,22 @@ export function Footer() {
             <FooterStagger className="mt-8 flex items-center gap-3">
               <FooterStaggerItem>
                 <a
+                  href={`mailto:${siteConfig.email}`}
+                  aria-label="Email Tevuah Reserve"
+                  className="focus-ring flex size-11 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-gold-500 hover:text-gold-400"
+                >
+                  <Mail className="size-4" />
+                </a>
+              </FooterStaggerItem>
+              <FooterStaggerItem>
+                <a
                   href={
                     siteConfig.socialLinks.linkedin
                   }
                   aria-label="Tevuah Reserve on LinkedIn"
                   className="focus-ring flex size-11 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-gold-500 hover:text-gold-400"
                 >
-                  <ArrowRight className="size-4" />
+                  {/* <ArrowRight className="size-4" /> */}
                 </a>
               </FooterStaggerItem>
 
@@ -60,17 +69,7 @@ export function Footer() {
                   aria-label="Tevuah Reserve on Instagram"
                   className="focus-ring flex size-11 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-gold-500 hover:text-gold-400"
                 >
-                  <ArrowRight className="size-4" />
-                </a>
-              </FooterStaggerItem>
-
-              <FooterStaggerItem>
-                <a
-                  href={`mailto:${siteConfig.email}`}
-                  aria-label="Email Tevuah Reserve"
-                  className="focus-ring flex size-11 items-center justify-center rounded-full border border-white/15 text-white/70 transition hover:border-gold-500 hover:text-gold-400"
-                >
-                  <Mail className="size-4" />
+                  {/* <ArrowRight className="size-4" /> */}
                 </a>
               </FooterStaggerItem>
             </FooterStagger>

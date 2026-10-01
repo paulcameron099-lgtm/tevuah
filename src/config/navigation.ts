@@ -35,7 +35,7 @@ export const mainNavigation = [
 export const moreNavigation = [
   {
     label: "FAQ",
-    href: "/faq",
+    href: "/faqs",
     description:
       "Answers to common questions about investor access, opportunities and the investment process.",
   },
