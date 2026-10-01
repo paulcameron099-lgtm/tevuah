@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-
 import {
   ArrowLeft,
   Loader2,
   Mail,
 } from "lucide-react";
-
 import {
+  FormEvent,
   useState,
 } from "react";
 
@@ -17,39 +16,25 @@ import {
 } from "@/src/lib/supabase/client";
 
 export function ForgotPasswordForm() {
-  const supabase =
-    createClient();
-
   const [
     email,
     setEmail,
-  ] =
-    useState("");
+  ] = useState("");
 
   const [
     loading,
     setLoading,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     error,
     setError,
-  ] =
-    useState<string | null>(
-      null,
-    );
-
-  const [
-    message,
-    setMessage,
-  ] =
-    useState<string | null>(
-      null,
-    );
+  ] = useState<string | null>(
+    null,
+  );
 
   async function handleSubmit(
-    event: React.FormEvent<HTMLFormElement>,
+    event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
@@ -57,77 +42,84 @@ export function ForgotPasswordForm() {
       return;
     }
 
-    setError(
-      null,
-    );
+    const normalizedEmail =
+      email
+        .trim()
+        .toLowerCase();
 
-    setMessage(
-      null,
-    );
+    if (!normalizedEmail) {
+      setError(
+        "Enter your email address.",
+      );
 
-    setLoading(
-      true,
-    );
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
 
     try {
-      /*
-       * The recovery email template itself sends the
-       * user to:
-       *
-       * /auth/confirm?token_hash=...&type=recovery
-       *
-       * That route verifies the recovery token,
-       * establishes the correct Supabase session,
-       * creates the one-time activation authorization,
-       * and sends the user to /reset-password.
-       */
+      const supabase =
+        createClient();
+
       const {
         error:
-          resetError,
+          recoveryError,
       } =
         await supabase.auth.resetPasswordForEmail(
-          email.trim().toLowerCase(),
+          normalizedEmail,
         );
 
-      if (
-        resetError
-      ) {
+      if (recoveryError) {
         console.error(
           "Password recovery request error:",
-          resetError,
+          recoveryError,
         );
 
         setError(
-          resetError.message,
+          "Unable to send password reset instructions. Please try again.",
         );
+
+        setLoading(false);
 
         return;
       }
 
-      setMessage(
-        "If an account exists for this email address, password reset instructions have been sent.",
+      /*
+       * Do NOT put the recovery OTP in the URL.
+       *
+       * The email address is not the authentication
+       * credential. The OTP remains only in the
+       * recovery email.
+       */
+      const params =
+        new URLSearchParams();
+
+      params.set(
+        "email",
+        normalizedEmail,
       );
-    } catch (error) {
+
+      window.location.assign(
+        `/verify-recovery?${params.toString()}`,
+      );
+    } catch (requestError) {
       console.error(
-        "Password recovery request error:",
-        error,
+        "Password recovery request failed:",
+        requestError,
       );
 
       setError(
         "Unable to send password reset instructions. Please try again.",
       );
-    } finally {
-      setLoading(
-        false,
-      );
+
+      setLoading(false);
     }
   }
 
   return (
     <form
-      onSubmit={
-        handleSubmit
-      }
+      onSubmit={handleSubmit}
       className="space-y-6"
     >
       {error ? (
@@ -136,63 +128,68 @@ export function ForgotPasswordForm() {
         </div>
       ) : null}
 
-      {message ? (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm leading-6 text-emerald-800">
-          {message}
-        </div>
-      ) : null}
-
-      <label className="block">
-        <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-stone-600">
+      <div>
+        <label
+          htmlFor="recovery-email"
+          className="mb-2 block text-xs font-semibold uppercase tracking-[0.12em] text-stone-600"
+        >
           Email address
-        </span>
+        </label>
 
         <div className="relative">
-          <Mail className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-stone-400" />
+          <Mail
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-stone-400"
+          />
 
           <input
+            id="recovery-email"
+            name="email"
             type="email"
             required
             autoComplete="email"
-            value={
-              email
-            }
-            onChange={(
-              event,
-            ) =>
+            value={email}
+            onChange={(event) =>
               setEmail(
                 event.target.value,
               )
             }
             placeholder="you@example.com"
-            className="focus-ring min-h-13 w-full rounded-xl border border-forest-900/10 bg-white py-3 pl-11 pr-4 text-sm text-forest-950 outline-none placeholder:text-stone-400"
+            className="focus-ring min-h-13 w-full rounded-xl border border-forest-900/10 bg-white px-4 pl-11 text-sm text-forest-950 outline-none"
           />
         </div>
-      </label>
+      </div>
+
+      <div className="rounded-xl border border-forest-900/10 bg-ivory-100 p-4">
+        <p className="text-xs leading-6 text-stone-600">
+          We will send a secure verification
+          code to your email address. You will
+          need that code before you can choose
+          a new password.
+        </p>
+      </div>
 
       <button
         type="submit"
-        disabled={
-          loading
-        }
+        disabled={loading}
         className="flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-6 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? (
           <>
             <Loader2 className="size-4 animate-spin" />
-            Sending instructions...
+            Sending code...
           </>
         ) : (
-          "Send reset instructions"
+          "Send verification code"
         )}
       </button>
 
       <Link
         href="/login"
-        className="focus-ring mx-auto flex w-fit items-center gap-2 rounded-md text-sm font-semibold text-forest-950 transition hover:text-olive-700"
+        className="focus-ring mx-auto flex w-fit items-center gap-2 rounded-md text-sm font-semibold text-forest-950 underline-offset-4 hover:underline"
       >
         <ArrowLeft className="size-4" />
-        Back to sign in
+        Return to sign in
       </Link>
     </form>
   );
