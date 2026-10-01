@@ -124,22 +124,20 @@ export async function POST(
     const admin =
       createAdminClient();
 
-    const origin =
-      new URL(request.url).origin;
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(
+    /\/$/,
+    "",
+  );
 
-    /*
-     * The Invite User email template supplied in the README sends
-     * token_hash + type=invite to /auth/confirm.
-     *
-     * redirectTo is still supplied because Supabase exposes it to
-     * the template as {{ .RedirectTo }} and validates it against
-     * the project's allowed Redirect URLs.
-     */
-    const redirectTo =
-      new URL(
-        "/reset-password",
-        origin,
-      ).toString();
+if (!siteUrl) {
+  throw new Error(
+    "NEXT_PUBLIC_SITE_URL is not configured.",
+  );
+}
+
+const redirectTo =
+  `${siteUrl}/reset-password`;
 
     const {
       data: inviteData,
