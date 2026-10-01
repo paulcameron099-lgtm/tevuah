@@ -6,7 +6,6 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  ShieldCheck,
 } from "lucide-react";
 
 import {
@@ -49,6 +48,12 @@ export function ResetPasswordForm({
     useState(false);
 
   const [
+    showConfirmPassword,
+    setShowConfirmPassword,
+  ] =
+    useState(false);
+
+  const [
     loading,
     setLoading,
   ] =
@@ -62,24 +67,21 @@ export function ResetPasswordForm({
       null,
     );
 
-  const [
-    success,
-    setSuccess,
-  ] =
-    useState(false);
-
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+
+    if (loading) {
+      return;
+    }
 
     setError(
       null,
     );
 
     if (
-      password.length <
-      8
+      password.length < 8
     ) {
       setError(
         "Your password must be at least 8 characters.",
@@ -119,6 +121,9 @@ export function ResetPasswordForm({
             credentials:
               "same-origin",
 
+            cache:
+              "no-store",
+
             body:
               JSON.stringify({
                 password,
@@ -131,6 +136,10 @@ export function ResetPasswordForm({
         (await response.json()) as {
           success?: boolean;
           email?: string | null;
+          userId?: string;
+          purpose?:
+            | "invite"
+            | "recovery";
           error?: string;
         };
 
@@ -143,69 +152,44 @@ export function ResetPasswordForm({
             "Unable to save your password.",
         );
 
+        setLoading(
+          false,
+        );
+
         return;
       }
 
-      setSuccess(
-        true,
-      );
-
       /*
-       * The hardened server route:
+       * The server has:
        *
-       * 1. verifies the activation identity
-       * 2. changes the password
-       * 3. destroys the activation authorization
-       * 4. locally signs out the temporary activation session
+       * 1. verified the activation authorization
+       * 2. verified the exact authenticated user
+       * 3. changed that user's password
+       * 4. consumed the activation authorization
+       * 5. intentionally preserved the Supabase session
        *
-       * The user must then prove the new credential
-       * through the normal login screen.
+       * Continue directly into the authenticated
+       * investor dashboard.
        */
-      window.setTimeout(
-        () => {
-          router.replace(
-            isCreateMode
-              ? "/login?account=activated"
-              : "/login?password=updated",
-          );
-
-          router.refresh();
-        },
-        1200,
+      router.replace(
+        "/dashboard",
       );
-    } catch {
+
+      router.refresh();
+    } catch (error) {
+      console.error(
+        "Password submission error:",
+        error,
+      );
+
       setError(
         "Unable to save your password. Please try again.",
       );
-    } finally {
+
       setLoading(
         false,
       );
     }
-  }
-
-  if (
-    success
-  ) {
-    return (
-      <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-6">
-        <span className="flex size-11 items-center justify-center rounded-full bg-emerald-700 text-white">
-          <ShieldCheck className="size-5" />
-        </span>
-
-        <h2 className="font-display mt-5 text-2xl font-semibold text-forest-950">
-          {isCreateMode
-            ? "Account activated."
-            : "Password updated."}
-        </h2>
-
-        <p className="mt-3 text-sm leading-7 text-stone-700">
-          {isCreateMode
-            ? "Your Tevuah Reserve investor account password has been created successfully. You’re being redirected to sign in."
-            : "Your Tevuah Reserve password has been updated successfully. You’re being redirected to sign in."}
-        </p>
-      </div>
-    );
   }
 
   return (
@@ -266,13 +250,13 @@ export function ResetPasswordForm({
           confirmPassword
         }
         showPassword={
-          showPassword
+          showConfirmPassword
         }
         onChange={
           setConfirmPassword
         }
         onToggle={() =>
-          setShowPassword(
+          setShowConfirmPassword(
             (
               current,
             ) =>
@@ -377,7 +361,10 @@ function PasswordField({
               ? "Hide password"
               : "Show password"
           }
-          className="absolute right-3 top-1/2 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-stone-500 transition hover:bg-ivory-100 hover:text-forest-950"
+          aria-pressed={
+            showPassword
+          }
+          className="absolute right-3 top-1/2 z-10 flex size-9 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-stone-500 transition hover:bg-ivory-100 hover:text-forest-950"
         >
           {showPassword ? (
             <EyeOff className="size-4" />

@@ -1,65 +1,133 @@
 "use client";
 
 import Link from "next/link";
+
 import {
   ArrowLeft,
   Loader2,
   Mail,
 } from "lucide-react";
-import { useState } from "react";
 
-import { createClient } from "@/src/lib/supabase/client";
+import {
+  useState,
+} from "react";
+
+import {
+  createClient,
+} from "@/src/lib/supabase/client";
 
 export function ForgotPasswordForm() {
-  const supabase = createClient();
+  const supabase =
+    createClient();
 
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] =
+  const [
+    email,
+    setEmail,
+  ] =
+    useState("");
+
+  const [
+    loading,
+    setLoading,
+  ] =
     useState(false);
 
-  const [error, setError] =
-    useState<string | null>(null);
+  const [
+    error,
+    setError,
+  ] =
+    useState<string | null>(
+      null,
+    );
 
-  const [message, setMessage] =
-    useState<string | null>(null);
+  const [
+    message,
+    setMessage,
+  ] =
+    useState<string | null>(
+      null,
+    );
 
   async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
 
-    setError(null);
-    setMessage(null);
-    setLoading(true);
-
-    const redirectTo =
-      `${window.location.origin}` +
-      "/auth/callback?next=/reset-password";
-
-    const { error } =
-      await supabase.auth.resetPasswordForEmail(
-        email,
-        {
-          redirectTo,
-        },
-      );
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
+    if (loading) {
       return;
     }
 
-    setMessage(
-      "If an account exists for this email address, password reset instructions have been sent.",
+    setError(
+      null,
     );
 
-    setLoading(false);
+    setMessage(
+      null,
+    );
+
+    setLoading(
+      true,
+    );
+
+    try {
+      /*
+       * The recovery email template itself sends the
+       * user to:
+       *
+       * /auth/confirm?token_hash=...&type=recovery
+       *
+       * That route verifies the recovery token,
+       * establishes the correct Supabase session,
+       * creates the one-time activation authorization,
+       * and sends the user to /reset-password.
+       */
+      const {
+        error:
+          resetError,
+      } =
+        await supabase.auth.resetPasswordForEmail(
+          email.trim().toLowerCase(),
+        );
+
+      if (
+        resetError
+      ) {
+        console.error(
+          "Password recovery request error:",
+          resetError,
+        );
+
+        setError(
+          resetError.message,
+        );
+
+        return;
+      }
+
+      setMessage(
+        "If an account exists for this email address, password reset instructions have been sent.",
+      );
+    } catch (error) {
+      console.error(
+        "Password recovery request error:",
+        error,
+      );
+
+      setError(
+        "Unable to send password reset instructions. Please try again.",
+      );
+    } finally {
+      setLoading(
+        false,
+      );
+    }
   }
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={
+        handleSubmit
+      }
       className="space-y-6"
     >
       {error ? (
@@ -86,9 +154,15 @@ export function ForgotPasswordForm() {
             type="email"
             required
             autoComplete="email"
-            value={email}
-            onChange={(event) =>
-              setEmail(event.target.value)
+            value={
+              email
+            }
+            onChange={(
+              event,
+            ) =>
+              setEmail(
+                event.target.value,
+              )
             }
             placeholder="you@example.com"
             className="focus-ring min-h-13 w-full rounded-xl border border-forest-900/10 bg-white py-3 pl-11 pr-4 text-sm text-forest-950 outline-none placeholder:text-stone-400"
@@ -98,8 +172,10 @@ export function ForgotPasswordForm() {
 
       <button
         type="submit"
-        disabled={loading}
-        className="flex min-h-13 w-full items-center justify-center gap-2 rounded-full bg-forest-950 px-6 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:opacity-60"
+        disabled={
+          loading
+        }
+        className="flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-forest-950 px-6 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
         {loading ? (
           <>
