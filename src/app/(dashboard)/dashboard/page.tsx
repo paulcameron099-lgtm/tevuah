@@ -222,6 +222,7 @@ export default async function InvestorDashboardPage() {
       currency,
       status,
       funded_at,
+      historical_funded_at,
       created_at,
       updated_at,
 
@@ -678,6 +679,10 @@ export default async function InvestorDashboardPage() {
               100
             : 0;
 
+            const investorFundedAt =
+            position.historical_funded_at ??
+            position.funded_at;
+
         return {
           ...position,
 
@@ -700,6 +705,8 @@ export default async function InvestorDashboardPage() {
           economicGain,
 
           totalReturn,
+
+          investorFundedAt,
 
           latestValuationDate:
             latestValuation?.valuationDate ??
@@ -986,7 +993,33 @@ export default async function InvestorDashboardPage() {
    * on /dashboard/portfolio.
    */
   const recentPositions =
-    portfolioPositions.slice(
+  [...portfolioPositions]
+    .sort(
+      (
+        a,
+        b,
+      ) => {
+        const aTime =
+          a.investorFundedAt
+            ? new Date(
+                a.investorFundedAt,
+              ).getTime()
+            : 0;
+
+        const bTime =
+          b.investorFundedAt
+            ? new Date(
+                b.investorFundedAt,
+              ).getTime()
+            : 0;
+
+        return (
+          bTime -
+          aTime
+        );
+      },
+    )
+    .slice(
       0,
       4,
     );
@@ -1683,13 +1716,13 @@ export default async function InvestorDashboardPage() {
                                   position.latestValuationDate,
                                 )}
                               </span>
-                            ) : position.funded_at ? (
-                              <span>
-                                Funded{" "}
-                                {formatTimestampDate(
-                                  position.funded_at,
-                                )}
-                              </span>
+                            ) : position.investorFundedAt ? (
+                            <span>
+                              Funded{" "}
+                              {formatHistoricalTimestamp(
+                                position.investorFundedAt,
+                              )}
+                            </span>
                             ) : (
                               <span>
                                 Investment
@@ -2009,6 +2042,35 @@ function formatTimestampDate(
 
       day:
         "numeric",
+    },
+  ).format(
+    new Date(
+      value,
+    ),
+  );
+}
+
+function formatHistoricalTimestamp(
+  value:
+    string,
+) {
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      year:
+        "numeric",
+
+      month:
+        "short",
+
+      day:
+        "numeric",
+
+      hour:
+        "numeric",
+
+      minute:
+        "2-digit",
     },
   ).format(
     new Date(

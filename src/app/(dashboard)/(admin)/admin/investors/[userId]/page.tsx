@@ -1,6 +1,7 @@
 import {
   ArrowLeft,
   BadgeCheck,
+  Bell,
   CalendarDays,
   CheckCircle2,
   CircleAlert,
@@ -38,6 +39,7 @@ export default async function AdminInvestorDetailPage({
    * 1. ADMIN AUTHORIZATION
    * --------------------------------------------------
    */
+
   await requireAdmin();
 
   const {
@@ -52,6 +54,7 @@ export default async function AdminInvestorDetailPage({
    * 2. LOAD INVESTOR PROFILE
    * --------------------------------------------------
    */
+
   const {
     data: profile,
     error: profileError,
@@ -104,6 +107,7 @@ export default async function AdminInvestorDetailPage({
    * This page is intended for investor
    * accounts only.
    */
+
   if (
     profile.role !==
     "investor"
@@ -116,6 +120,7 @@ export default async function AdminInvestorDetailPage({
    * 3. LOAD AUTH USER
    * --------------------------------------------------
    */
+
   const {
     data: authUserData,
     error: authUserError,
@@ -143,6 +148,7 @@ export default async function AdminInvestorDetailPage({
    * 4. LOAD COMPLIANCE + ONBOARDING
    * --------------------------------------------------
    */
+
   const [
     complianceResult,
     onboardingResult,
@@ -226,6 +232,7 @@ export default async function AdminInvestorDetailPage({
    * 5. BUILD DISPLAY VALUES
    * --------------------------------------------------
    */
+
   const investorName =
     [
       profile.first_name,
@@ -319,6 +326,7 @@ export default async function AdminInvestorDetailPage({
    * 6. RENDER
    * --------------------------------------------------
    */
+
   return (
     <div className="space-y-8">
       {/* ==========================================
@@ -387,10 +395,19 @@ export default async function AdminInvestorDetailPage({
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap xl:justify-end">
             <AdminInvestorCashAccountButton
               investorId={profile.id}
             />
+
+            <Link
+              href={`/admin/investors/${userId}/notifications`}
+              className="focus-ring inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-forest-900/10 bg-white px-5 text-sm font-semibold text-forest-950 transition hover:bg-ivory-50"
+            >
+              <Bell className="size-4" />
+
+              Notifications
+            </Link>
 
             <Link
               href={`/admin/investors/${userId}/retirement-accounts`}
@@ -793,6 +810,7 @@ export default async function AdminInvestorDetailPage({
  * PROFILE ITEM
  * ==================================================
  */
+
 function ProfileItem({
   icon: Icon,
   label,
@@ -826,6 +844,7 @@ function ProfileItem({
  * DATA POINT
  * ==================================================
  */
+
 function DataPoint({
   label,
   value,
@@ -851,6 +870,7 @@ function DataPoint({
  * VERIFICATION CARD
  * ==================================================
  */
+
 function VerificationCard({
   label,
   status,
@@ -914,6 +934,7 @@ function VerificationCard({
  * STATUS BADGE
  * ==================================================
  */
+
 function StatusBadge({
   label,
   status,
@@ -964,6 +985,7 @@ function StatusBadge({
  * HELPERS
  * ==================================================
  */
+
 function initials(
   firstName: string,
   lastName: string,

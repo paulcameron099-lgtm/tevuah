@@ -8,13 +8,28 @@ export async function getUnreadNotificationCount(
   const admin =
     createAdminClient();
 
-  const { count, error } = await admin
-    .from("investor_notifications")
+  /*
+   * Investor-facing unread count.
+   *
+   * Dismissed notifications must never contribute
+   * to the bell/sidebar badge.
+   */
+
+  const {
+    count,
+    error,
+  } = await admin
+    .from(
+      "investor_notifications",
+    )
     .select(
       "id",
       {
-        count: "exact",
-        head: true,
+        count:
+          "exact",
+
+        head:
+          true,
       },
     )
     .eq(
@@ -24,6 +39,10 @@ export async function getUnreadNotificationCount(
     .eq(
       "is_read",
       false,
+    )
+    .is(
+      "dismissed_at",
+      null,
     );
 
   if (error) {
@@ -35,5 +54,8 @@ export async function getUnreadNotificationCount(
     return 0;
   }
 
-  return count ?? 0;
+  return (
+    count ??
+    0
+  );
 }

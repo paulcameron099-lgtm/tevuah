@@ -51,26 +51,66 @@ type CashAccount = {
 
 type CashLedgerEntry = {
   id: string;
+
   direction:
     | "credit"
     | "debit";
+
   entry_type: string;
+
   amount_cents: number;
+
   currency: string;
+
   balance_after_cents: number;
+
   status: string;
+
   reference:
     | string
     | null;
+
   description:
     | string
     | null;
+
+  /*
+   * Immutable actual/system timestamp.
+   *
+   * This remains preserved for audit integrity.
+   */
   created_at: string;
+
+  /*
+   * Optional administrator-controlled historical timestamp.
+   *
+   * When present, this controls investor-facing chronology.
+   */
+  historical_created_at:
+    | string
+    | null;
 };
 
+/*
+ * Investor-facing transaction label.
+ *
+ * IMPORTANT:
+ * We do not change the database entry_type.
+ *
+ * admin_funding remains admin_funding internally and on the
+ * administrative side, but the investor sees the cleaner
+ * customer-facing description "Credited".
+ */
 function formatEntryType(
   value: string,
 ) {
+  if (
+    value ===
+    "admin_funding"
+  ) {
+    return "Credited";
+  }
+
   return value
     .split("_")
     .map(
@@ -81,6 +121,72 @@ function formatEntryType(
     .join(" ");
 }
 
+/*
+ * Investor-facing description.
+ *
+ * We intentionally prevent an administrator-entered funding
+ * description from exposing "Admin funding" terminology on
+ * the investor Cash Account.
+ *
+ * The original description remains untouched in the database
+ * and remains available to the administrative/audit side.
+ */
+function getInvestorDescription(
+  entry: CashLedgerEntry,
+) {
+  if (
+    entry.entry_type ===
+    "admin_funding"
+  ) {
+    return "Funds credited to your Tevuah Cash Account.";
+  }
+
+  return (
+    entry.description ||
+    entry.reference ||
+    "Tevuah Cash Account activity"
+  );
+}
+
+/*
+ * Investor-facing chronology:
+ *
+ * historical_created_at
+ *        ↓ when present
+ * investor sees historical time
+ *
+ * otherwise
+ *
+ * created_at
+ *        ↓
+ * investor sees actual system time
+ */
+function getEffectiveCreatedAt(
+  entry: CashLedgerEntry,
+) {
+  return (
+    entry.historical_created_at ??
+    entry.created_at
+  );
+}
+
+function getTimestampMilliseconds(
+  entry: CashLedgerEntry,
+) {
+  const value =
+    new Date(
+      getEffectiveCreatedAt(
+        entry,
+      ),
+    ).getTime();
+
+  return Number.isNaN(
+    value,
+  )
+    ? 0
+    : value;
+}
+
 function formatDate(
   value: string,
 ) {
@@ -89,13 +195,28 @@ function formatDate(
     {
       month:
         "short",
+
       day:
         "numeric",
+
       year:
         "numeric",
+
+      /*
+       * Historical ledger editing supports year/month/day/
+       * hour/minute, so the investor should see the time as
+       * well rather than only the calendar date.
+       */
+      hour:
+        "numeric",
+
+      minute:
+        "2-digit",
     },
   ).format(
-    new Date(value),
+    new Date(
+      value,
+    ),
   );
 }
 
@@ -135,6 +256,7 @@ export default async function CashAccountPage() {
       {
         p_investor_id:
           user.id,
+
         p_currency:
           "USD",
       },
@@ -154,6 +276,7 @@ export default async function CashAccountPage() {
   const {
     data:
       accountData,
+
     error:
       accountError,
   } =
@@ -200,9 +323,26 @@ export default async function CashAccountPage() {
   const account =
     accountData as CashAccount;
 
+  /*
+   * Load ledger entries.
+   *
+   * We fetch both timestamps:
+   *
+   * created_at
+   *   = immutable actual/system timestamp
+   *
+   * historical_created_at
+   *   = optional investor-facing historical override
+   *
+   * We deliberately do not rely on the database created_at
+   * ordering for the final investor presentation because the
+   * historical timestamp may move a transaction into another
+   * month or even another year.
+   */
   const {
     data:
       ledgerData,
+
     error:
       ledgerError,
   } =
@@ -221,7 +361,8 @@ export default async function CashAccountPage() {
         status,
         reference,
         description,
-        created_at
+        created_at,
+        historical_created_at
         `,
       )
       .eq(
@@ -239,7 +380,9 @@ export default async function CashAccountPage() {
             false,
         },
       )
-      .limit(50);
+      .limit(
+        50,
+      );
 
   if (ledgerError) {
     console.error(
@@ -248,191 +391,227 @@ export default async function CashAccountPage() {
     );
   }
 
-  const ledger =
+  const rawLedger =
     (ledgerData ??
       []) as CashLedgerEntry[];
+
+  /*
+   * Investor-facing ordering is based on effective chronology.
+   *
+   * This means an administrator can move a transaction from:
+   *
+   * 2026 → 2023
+   *
+   * and the transaction will appear in its correct historical
+   * position instead of remaining ordered by the hidden actual
+   * system timestamp.
+   */
+  const ledger =
+    [...rawLedger].sort(
+      (
+        a,
+        b,
+      ) =>
+        getTimestampMilliseconds(
+          b,
+        ) -
+        getTimestampMilliseconds(
+          a,
+        ),
+    );
 
   const {
     data:
       depositRequests,
+
     error:
       depositRequestsError,
-  } = await admin
-    .from(
-      "cash_account_deposit_requests",
-    )
-    .select("*")
-    .eq(
-      "investor_id",
-      user.id,
-    )
-    .order(
-      "created_at",
-      {
-        ascending:
-          false,
-      },
-    )
-    .limit(25);
+  } =
+    await admin
+      .from(
+        "cash_account_deposit_requests",
+      )
+      .select("*")
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        },
+      )
+      .limit(
+        25,
+      );
 
- if (
-  depositRequestsError
-) {
-  console.error(
-    "Cash Account deposit request load error:",
-    depositRequestsError,
-  );
-}
+  if (
+    depositRequestsError
+  ) {
+    console.error(
+      "Cash Account deposit request load error:",
+      depositRequestsError,
+    );
+  }
 
-/*
- * Load this investor's latest Cash Account
- * withdrawal requests.
- *
- * Full bank account numbers are read only on the server.
- * We convert them to masked values before passing data
- * into the client component.
- */
-const {
-  data:
-    withdrawalData,
-  error:
-    withdrawalError,
-} =
-  await admin
-    .from(
-      "cash_account_withdrawal_requests",
-    )
-    .select(
-      `
-      id,
-      amount_cents,
-      currency,
-      withdrawal_method,
-      bank_name,
-      account_holder_name,
-      account_number,
-      investor_note,
-      status,
-      rejection_reason,
-      payment_reference,
-      payment_note,
-      reviewed_at,
-      approved_at,
-      paid_at,
-      cancelled_at,
-      created_at,
-      updated_at
-      `,
-    )
-    .eq(
-      "investor_id",
-      user.id,
-    )
-    .order(
-      "created_at",
-      {
-        ascending:
-          false,
-      },
-    )
-    .limit(25);
+  /*
+   * Load this investor's latest Cash Account
+   * withdrawal requests.
+   *
+   * Full bank account numbers are read only on the server.
+   * We convert them to masked values before passing data
+   * into the client component.
+   */
+  const {
+    data:
+      withdrawalData,
 
-if (withdrawalError) {
-  console.error(
-    "Cash Account withdrawal load error:",
-    withdrawalError,
-  );
-}
+    error:
+      withdrawalError,
+  } =
+    await admin
+      .from(
+        "cash_account_withdrawal_requests",
+      )
+      .select(
+        `
+        id,
+        amount_cents,
+        currency,
+        withdrawal_method,
+        bank_name,
+        account_holder_name,
+        account_number,
+        investor_note,
+        status,
+        rejection_reason,
+        payment_reference,
+        payment_note,
+        reviewed_at,
+        approved_at,
+        paid_at,
+        cancelled_at,
+        created_at,
+        updated_at
+        `,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .order(
+        "created_at",
+        {
+          ascending:
+            false,
+        },
+      )
+      .limit(
+        25,
+      );
 
-/*
- * Never pass the full bank account number
- * from this Server Component into the Client Component.
- */
-const withdrawals =
-  (
-    withdrawalData ??
-    []
-  ).map(
+  if (
+    withdrawalError
+  ) {
+    console.error(
+      "Cash Account withdrawal load error:",
+      withdrawalError,
+    );
+  }
+
+  /*
+   * Never pass the full bank account number
+   * from this Server Component into the Client Component.
+   */
+  const withdrawals =
     (
-      withdrawal,
-    ) => {
-      const accountNumber =
-        withdrawal.account_number?.trim() ??
-        "";
+      withdrawalData ??
+      []
+    ).map(
+      (
+        withdrawal,
+      ) => {
+        const accountNumber =
+          withdrawal.account_number?.trim() ??
+          "";
 
-      return {
-        id:
-          withdrawal.id,
+        return {
+          id:
+            withdrawal.id,
 
-        amount_cents:
-          withdrawal.amount_cents,
+          amount_cents:
+            withdrawal.amount_cents,
 
-        currency:
-          withdrawal.currency,
+          currency:
+            withdrawal.currency,
 
-        withdrawal_method:
-          withdrawal.withdrawal_method,
+          withdrawal_method:
+            withdrawal.withdrawal_method,
 
-        bank_name:
-          withdrawal.bank_name,
+          bank_name:
+            withdrawal.bank_name,
 
-        account_holder_name:
-          withdrawal.account_holder_name,
+          account_holder_name:
+            withdrawal.account_holder_name,
 
-        masked_account_number:
-          accountNumber
-            ? accountNumber.length >
-              4
-              ? `••••${accountNumber.slice(
-                  -4,
-                )}`
-              : "••••"
-            : null,
+          masked_account_number:
+            accountNumber
+              ? accountNumber.length >
+                4
+                ? `••••${accountNumber.slice(
+                    -4,
+                  )}`
+                : "••••"
+              : null,
 
-        investor_note:
-          withdrawal.investor_note,
+          investor_note:
+            withdrawal.investor_note,
 
-        status:
-          withdrawal.status,
+          status:
+            withdrawal.status,
 
-        rejection_reason:
-          withdrawal.rejection_reason,
+          rejection_reason:
+            withdrawal.rejection_reason,
 
-        payment_reference:
-          withdrawal.payment_reference,
+          payment_reference:
+            withdrawal.payment_reference,
 
-        payment_note:
-          withdrawal.payment_note,
+          payment_note:
+            withdrawal.payment_note,
 
-        reviewed_at:
-          withdrawal.reviewed_at,
+          reviewed_at:
+            withdrawal.reviewed_at,
 
-        approved_at:
-          withdrawal.approved_at,
+          approved_at:
+            withdrawal.approved_at,
 
-        paid_at:
-          withdrawal.paid_at,
+          paid_at:
+            withdrawal.paid_at,
 
-        cancelled_at:
-          withdrawal.cancelled_at,
+          cancelled_at:
+            withdrawal.cancelled_at,
 
-        created_at:
-          withdrawal.created_at,
+          created_at:
+            withdrawal.created_at,
 
-        updated_at:
-          withdrawal.updated_at,
-      };
-    },
-  );
+          updated_at:
+            withdrawal.updated_at,
+        };
+      },
+    );
 
-const postedCredits =
-  ledger
+  const postedCredits =
+    ledger
       .filter(
-        (entry) =>
+        (
+          entry,
+        ) =>
           entry.direction ===
-          "credit" &&
+            "credit" &&
           entry.status ===
-          "posted",
+            "posted",
       )
       .reduce(
         (
@@ -447,11 +626,13 @@ const postedCredits =
   const postedDebits =
     ledger
       .filter(
-        (entry) =>
+        (
+          entry,
+        ) =>
           entry.direction ===
-          "debit" &&
+            "debit" &&
           entry.status ===
-          "posted",
+            "posted",
       )
       .reduce(
         (
@@ -492,6 +673,7 @@ const postedCredits =
                 className="focus-ring inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-gold-500 px-5 text-sm font-semibold text-forest-950 transition hover:bg-gold-400"
               >
                 Explore investments
+
                 <ArrowRight className="size-4" />
               </Link>
 
@@ -532,31 +714,32 @@ const postedCredits =
 
               <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold capitalize text-emerald-200">
                 <span className="size-1.5 rounded-full bg-emerald-300" />
+
                 {account.status}
               </span>
             </div>
           </div>
         </div>
-     </section>
+      </section>
 
-<CashAccountFundingCenter
-  initialDeposits={
-    depositRequests ??
-    []
-  }
-/>
+      <CashAccountFundingCenter
+        initialDeposits={
+          depositRequests ??
+          []
+        }
+      />
 
-<CashAccountWithdrawalCenter
-  availableBalanceCents={
-    account.available_balance_cents
-  }
-  currency={
-    account.currency
-  }
-  initialWithdrawals={
-    withdrawals
-  }
-/>
+      <CashAccountWithdrawalCenter
+        availableBalanceCents={
+          account.available_balance_cents
+        }
+        currency={
+          account.currency
+        }
+        initialWithdrawals={
+          withdrawals
+        }
+      />
 
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-3xl border border-forest-900/10 bg-white p-6">
@@ -615,7 +798,7 @@ const postedCredits =
           </p>
 
           <p className="mt-2 text-xs leading-5 text-stone-500">
-            Posted cash activity cannot be silently edited or deleted.
+            Actual transaction records remain protected while approved historical presentation dates are maintained separately.
           </p>
         </div>
       </section>
@@ -638,6 +821,7 @@ const postedCredits =
 
           <div className="inline-flex items-center gap-2 rounded-full bg-ivory-100 px-3 py-2 text-xs font-semibold text-forest-900">
             <LockKeyhole className="size-3.5" />
+
             Read-only ledger
           </div>
         </div>
@@ -652,6 +836,11 @@ const postedCredits =
                 const isCredit =
                   entry.direction ===
                   "credit";
+
+                const effectiveCreatedAt =
+                  getEffectiveCreatedAt(
+                    entry,
+                  );
 
                 return (
                   <div
@@ -683,15 +872,15 @@ const postedCredits =
                         </p>
 
                         <p className="mt-1 text-xs leading-5 text-stone-500">
-                          {entry.description ||
-                            entry.reference ||
-                            "Tevuah Cash Account activity"}
+                          {getInvestorDescription(
+                            entry,
+                          )}
                         </p>
 
                         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.68rem] text-stone-400">
                           <span>
                             {formatDate(
-                              entry.created_at,
+                              effectiveCreatedAt,
                             )}
                           </span>
 
@@ -700,6 +889,7 @@ const postedCredits =
                               <span>
                                 •
                               </span>
+
                               <span className="truncate">
                                 {
                                   entry.reference
@@ -722,6 +912,7 @@ const postedCredits =
                         {isCredit
                           ? "+"
                           : "-"}
+
                         {formatCashMoney(
                           entry.amount_cents,
                           entry.currency,
@@ -730,6 +921,7 @@ const postedCredits =
 
                       <p className="mt-1 text-[0.68rem] text-stone-400">
                         Balance{" "}
+
                         {formatCashMoney(
                           entry.balance_after_cents,
                           entry.currency,

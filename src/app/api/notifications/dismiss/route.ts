@@ -21,7 +21,7 @@ export async function PATCH(
   try {
     /*
      * --------------------------------------------------
-     * 1. AUTHENTICATION
+     * 1. AUTHENTICATE
      * --------------------------------------------------
      */
 
@@ -57,7 +57,7 @@ export async function PATCH(
 
     /*
      * --------------------------------------------------
-     * 2. REQUEST
+     * 2. REQUEST BODY
      * --------------------------------------------------
      */
 
@@ -67,58 +67,37 @@ export async function PATCH(
     const admin =
       createAdminClient();
 
-    const now =
-      new Date().toISOString();
-
     /*
      * --------------------------------------------------
-     * 3. MARK ALL VISIBLE NOTIFICATIONS READ
+     * 3. CLEAR ALL
      * --------------------------------------------------
      *
-     * Dismissed notifications are deliberately excluded.
+     * This performs a soft dismissal.
+     *
+     * The database rows remain available for
+     * administrative/audit purposes.
      * --------------------------------------------------
      */
 
-    if (
-      body.all
-    ) {
+    if (body.all) {
       const {
+        data,
         error,
       } =
-        await admin
-          .from(
-            "investor_notifications",
-          )
-          .update({
-            is_read:
-              true,
-
-            read_at:
-              now,
-          })
-          .eq(
-            "investor_id",
-            user.id,
-          )
-          .eq(
-            "is_read",
-            false,
-          )
-          .is(
-            "dismissed_at",
-            null,
-          );
+        await admin.rpc(
+          "dismiss_all_investor_notifications",
+        );
 
       if (error) {
         console.error(
-          "Mark all notifications read error:",
+          "Dismiss all investor notifications error:",
           error,
         );
 
         return NextResponse.json(
           {
             error:
-              "Unable to update notifications.",
+              "Unable to clear notifications.",
           },
           {
             status: 500,
@@ -126,24 +105,34 @@ export async function PATCH(
         );
       }
 
+      const result =
+        Array.isArray(data)
+          ? data[0] ?? null
+          : data ?? null;
+
       return NextResponse.json({
-        success:
-          true,
+        success: true,
+        dismissedCount:
+          Number(
+            result?.dismissed_count ??
+              0,
+          ),
+        dismissedAt:
+          result?.dismissed_at ??
+          null,
       });
     }
 
     /*
      * --------------------------------------------------
-     * 4. MARK ONE VISIBLE NOTIFICATION READ
+     * 4. CLEAR ONE
      * --------------------------------------------------
      */
 
     const notificationId =
       body.notificationId?.trim();
 
-    if (
-      !notificationId
-    ) {
+    if (!notificationId) {
       return NextResponse.json(
         {
           error:
@@ -156,42 +145,27 @@ export async function PATCH(
     }
 
     const {
+      data,
       error,
     } =
-      await admin
-        .from(
-          "investor_notifications",
-        )
-        .update({
-          is_read:
-            true,
-
-          read_at:
-            now,
-        })
-        .eq(
-          "id",
-          notificationId,
-        )
-        .eq(
-          "investor_id",
-          user.id,
-        )
-        .is(
-          "dismissed_at",
-          null,
-        );
+      await admin.rpc(
+        "dismiss_investor_notification",
+        {
+          p_notification_id:
+            notificationId,
+        },
+      );
 
     if (error) {
       console.error(
-        "Mark notification read error:",
+        "Dismiss investor notification error:",
         error,
       );
 
       return NextResponse.json(
         {
           error:
-            "Unable to update notification.",
+            "Unable to clear notification.",
         },
         {
           status: 500,
@@ -199,20 +173,47 @@ export async function PATCH(
       );
     }
 
+    const result =
+      Array.isArray(data)
+        ? data[0] ?? null
+        : data ?? null;
+
+    /*
+     * The RPC only succeeds for a notification belonging
+     * to the authenticated investor.
+     */
+
+    if (!result) {
+      return NextResponse.json(
+        {
+          error:
+            "Notification not found.",
+        },
+        {
+          status: 404,
+        },
+      );
+    }
+
     return NextResponse.json({
-      success:
-        true,
+      success: true,
+      notificationId:
+        result.notification_id ??
+        notificationId,
+      dismissedAt:
+        result.dismissed_at ??
+        null,
     });
   } catch (error) {
     console.error(
-      "Notification read API error:",
+      "Notification dismiss API error:",
       error,
     );
 
     return NextResponse.json(
       {
         error:
-          "Unable to update notifications.",
+          "Unable to clear notification.",
       },
       {
         status: 500,
