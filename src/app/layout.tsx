@@ -112,18 +112,28 @@ export const metadata: Metadata = {
 
   /*
    * ==================================================
-   * FAVICONS / ICONS
+   * SEARCH ENGINE VERIFICATION
    * ==================================================
    *
-   * Production URLs:
+   * Bing Webmaster Tools / Microsoft:
    *
-   * /favicon.ico
-   * /icon.png
-   * /icon.svg
-   * /apple-icon.png
-   *
-   * favicon.ico remains the conventional primary
-   * favicon used by browsers and search engines.
+   * <meta
+   *   name="msvalidate.01"
+   *   content="A7E5AC56FF81DB5A34E3CDF18D05AA60"
+   * />
+   * ==================================================
+   */
+
+  verification: {
+    other: {
+      "msvalidate.01":
+        "A7E5AC56FF81DB5A34E3CDF18D05AA60",
+    },
+  },
+
+  /*
+   * ==================================================
+   * FAVICONS / ICONS
    * ==================================================
    */
 
