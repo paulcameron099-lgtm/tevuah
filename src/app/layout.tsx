@@ -14,30 +14,76 @@ import {
 
 import "./globals.css";
 
-const displayFont = Cormorant_Garamond({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
+const displayFont =
+  Cormorant_Garamond({
+    variable:
+      "--font-display",
 
-const bodyFont = Manrope({
-  variable: "--font-body",
-  subsets: ["latin"],
-  display: "swap",
-});
+    subsets: [
+      "latin",
+    ],
+
+    weight: [
+      "400",
+      "500",
+      "600",
+      "700",
+    ],
+
+    display:
+      "swap",
+  });
+
+const bodyFont =
+  Manrope({
+    variable:
+      "--font-body",
+
+    subsets: [
+      "latin",
+    ],
+
+    display:
+      "swap",
+  });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
+  /*
+   * ==================================================
+   * METADATA BASE
+   * ==================================================
+   */
+
+  metadataBase:
+    new URL(
+      siteConfig.url,
+    ),
+
+  /*
+   * ==================================================
+   * TITLE / DESCRIPTION
+   * ==================================================
+   */
 
   title: {
-    default: `${siteConfig.name} | Cultivated Alternative Investments`,
-    template: `%s | ${siteConfig.name}`,
+    default:
+      `${siteConfig.name} | Cultivated Alternative Investments`,
+
+    template:
+      `%s | ${siteConfig.name}`,
   },
 
-  description: siteConfig.description,
+  description:
+    siteConfig.description,
 
-  applicationName: siteConfig.name,
+  applicationName:
+    siteConfig.name,
+
+  /*
+   * ==================================================
+   * SEARCH / DISCOVERY
+   * ==================================================
+   */
 
   keywords: [
     "vineyard investment",
@@ -50,78 +96,185 @@ export const metadata: Metadata = {
 
   authors: [
     {
-      name: siteConfig.name,
-      url: siteConfig.url,
+      name:
+        siteConfig.name,
+
+      url:
+        siteConfig.url,
     },
   ],
 
-  creator: siteConfig.name,
-  publisher: siteConfig.name,
+  creator:
+    siteConfig.name,
+
+  publisher:
+    siteConfig.name,
+
+  /*
+   * ==================================================
+   * FAVICONS / ICONS
+   * ==================================================
+   *
+   * Production URLs:
+   *
+   * /favicon.ico
+   * /icon.png
+   * /icon.svg
+   * /apple-icon.png
+   *
+   * favicon.ico remains the conventional primary
+   * favicon used by browsers and search engines.
+   * ==================================================
+   */
 
   icons: {
     icon: [
       {
-        url: "/favicon.ico",
-        sizes: "any",
+        url:
+          "/favicon.ico",
+
+        sizes:
+          "16x16 32x32 48x48 64x64 128x128 256x256",
+
+        type:
+          "image/x-icon",
       },
+
       {
-        url: "/icon.svg",
-        type: "image/svg+xml",
+        url:
+          "/icon.png",
+
+        sizes:
+          "512x512",
+
+        type:
+          "image/png",
+      },
+
+      {
+        url:
+          "/icon.svg",
+
+        sizes:
+          "any",
+
+        type:
+          "image/svg+xml",
       },
     ],
 
-    shortcut: "/favicon.ico",
+    shortcut: [
+      {
+        url:
+          "/favicon.ico",
+
+        type:
+          "image/x-icon",
+      },
+    ],
 
     apple: [
       {
-        url: "/apple-icon.png",
-        sizes: "180x180",
-        type: "image/png",
+        url:
+          "/apple-icon.png",
+
+        sizes:
+          "180x180",
+
+        type:
+          "image/png",
       },
     ],
   },
 
+  /*
+   * ==================================================
+   * ROBOTS
+   * ==================================================
+   */
+
   robots: {
-    index: true,
-    follow: true,
+    index:
+      true,
+
+    follow:
+      true,
 
     googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
+      index:
+        true,
+
+      follow:
+        true,
+
+      "max-image-preview":
+        "large",
+
+      "max-snippet":
+        -1,
+
+      "max-video-preview":
+        -1,
     },
   },
 
+  /*
+   * ==================================================
+   * OPEN GRAPH
+   * ==================================================
+   */
+
   openGraph: {
-    type: "website",
-    locale: "en_GB",
+    type:
+      "website",
 
-    url: siteConfig.url,
+    locale:
+      "en_GB",
 
-    siteName: siteConfig.name,
+    url:
+      siteConfig.url,
 
-    title: `${siteConfig.name} | Cultivated Alternative Investments`,
+    siteName:
+      siteConfig.name,
 
-    description: siteConfig.description,
+    title:
+      `${siteConfig.name} | Cultivated Alternative Investments`,
+
+    description:
+      siteConfig.description,
 
     images: [
       {
-        url: "/brand/tevuah-reserve-social.jpg",
-        width: 1200,
-        height: 630,
-        alt: `${siteConfig.name} — Cultivated Alternative Investments`,
+        url:
+          "/brand/tevuah-reserve-social.jpg",
+
+        width:
+          1200,
+
+        height:
+          630,
+
+        alt:
+          `${siteConfig.name} — Cultivated Alternative Investments`,
       },
     ],
   },
 
+  /*
+   * ==================================================
+   * TWITTER / X
+   * ==================================================
+   */
+
   twitter: {
-    card: "summary_large_image",
+    card:
+      "summary_large_image",
 
-    title: `${siteConfig.name} | Cultivated Alternative Investments`,
+    title:
+      `${siteConfig.name} | Cultivated Alternative Investments`,
 
-    description: siteConfig.description,
+    description:
+      siteConfig.description,
 
     images: [
       "/brand/tevuah-reserve-social.jpg",
@@ -130,25 +283,49 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  themeColor: "#132a22",
+  width:
+    "device-width",
+
+  initialScale:
+    1,
+
+  themeColor:
+    "#132a22",
 };
 
-type RootLayoutProps = Readonly<{
-  children: React.ReactNode;
-}>;
+type RootLayoutProps =
+  Readonly<{
+    children:
+      React.ReactNode;
+  }>;
 
 export default function RootLayout({
   children,
 }: RootLayoutProps) {
+  /*
+   * ==================================================
+   * ORGANIZATION STRUCTURED DATA
+   * ==================================================
+   */
+
   const organizationStructuredData = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: siteConfig.name,
-    url: siteConfig.url,
-    logo: `${siteConfig.url}/brand/tevuah-reserve-logo.png`,
-    description: siteConfig.description,
+    "@context":
+      "https://schema.org",
+
+    "@type":
+      "Organization",
+
+    name:
+      siteConfig.name,
+
+    url:
+      siteConfig.url,
+
+    logo:
+      `${siteConfig.url}/brand/tevuah-reserve-logo.png`,
+
+    description:
+      siteConfig.description,
   };
 
   return (
@@ -157,14 +334,20 @@ export default function RootLayout({
       className={`${displayFont.variable} ${bodyFont.variable}`}
     >
       <body>
-        {children}
+        {
+          children
+        }
 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(
-              organizationStructuredData,
-            ).replace(/</g, "\\u003c"),
+            __html:
+              JSON.stringify(
+                organizationStructuredData,
+              ).replace(
+                /</g,
+                "\\u003c",
+              ),
           }}
         />
       </body>
