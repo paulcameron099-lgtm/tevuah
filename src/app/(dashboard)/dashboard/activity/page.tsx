@@ -37,7 +37,21 @@ type ActivityEvent = {
   action_path: string | null;
   source_type: string | null;
   source_id: string | null;
+
+  /*
+   * Actual immutable activity timestamp.
+   *
+   * This remains the real system/audit chronology.
+   */
   occurred_at: string;
+
+  /*
+   * Optional administrator-controlled historical timestamp.
+   *
+   * When present, this controls investor-facing chronology only.
+   */
+  historical_occurred_at: string | null;
+
   created_at: string;
 };
 
@@ -52,30 +66,37 @@ const EVENT_PRESENTATION: Record<
     label: "Subscription",
     icon: BriefcaseBusiness,
   },
+
   funding: {
     label: "Funding",
     icon: CircleDollarSign,
   },
+
   investment: {
     label: "Investment",
     icon: CheckCircle2,
   },
+
   distribution: {
     label: "Distribution",
     icon: HandCoins,
   },
+
   statement: {
     label: "Statement",
     icon: FileBarChart,
   },
+
   compliance: {
     label: "Compliance",
     icon: ShieldCheck,
   },
+
   account: {
     label: "Account",
     icon: Banknote,
   },
+
   system: {
     label: "System",
     icon: BellRing,
@@ -95,6 +116,36 @@ export default async function InvestorActivityPage() {
 
   const admin = createAdminClient();
 
+  /*
+   * ----------------------------------------------------------
+   * Load the investor's permanent activity history
+   * ----------------------------------------------------------
+   *
+   * We deliberately do not order/limit by occurred_at here.
+   *
+   * Why:
+   *
+   * An administrator may assign historical_occurred_at to an
+   * event. If PostgreSQL first ordered and limited by the real
+   * occurred_at, an event whose investor-facing date was moved
+   * into the past could still occupy a slot among the newest
+   * 250 records.
+   *
+   * Investor-facing chronology must instead be based on:
+   *
+   * historical_occurred_at ?? occurred_at
+   *
+   * Therefore:
+   *
+   *   1. Load the investor's activity records.
+   *   2. Calculate effective chronology.
+   *   3. Sort by effective chronology.
+   *   4. Take the newest 250.
+   *
+   * Actual occurred_at remains untouched.
+   * ----------------------------------------------------------
+   */
+
   const {
     data,
     error,
@@ -111,17 +162,11 @@ export default async function InvestorActivityPage() {
       source_type,
       source_id,
       occurred_at,
+      historical_occurred_at,
       created_at
       `,
     )
-    .eq("investor_id", user.id)
-    .order("occurred_at", {
-      ascending: false,
-    })
-    .order("id", {
-      ascending: false,
-    })
-    .limit(250);
+    .eq("investor_id", user.id);
 
   if (error) {
     console.error(
@@ -134,27 +179,51 @@ export default async function InvestorActivityPage() {
     );
   }
 
-  const events = (data ?? []) as ActivityEvent[];
-  const groupedEvents = groupEventsByDate(events);
+  /*
+   * ----------------------------------------------------------
+   * Investor-facing chronology
+   * ----------------------------------------------------------
+   *
+   * Historical date wins when present.
+   *
+   * Actual occurred_at remains available on every event for
+   * administration/audit and is never rewritten here.
+   * ----------------------------------------------------------
+   */
 
-  const investmentEvents = events.filter(
-    (event) =>
-      event.event_type === "investment" ||
-      event.event_type === "subscription",
-  ).length;
+  const allEvents =
+    (data ?? []) as ActivityEvent[];
 
-  const cashEvents = events.filter(
-    (event) =>
-      event.event_type === "account" ||
-      event.event_type === "funding" ||
-      event.event_type === "distribution",
-  ).length;
+  const sortedEvents = [...allEvents].sort(
+    compareActivityEvents,
+  );
 
-  const reportingEvents = events.filter(
-    (event) =>
-      event.event_type === "statement" ||
-      event.event_type === "compliance",
-  ).length;
+  const events = sortedEvents.slice(0, 250);
+
+  const groupedEvents =
+    groupEventsByDate(events);
+
+  const investmentEvents =
+    events.filter(
+      (event) =>
+        event.event_type === "investment" ||
+        event.event_type === "subscription",
+    ).length;
+
+  const cashEvents =
+    events.filter(
+      (event) =>
+        event.event_type === "account" ||
+        event.event_type === "funding" ||
+        event.event_type === "distribution",
+    ).length;
+
+  const reportingEvents =
+    events.filter(
+      (event) =>
+        event.event_type === "statement" ||
+        event.event_type === "compliance",
+    ).length;
 
   return (
     <div className="space-y-8">
@@ -234,31 +303,42 @@ export default async function InvestorActivityPage() {
         ) : (
           <div className="divide-y divide-forest-900/10">
             {groupedEvents.map(
-              ([dateKey, dateEvents]) => (
-                <div
-                  key={dateKey}
-                  className="px-6 py-7 sm:px-8"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400">
-                    {formatDateHeading(dateEvents[0].occurred_at)}
-                  </p>
+              ([dateKey, dateEvents]) => {
+                const headingTimestamp =
+                  getEffectiveTimestamp(
+                    dateEvents[0],
+                  );
 
-                  <div className="mt-5 space-y-5">
-                    {dateEvents.map((event) => (
-                      <ActivityRow
-                        key={event.id}
-                        event={event}
-                      />
-                    ))}
+                return (
+                  <div
+                    key={dateKey}
+                    className="px-6 py-7 sm:px-8"
+                  >
+                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-400">
+                      {formatDateHeading(
+                        headingTimestamp,
+                      )}
+                    </p>
+
+                    <div className="mt-5 space-y-5">
+                      {dateEvents.map(
+                        (event) => (
+                          <ActivityRow
+                            key={event.id}
+                            event={event}
+                          />
+                        ),
+                      )}
+                    </div>
                   </div>
-                </div>
-              ),
+                );
+              },
             )}
           </div>
         )}
       </section>
 
-      {events.length >= 250 ? (
+      {allEvents.length > 250 ? (
         <p className="text-center text-xs leading-6 text-stone-400">
           Showing your 250 most recent timeline events.
         </p>
@@ -273,10 +353,22 @@ function ActivityRow({
   event: ActivityEvent;
 }) {
   const presentation =
-    EVENT_PRESENTATION[event.event_type] ??
+    EVENT_PRESENTATION[
+      event.event_type
+    ] ??
     EVENT_PRESENTATION.system;
 
-  const Icon = presentation.icon;
+  const Icon =
+    presentation.icon;
+
+  /*
+   * The investor sees the historical timestamp when one has
+   * been assigned. Otherwise they see the real occurred_at.
+   */
+  const effectiveTimestamp =
+    getEffectiveTimestamp(
+      event,
+    );
 
   return (
     <article className="relative flex gap-4 rounded-2xl border border-forest-900/10 bg-ivory-50/50 p-4 sm:p-5">
@@ -297,10 +389,14 @@ function ActivityRow({
           </div>
 
           <time
-            dateTime={event.occurred_at}
+            dateTime={
+              effectiveTimestamp
+            }
             className="shrink-0 text-xs font-medium text-stone-400"
           >
-            {formatTime(event.occurred_at)}
+            {formatTime(
+              effectiveTimestamp,
+            )}
           </time>
         </div>
 
@@ -342,34 +438,165 @@ function SummaryCard({
   );
 }
 
-function groupEventsByDate(
-  events: ActivityEvent[],
-): Array<[string, ActivityEvent[]]> {
-  const groups = new Map<string, ActivityEvent[]>();
+/*
+ * ------------------------------------------------------------
+ * Effective timestamp
+ * ------------------------------------------------------------
+ *
+ * This is the single canonical helper for every investor-facing
+ * Activity Timeline date operation.
+ *
+ * DO NOT use occurred_at directly for:
+ *
+ *   - display
+ *   - grouping
+ *   - ordering
+ *
+ * occurred_at remains the immutable real/audit timestamp.
+ * ------------------------------------------------------------
+ */
 
-  for (const event of events) {
-    const dateKey = event.occurred_at.slice(0, 10);
-    const current = groups.get(dateKey) ?? [];
+function getEffectiveTimestamp(
+  event: ActivityEvent,
+) {
+  return (
+    event.historical_occurred_at ??
+    event.occurred_at
+  );
+}
 
-    current.push(event);
-    groups.set(dateKey, current);
+/*
+ * Sort newest -> oldest using investor-facing chronology.
+ *
+ * If two events have exactly the same effective timestamp,
+ * ID provides a deterministic secondary ordering.
+ */
+function compareActivityEvents(
+  a: ActivityEvent,
+  b: ActivityEvent,
+) {
+  const aTime =
+    new Date(
+      getEffectiveTimestamp(a),
+    ).getTime();
+
+  const bTime =
+    new Date(
+      getEffectiveTimestamp(b),
+    ).getTime();
+
+  if (aTime !== bTime) {
+    return bTime - aTime;
   }
 
-  return Array.from(groups.entries());
+  return b.id.localeCompare(
+    a.id,
+  );
 }
 
-function formatDateHeading(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(value));
+function groupEventsByDate(
+  events: ActivityEvent[],
+): Array<
+  [
+    string,
+    ActivityEvent[],
+  ]
+> {
+  const groups =
+    new Map<
+      string,
+      ActivityEvent[]
+    >();
+
+  for (
+    const event of events
+  ) {
+    const effectiveTimestamp =
+      getEffectiveTimestamp(
+        event,
+      );
+
+    /*
+     * Use the same local-calendar interpretation used by the
+     * displayed heading instead of slicing the UTC ISO string.
+     *
+     * This prevents grouping around midnight from disagreeing
+     * with the date shown to the investor.
+     */
+    const dateKey =
+      getDateGroupKey(
+        effectiveTimestamp,
+      );
+
+    const current =
+      groups.get(
+        dateKey,
+      ) ?? [];
+
+    current.push(
+      event,
+    );
+
+    groups.set(
+      dateKey,
+      current,
+    );
+  }
+
+  return Array.from(
+    groups.entries(),
+  );
 }
 
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
+function getDateGroupKey(
+  value: string,
+) {
+  const date =
+    new Date(value);
+
+  return [
+    date.getFullYear(),
+    String(
+      date.getMonth() + 1,
+    ).padStart(
+      2,
+      "0",
+    ),
+    String(
+      date.getDate(),
+    ).padStart(
+      2,
+      "0",
+    ),
+  ].join("-");
+}
+
+function formatDateHeading(
+  value: string,
+) {
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  ).format(
+    new Date(value),
+  );
+}
+
+function formatTime(
+  value: string,
+) {
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      hour: "numeric",
+      minute: "2-digit",
+    },
+  ).format(
+    new Date(value),
+  );
 }

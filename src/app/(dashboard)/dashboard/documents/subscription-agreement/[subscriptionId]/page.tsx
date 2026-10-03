@@ -1,10 +1,24 @@
-import { ArrowLeft, Download, FileCheck2, ShieldCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  Download,
+  FileCheck2,
+  ShieldCheck,
+} from "lucide-react";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import {
+  notFound,
+  redirect,
+} from "next/navigation";
 
-import { checkAccountAccess } from "@/src/lib/auth/account-status";
-import { getCurrentUser } from "@/src/lib/auth/get-current-user";
-import { createAdminClient } from "@/src/lib/supabase/admin";
+import {
+  checkAccountAccess,
+} from "@/src/lib/auth/account-status";
+import {
+  getCurrentUser,
+} from "@/src/lib/auth/get-current-user";
+import {
+  createAdminClient,
+} from "@/src/lib/supabase/admin";
 
 type PageProps = {
   params: Promise<{
@@ -15,48 +29,179 @@ type PageProps = {
 export default async function SubscriptionAgreementDetailPage({
   params,
 }: PageProps) {
-  const user = await getCurrentUser();
+  const user =
+    await getCurrentUser();
 
-  if (!user) redirect("/login");
-  if (user.role !== "investor") redirect("/dashboard");
+  if (!user) {
+    redirect("/login");
+  }
 
-  const access = await checkAccountAccess(user.id);
-  if (!access.allowed) redirect("/account-restricted");
+  if (
+    user.role !==
+    "investor"
+  ) {
+    redirect("/dashboard");
+  }
 
-  const { subscriptionId } = await params;
-  const admin = createAdminClient();
+  const access =
+    await checkAccountAccess(
+      user.id,
+    );
 
-  const { data: subscription, error } = await admin
-    .from("investment_subscriptions")
-    .select(
-      `
-      id,
-      investor_id,
-      opportunity_id,
-      commitment_amount,
-      status,
-      submitted_at,
-      reviewed_at,
-      created_at,
-      opportunity:investment_opportunities!investment_subscriptions_opportunity_id_fkey (
-        id,
-        title,
-        asset_category,
-        location
+  if (
+    !access.allowed
+  ) {
+    redirect(
+      "/account-restricted",
+    );
+  }
+
+  const {
+    subscriptionId,
+  } = await params;
+
+  const admin =
+    createAdminClient();
+
+  const {
+    data: subscription,
+    error,
+  } =
+    await admin
+      .from(
+        "investment_subscriptions",
       )
-      `,
-    )
-    .eq("id", subscriptionId)
-    .eq("investor_id", user.id)
-    .not("submitted_at", "is", null)
-    .maybeSingle();
+      .select(
+        `
+        id,
+        investor_id,
+        opportunity_id,
+        commitment_amount,
+        status,
+        submitted_at,
+        reviewed_at,
+        created_at,
 
-  if (error || !subscription) {
-    console.error("Subscription agreement detail load error:", error);
+        opportunity:investment_opportunities!investment_subscriptions_opportunity_id_fkey (
+          id,
+          title,
+          asset_category,
+          location
+        )
+        `,
+      )
+      .eq(
+        "id",
+        subscriptionId,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .not(
+        "submitted_at",
+        "is",
+        null,
+      )
+      .maybeSingle();
+
+  if (
+    error ||
+    !subscription
+  ) {
+    console.error(
+      "Subscription agreement detail load error:",
+      error,
+    );
+
     notFound();
   }
 
-  const opportunity = normalizeRelation(subscription.opportunity);
+  /*
+   * ----------------------------------------------------------
+   * Investor-facing historical document date
+   * ----------------------------------------------------------
+   *
+   * IMPORTANT:
+   *
+   * We do NOT modify:
+   *   subscription.submitted_at
+   *   subscription.reviewed_at
+   *   subscription.created_at
+   *
+   * The historical timestamp is stored separately on the
+   * investor document and controls investor-facing chronology.
+   * ----------------------------------------------------------
+   */
+
+  const {
+    data: documentRecord,
+    error: documentError,
+  } =
+    await admin
+      .from(
+        "investor_documents",
+      )
+      .select(
+        `
+        id,
+        historical_published_at,
+        published_at,
+        effective_date
+        `,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .eq(
+        "document_type",
+        "subscription_agreement",
+      )
+      .eq(
+        "source_type",
+        "investment_subscription",
+      )
+      .eq(
+        "source_id",
+        subscription.id,
+      )
+      .maybeSingle();
+
+  if (
+    documentError
+  ) {
+    console.error(
+      "Subscription agreement document date lookup error:",
+      documentError,
+    );
+  }
+
+  const opportunity =
+    normalizeRelation(
+      subscription.opportunity,
+    );
+
+  /*
+   * One historical transaction timestamp controls the
+   * investor-facing subscription chronology.
+   *
+   * If no historical timestamp exists, normal actual dates
+   * continue to be displayed.
+   */
+
+  const historicalDate =
+    documentRecord
+      ?.historical_published_at ??
+    null;
+
+  const displayedSubmittedDate =
+    historicalDate ??
+    subscription.submitted_at;
+
+  const displayedReviewedDate =
+    historicalDate ??
+    subscription.reviewed_at;
 
   return (
     <div className="space-y-8">
@@ -97,42 +242,103 @@ export default async function SubscriptionAgreementDetailPage({
 
         <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
           Investment subscription record submitted for{" "}
-          {opportunity?.title ?? "this investment opportunity"}.
+          {opportunity?.title ??
+            "this investment opportunity"}.
         </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <DataCard label="Opportunity" value={opportunity?.title ?? "Not available"} />
-          <DataCard label="Commitment" value={formatMoney(subscription.commitment_amount)} />
-          <DataCard label="Status" value={humanize(subscription.status)} />
-          <DataCard label="Asset category" value={humanize(opportunity?.asset_category)} />
-          <DataCard label="Location" value={opportunity?.location ?? "Not specified"} />
-          <DataCard label="Submitted" value={formatDate(subscription.submitted_at)} />
-          <DataCard label="Reviewed" value={formatDate(subscription.reviewed_at)} />
-          <DataCard label="Reference" value={subscription.id} />
+          <DataCard
+            label="Opportunity"
+            value={
+              opportunity?.title ??
+              "Not available"
+            }
+          />
+
+          <DataCard
+            label="Commitment"
+            value={formatMoney(
+              subscription.commitment_amount,
+            )}
+          />
+
+          <DataCard
+            label="Status"
+            value={humanize(
+              subscription.status,
+            )}
+          />
+
+          <DataCard
+            label="Asset category"
+            value={humanize(
+              opportunity
+                ?.asset_category,
+            )}
+          />
+
+          <DataCard
+            label="Location"
+            value={
+              opportunity?.location ??
+              "Not specified"
+            }
+          />
+
+          <DataCard
+            label="Submitted"
+            value={formatDate(
+              displayedSubmittedDate,
+            )}
+          />
+
+          <DataCard
+            label="Reviewed"
+            value={formatDate(
+              displayedReviewedDate,
+            )}
+          />
+
+          <DataCard
+            label="Reference"
+            value={
+              subscription.id
+            }
+          />
         </div>
       </section>
 
       <section className="rounded-[1.75rem] bg-forest-950 p-6 text-white sm:p-8">
         <ShieldCheck className="size-6 text-gold-400" />
+
         <h2 className="font-display mt-5 text-3xl font-semibold">
           Record status
         </h2>
+
         <p className="mt-4 max-w-3xl text-sm leading-7 text-white/60">
-          This page represents the investment subscription record stored for your
-          account. Funding confirmation is issued separately only after Tevuah
-          Reserve verifies the investment payment.
+          This page represents the investment subscription
+          record stored for your account. Funding confirmation
+          is issued separately only after Tevuah Reserve
+          verifies the investment payment.
         </p>
       </section>
     </div>
   );
 }
 
-function DataCard({ label, value }: { label: string; value: string }) {
+function DataCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div className="rounded-2xl bg-ivory-50 p-5">
       <p className="text-[0.62rem] font-semibold uppercase tracking-widest text-stone-400">
         {label}
       </p>
+
       <p className="mt-2 wrap-break-word text-sm font-semibold text-forest-950">
         {value}
       </p>
@@ -140,27 +346,81 @@ function DataCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function normalizeRelation<T>(value: T | T[] | null | undefined) {
-  return Array.isArray(value) ? value[0] ?? null : value ?? null;
+function normalizeRelation<T>(
+  value:
+    | T
+    | T[]
+    | null
+    | undefined,
+) {
+  return Array.isArray(
+    value,
+  )
+    ? value[0] ?? null
+    : value ?? null;
 }
 
-function formatMoney(cents: number | null | undefined) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(Number(cents ?? 0) / 100);
+function formatMoney(
+  cents:
+    | number
+    | null
+    | undefined,
+) {
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+    },
+  ).format(
+    Number(
+      cents ?? 0,
+    ) / 100,
+  );
 }
 
-function formatDate(value: string | null | undefined) {
-  if (!value) return "Not available";
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(value));
+function formatDate(
+  value:
+    | string
+    | null
+    | undefined,
+) {
+  if (!value) {
+    return "Not available";
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  ).format(
+    new Date(value),
+  );
 }
 
-function humanize(value: string | null | undefined) {
-  if (!value) return "Not specified";
-  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+function humanize(
+  value:
+    | string
+    | null
+    | undefined,
+) {
+  if (!value) {
+    return "Not specified";
+  }
+
+  return value
+    .replaceAll(
+      "_",
+      " ",
+    )
+    .replace(
+      /\b\w/g,
+      (
+        letter,
+      ) =>
+        letter.toUpperCase(),
+    );
 }

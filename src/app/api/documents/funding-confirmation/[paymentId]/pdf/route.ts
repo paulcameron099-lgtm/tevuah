@@ -31,17 +31,13 @@ export async function GET(
     const user =
       await getCurrentUser();
 
-    if (
-      !user
-    ) {
+    if (!user) {
       return NextResponse.json(
         {
-          error:
-            "Unauthorized.",
+          error: "Unauthorized.",
         },
         {
-          status:
-            401,
+          status: 401,
         },
       );
     }
@@ -109,28 +105,22 @@ export async function GET(
           user.id,
         );
     } else if (
-      user.role !==
-        "admin" &&
-      user.role !==
-        "super_admin"
+      user.role !== "admin" &&
+      user.role !== "super_admin"
     ) {
       return NextResponse.json(
         {
-          error:
-            "Forbidden.",
+          error: "Forbidden.",
         },
         {
-          status:
-            403,
+          status: 403,
         },
       );
     }
 
     const {
-      data:
-        payment,
-      error:
-        paymentError,
+      data: payment,
+      error: paymentError,
     } =
       await query.maybeSingle();
 
@@ -149,39 +139,47 @@ export async function GET(
             "Verified funding confirmation not found.",
         },
         {
-          status:
-            404,
+          status: 404,
         },
       );
     }
 
+    /*
+     * --------------------------------------------------------
+     * Actual funded position
+     * --------------------------------------------------------
+     *
+     * funded_at remains the real operational/audit timestamp.
+     * It is never rewritten for historical presentation.
+     * --------------------------------------------------------
+     */
+
     const {
-      data:
-        position,
-      error:
-        positionError,
-    } = await admin
-      .from(
-        "investment_positions",
-      )
-      .select(
-        `
-        id,
-        principal_amount,
-        currency,
-        status,
-        funded_at
-        `,
-      )
-      .eq(
-        "payment_id",
-        payment.id,
-      )
-      .eq(
-        "investor_id",
-        payment.investor_id,
-      )
-      .maybeSingle();
+      data: position,
+      error: positionError,
+    } =
+      await admin
+        .from(
+          "investment_positions",
+        )
+        .select(
+          `
+          id,
+          principal_amount,
+          currency,
+          status,
+          funded_at
+          `,
+        )
+        .eq(
+          "payment_id",
+          payment.id,
+        )
+        .eq(
+          "investor_id",
+          payment.investor_id,
+        )
+        .maybeSingle();
 
     if (
       positionError
@@ -189,6 +187,71 @@ export async function GET(
       console.error(
         "Funding confirmation position lookup error:",
         positionError,
+      );
+    }
+
+    /*
+     * --------------------------------------------------------
+     * Investor-facing historical document timestamp
+     * --------------------------------------------------------
+     *
+     * This is populated by the Funding Verified notification:
+     *
+     * payment:<payment-id>:verified
+     *
+     * We read the historical timestamp from the exact
+     * Funding Confirmation document belonging to this payment.
+     *
+     * We DO NOT modify:
+     *
+     *   payment.verified_at
+     *   payment.created_at
+     *   position.funded_at
+     *   document.published_at
+     *   document.created_at
+     * --------------------------------------------------------
+     */
+
+    const {
+      data: documentRecord,
+      error: documentError,
+    } =
+      await admin
+        .from(
+          "investor_documents",
+        )
+        .select(
+          `
+          id,
+          historical_published_at,
+          published_at,
+          effective_date
+          `,
+        )
+        .eq(
+          "investor_id",
+          payment.investor_id,
+        )
+        .eq(
+          "document_type",
+          "funding_confirmation",
+        )
+        .eq(
+          "source_type",
+          "investment_payment",
+        )
+        .eq(
+          "source_id",
+          payment.id,
+        )
+        .maybeSingle();
+
+    if (
+      documentError
+    ) {
+      console.error(
+        "Funding confirmation historical date lookup error:",
+        documentError,
       );
     }
 
@@ -216,6 +279,44 @@ export async function GET(
       position?.currency ??
       "USD";
 
+    /*
+     * --------------------------------------------------------
+     * Effective investor-facing chronology
+     * --------------------------------------------------------
+     *
+     * Historical timestamp exists:
+     *
+     *   Effective Date = historical timestamp
+     *   Verified Date  = historical timestamp
+     *   Funded Date    = historical timestamp
+     *
+     * No historical timestamp:
+     *
+     *   Effective Date = actual verified_at
+     *   Verified Date  = actual verified_at
+     *   Funded Date    = actual funded_at, falling back to
+     *                    actual verified_at
+     * --------------------------------------------------------
+     */
+
+    const historicalDate =
+      documentRecord
+        ?.historical_published_at ??
+      null;
+
+    const displayedEffectiveDate =
+      historicalDate ??
+      payment.verified_at;
+
+    const displayedVerifiedDate =
+      historicalDate ??
+      payment.verified_at;
+
+    const displayedFundedDate =
+      historicalDate ??
+      position?.funded_at ??
+      payment.verified_at;
+
     const pdfBuffer =
       await buildInvestorDocumentPdf(
         {
@@ -235,7 +336,7 @@ export async function GET(
 
           effectiveDate:
             formatDocumentDate(
-              payment.verified_at,
+              displayedEffectiveDate,
             ),
 
           rows: [
@@ -300,7 +401,7 @@ export async function GET(
                 "Verified date",
               value:
                 formatDocumentDate(
-                  payment.verified_at,
+                  displayedVerifiedDate,
                 ),
             },
             {
@@ -323,8 +424,7 @@ export async function GET(
                 "Funded date",
               value:
                 formatDocumentDate(
-                  position?.funded_at ??
-                  payment.verified_at,
+                  displayedFundedDate,
                 ),
             },
           ],
@@ -345,8 +445,7 @@ export async function GET(
     return new Response(
       pdfBuffer,
       {
-        status:
-          200,
+        status: 200,
 
         headers: {
           "Content-Type":
@@ -374,44 +473,45 @@ export async function GET(
           "Unable to generate funding confirmation.",
       },
       {
-        status:
-          500,
+        status: 500,
       },
     );
   }
 }
 
-function normalizeRelation<
-  T,
->(
+function normalizeRelation<T>(
   value:
-    T |
-    T[] |
-    null |
-    undefined,
+    | T
+    | T[]
+    | null
+    | undefined,
 ) {
   if (
     Array.isArray(
       value,
     )
   ) {
-    return value[0] ??
-      null;
+    return (
+      value[0] ??
+      null
+    );
   }
 
-  return value ??
-    null;
+  return (
+    value ??
+    null
+  );
 }
 
 function fullName(
   first:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
   last:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
   return [
     first,
@@ -425,13 +525,11 @@ function fullName(
 
 function humanize(
   value:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
-  if (
-    !value
-  ) {
+  if (!value) {
     return "Not specified";
   }
 

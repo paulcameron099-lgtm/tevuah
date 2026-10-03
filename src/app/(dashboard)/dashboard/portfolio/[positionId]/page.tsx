@@ -219,6 +219,7 @@ export default async function InvestorPositionDetailPage({ params }: PageProps) 
       currency,
       status,
       paid_at,
+      historical_paid_at,
       payment_reference,
       created_at,
       updated_at,
@@ -334,7 +335,10 @@ export default async function InvestorPositionDetailPage({ params }: PageProps) 
             ? "Distribution processing"
             : "Distribution approved",
       description: distribution?.title ?? "Investment distribution",
-      date: allocation.paid_at ?? allocation.created_at,
+       date:
+        allocation.status === "paid"
+          ? allocation.historical_paid_at ?? allocation.paid_at ?? allocation.created_at
+          : allocation.paid_at ?? allocation.created_at,
       amount: Number(allocation.net_amount),
       kind: "distribution",
       status: allocation.status,

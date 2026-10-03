@@ -38,8 +38,7 @@ export async function GET(
             "Unauthorized.",
         },
         {
-          status:
-            401,
+          status: 401,
         },
       );
     }
@@ -55,8 +54,7 @@ export async function GET(
             "Funding obligation ID is required.",
         },
         {
-          status:
-            400,
+          status: 400,
         },
       );
     }
@@ -158,17 +156,14 @@ export async function GET(
             "Forbidden.",
         },
         {
-          status:
-            403,
+          status: 403,
         },
       );
     }
 
     const {
-      data:
-        obligation,
-      error:
-        obligationError,
+      data: obligation,
+      error: obligationError,
     } =
       await query.maybeSingle();
 
@@ -196,8 +191,7 @@ export async function GET(
             "Joint funding confirmation not found.",
         },
         {
-          status:
-            404,
+          status: 404,
         },
       );
     }
@@ -217,8 +211,7 @@ export async function GET(
             "Joint funding obligation is not completely funded.",
         },
         {
-          status:
-            409,
+          status: 409,
         },
       );
     }
@@ -263,8 +256,7 @@ export async function GET(
             "Joint funding confirmation record is incomplete.",
         },
         {
-          status:
-            409,
+          status: 409,
         },
       );
     }
@@ -304,8 +296,7 @@ export async function GET(
             "Joint funding confirmation relationships are inconsistent.",
         },
         {
-          status:
-            409,
+          status: 409,
         },
       );
     }
@@ -321,10 +312,8 @@ export async function GET(
      *   funding obligation.
      */
     const {
-      data:
-        externalFunding,
-      error:
-        externalFundingError,
+      data: externalFunding,
+      error: externalFundingError,
     } =
       await admin
         .from(
@@ -382,12 +371,12 @@ export async function GET(
               false,
           },
         )
-        .limit(
-          1,
-        )
+        .limit(1)
         .maybeSingle();
 
-    if (externalFundingError) {
+    if (
+      externalFundingError
+    ) {
       console.error(
         "Joint external funding lookup error:",
         externalFundingError,
@@ -399,24 +388,27 @@ export async function GET(
             "Unable to determine joint investment funding source.",
         },
         {
-          status:
-            500,
+          status: 500,
         },
       );
     }
 
     let cashLedger:
-      {
-        id: string;
-        joint_funding_obligation_id: string | null;
-        investor_id: string;
-        amount_cents: number;
-        currency: string;
-        reference: string | null;
-        created_at: string;
-      } |
-      null =
-        null;
+      | {
+          id: string;
+          joint_funding_obligation_id:
+            | string
+            | null;
+          investor_id: string;
+          amount_cents: number;
+          currency: string;
+          reference:
+            | string
+            | null;
+          created_at: string;
+        }
+      | null =
+      null;
 
     /*
      * There must not be both a verified external payment and a
@@ -424,10 +416,8 @@ export async function GET(
      * obligation.
      */
     const {
-      data:
-        cashLedgerResult,
-      error:
-        cashLedgerError,
+      data: cashLedgerResult,
+      error: cashLedgerError,
     } =
       await admin
         .from(
@@ -464,12 +454,12 @@ export async function GET(
           "status",
           "posted",
         )
-        .limit(
-          1,
-        )
+        .limit(1)
         .maybeSingle();
 
-    if (cashLedgerError) {
+    if (
+      cashLedgerError
+    ) {
       console.error(
         "Joint Cash Account funding lookup error:",
         cashLedgerError,
@@ -481,8 +471,7 @@ export async function GET(
             "Unable to determine joint investment funding source.",
         },
         {
-          status:
-            500,
+          status: 500,
         },
       );
     }
@@ -508,8 +497,7 @@ export async function GET(
             "Joint funding confirmation contains conflicting funding evidence.",
         },
         {
-          status:
-            409,
+          status: 409,
         },
       );
     }
@@ -532,8 +520,7 @@ export async function GET(
             "Joint funding confirmation has no funding evidence.",
         },
         {
-          status:
-            409,
+          status: 409,
         },
       );
     }
@@ -541,7 +528,9 @@ export async function GET(
     /*
      * Validate the funding evidence against the obligation.
      */
-    if (externalFunding) {
+    if (
+      externalFunding
+    ) {
       if (
         externalFunding.funding_obligation_id !==
           obligation.id ||
@@ -570,14 +559,15 @@ export async function GET(
               "Joint external funding evidence is inconsistent.",
           },
           {
-            status:
-              409,
+            status: 409,
           },
         );
       }
     }
 
-    if (cashLedger) {
+    if (
+      cashLedger
+    ) {
       if (
         cashLedger.joint_funding_obligation_id !==
           obligation.id ||
@@ -602,8 +592,7 @@ export async function GET(
               "Joint Cash Account funding evidence is inconsistent.",
           },
           {
-            status:
-              409,
+            status: 409,
           },
         );
       }
@@ -647,7 +636,27 @@ export async function GET(
           cashLedger?.id ??
           "Not specified";
 
+    /*
+     * --------------------------------------------------------
+     * Investor-facing funding chronology
+     * --------------------------------------------------------
+     *
+     * historical_funded_at:
+     *   Admin-controlled historical date/time synchronized
+     *   from the investor's canonical funding notification.
+     *
+     * effective_funded_at:
+     *   Existing effective funding chronology.
+     *
+     * funded_at:
+     *   Actual system funding timestamp retained permanently
+     *   for administration and audit.
+     *
+     * We never rewrite funded_at merely to simulate history.
+     * --------------------------------------------------------
+     */
     const fundingCompletedAt =
+      obligation.historical_funded_at ??
       obligation.effective_funded_at ??
       obligation.funded_at;
 
@@ -767,6 +776,17 @@ export async function GET(
       );
     }
 
+    /*
+     * A verified external funding event represents the same
+     * investor-facing funding event as the funded obligation.
+     *
+     * Therefore, when an administrator assigns a historical
+     * funding date, the PDF's Verified date follows the same
+     * historical chronology.
+     *
+     * The real externalFunding.verified_at remains untouched
+     * in the database for audit purposes.
+     */
     if (
       externalFunding?.payment_method ===
       "bitcoin"
@@ -776,7 +796,9 @@ export async function GET(
           "Verified",
         value:
           formatDocumentDate(
-            externalFunding.verified_at,
+            obligation.historical_funded_at ??
+              externalFunding.verified_at ??
+              fundingCompletedAt,
           ),
       });
     }
@@ -822,8 +844,7 @@ export async function GET(
     return new Response(
       pdfBuffer,
       {
-        status:
-          200,
+        status: 200,
 
         headers: {
           "Content-Type":
@@ -837,7 +858,9 @@ export async function GET(
         },
       },
     );
-  } catch (error) {
+  } catch (
+    error
+  ) {
     console.error(
       "Joint funding confirmation PDF error:",
       error,
@@ -849,8 +872,7 @@ export async function GET(
           "Unable to generate joint funding confirmation.",
       },
       {
-        status:
-          500,
+        status: 500,
       },
     );
   }
@@ -858,33 +880,37 @@ export async function GET(
 
 function normalizeRelation<T>(
   value:
-    T |
-    T[] |
-    null |
-    undefined,
+    | T
+    | T[]
+    | null
+    | undefined,
 ) {
   if (
     Array.isArray(
       value,
     )
   ) {
-    return value[0] ??
-      null;
+    return (
+      value[0] ??
+      null
+    );
   }
 
-  return value ??
-    null;
+  return (
+    value ??
+    null
+  );
 }
 
 function fullName(
   first:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
   last:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
   return [
     first,
@@ -898,9 +924,9 @@ function fullName(
 
 function humanize(
   value:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
   if (!value) {
     return "Not specified";

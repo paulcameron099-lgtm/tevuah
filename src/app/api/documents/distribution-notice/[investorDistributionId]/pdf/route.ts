@@ -31,17 +31,14 @@ export async function GET(
     const user =
       await getCurrentUser();
 
-    if (
-      !user
-    ) {
+    if (!user) {
       return NextResponse.json(
         {
           error:
             "Unauthorized.",
         },
         {
-          status:
-            401,
+          status: 401,
         },
       );
     }
@@ -74,6 +71,7 @@ export async function GET(
           status,
 
           paid_at,
+          historical_paid_at,
           payment_reference,
 
           created_at,
@@ -141,17 +139,14 @@ export async function GET(
             "Forbidden.",
         },
         {
-          status:
-            403,
+          status: 403,
         },
       );
     }
 
     const {
-      data:
-        allocation,
-      error:
-        allocationError,
+      data: allocation,
+      error: allocationError,
     } =
       await query.maybeSingle();
 
@@ -170,9 +165,69 @@ export async function GET(
             "Paid distribution notice not found.",
         },
         {
-          status:
-            404,
+          status: 404,
         },
+      );
+    }
+
+    /*
+     * --------------------------------------------------------
+     * Investor-facing historical document timestamp
+     * --------------------------------------------------------
+     *
+     * Step 2 synchronizes the canonical Distribution Paid
+     * notification into:
+     *
+     *   investor_distributions.historical_paid_at
+     *   investor_documents.historical_published_at
+     *
+     * The document timestamp is our primary document chronology
+     * source. historical_paid_at is the synchronized fallback.
+     *
+     * We never rewrite the actual distribution timestamps.
+     * --------------------------------------------------------
+     */
+
+    const {
+      data: documentRecord,
+      error: documentError,
+    } =
+      await admin
+        .from(
+          "investor_documents",
+        )
+        .select(
+          `
+          id,
+          historical_published_at,
+          published_at,
+          effective_date
+          `,
+        )
+        .eq(
+          "investor_id",
+          allocation.investor_id,
+        )
+        .eq(
+          "document_type",
+          "distribution_notice",
+        )
+        .eq(
+          "source_type",
+          "investor_distribution",
+        )
+        .eq(
+          "source_id",
+          allocation.id,
+        )
+        .maybeSingle();
+
+    if (
+      documentError
+    ) {
+      console.error(
+        "Distribution notice historical date lookup error:",
+        documentError,
       );
     }
 
@@ -214,6 +269,43 @@ export async function GET(
       allocation.currency ??
       "USD";
 
+    /*
+     * --------------------------------------------------------
+     * Effective investor-facing chronology
+     * --------------------------------------------------------
+     *
+     * Historical date exists:
+     *
+     *   Effective Date = historical
+     *   Record Date    = historical
+     *   Payment Date   = historical
+     *
+     * No historical date:
+     *
+     *   Existing actual chronology remains unchanged.
+     * --------------------------------------------------------
+     */
+
+    const historicalDate =
+      documentRecord
+        ?.historical_published_at ??
+      allocation.historical_paid_at ??
+      null;
+
+    const displayedEffectiveDate =
+      historicalDate ??
+      allocation.paid_at ??
+      distribution?.payment_date;
+
+    const displayedRecordDate =
+      historicalDate ??
+      distribution?.record_date;
+
+    const displayedPaymentDate =
+      historicalDate ??
+      allocation.paid_at ??
+      distribution?.payment_date;
+
     const pdfBuffer =
       await buildInvestorDocumentPdf(
         {
@@ -234,8 +326,7 @@ export async function GET(
 
           effectiveDate:
             formatDocumentDate(
-              allocation.paid_at ??
-              distribution?.payment_date,
+              displayedEffectiveDate,
             ),
 
           rows: [
@@ -256,7 +347,8 @@ export async function GET(
                 "Distribution type",
               value:
                 humanize(
-                  distribution?.distribution_type,
+                  distribution
+                    ?.distribution_type,
                 ),
             },
             {
@@ -264,7 +356,7 @@ export async function GET(
                 "Record date",
               value:
                 formatDocumentDate(
-                  distribution?.record_date,
+                  displayedRecordDate,
                 ),
             },
             {
@@ -272,8 +364,7 @@ export async function GET(
                 "Payment date",
               value:
                 formatDocumentDate(
-                  allocation.paid_at ??
-                  distribution?.payment_date,
+                  displayedPaymentDate,
                 ),
             },
             {
@@ -338,8 +429,7 @@ export async function GET(
     return new Response(
       pdfBuffer,
       {
-        status:
-          200,
+        status: 200,
 
         headers: {
           "Content-Type":
@@ -367,44 +457,45 @@ export async function GET(
           "Unable to generate distribution notice.",
       },
       {
-        status:
-          500,
+        status: 500,
       },
     );
   }
 }
 
-function normalizeRelation<
-  T,
->(
+function normalizeRelation<T>(
   value:
-    T |
-    T[] |
-    null |
-    undefined,
+    | T
+    | T[]
+    | null
+    | undefined,
 ) {
   if (
     Array.isArray(
       value,
     )
   ) {
-    return value[0] ??
-      null;
+    return (
+      value[0] ??
+      null
+    );
   }
 
-  return value ??
-    null;
+  return (
+    value ??
+    null
+  );
 }
 
 function fullName(
   first:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
   last:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
   return [
     first,
@@ -418,13 +509,11 @@ function fullName(
 
 function humanize(
   value:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
-  if (
-    !value
-  ) {
+  if (!value) {
     return "Not specified";
   }
 

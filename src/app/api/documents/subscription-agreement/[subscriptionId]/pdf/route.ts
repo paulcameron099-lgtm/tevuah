@@ -1,4 +1,3 @@
-
 import {
   NextResponse,
 } from "next/server";
@@ -49,7 +48,8 @@ export async function GET(
 
     const {
       subscriptionId,
-    } = await context.params;
+    } =
+      await context.params;
 
     const admin =
       createAdminClient();
@@ -155,6 +155,69 @@ export async function GET(
       );
     }
 
+    /*
+     * --------------------------------------------------------
+     * Investor-facing historical document date
+     * --------------------------------------------------------
+     *
+     * This is deliberately stored separately from the actual
+     * subscription timestamps.
+     *
+     * We never modify:
+     *
+     *   submitted_at
+     *   reviewed_at
+     *   created_at
+     *
+     * Those remain the real operational/audit timestamps.
+     * --------------------------------------------------------
+     */
+
+    const {
+      data:
+        documentRecord,
+      error:
+        documentError,
+    } =
+      await admin
+        .from(
+          "investor_documents",
+        )
+        .select(
+          `
+          id,
+          historical_published_at,
+          published_at,
+          effective_date
+          `,
+        )
+        .eq(
+          "investor_id",
+          subscription.investor_id,
+        )
+        .eq(
+          "document_type",
+          "subscription_agreement",
+        )
+        .eq(
+          "source_type",
+          "investment_subscription",
+        )
+        .eq(
+          "source_id",
+          subscription.id,
+        )
+        .maybeSingle();
+
+    if (
+      documentError
+    ) {
+      console.error(
+        "Subscription agreement historical date lookup error:",
+        documentError,
+      );
+    }
+
     const investor =
       normalizeRelation(
         subscription.investor,
@@ -175,6 +238,42 @@ export async function GET(
       opportunity?.title ??
       "Investment Opportunity";
 
+    /*
+     * --------------------------------------------------------
+     * Effective investor-facing chronology
+     * --------------------------------------------------------
+     *
+     * Historical date present:
+     *
+     *   Effective date = historical
+     *   Submitted      = historical
+     *   Reviewed       = historical
+     *
+     * Historical date absent:
+     *
+     *   Effective date = submitted_at
+     *   Submitted      = submitted_at
+     *   Reviewed       = reviewed_at
+     * --------------------------------------------------------
+     */
+
+    const historicalDate =
+      documentRecord
+        ?.historical_published_at ??
+      null;
+
+    const effectiveDate =
+      historicalDate ??
+      subscription.submitted_at;
+
+    const displayedSubmittedDate =
+      historicalDate ??
+      subscription.submitted_at;
+
+    const displayedReviewedDate =
+      historicalDate ??
+      subscription.reviewed_at;
+
     const pdfBuffer =
       await buildInvestorDocumentPdf(
         {
@@ -194,7 +293,7 @@ export async function GET(
 
           effectiveDate:
             formatDocumentDate(
-              subscription.submitted_at,
+              effectiveDate,
             ),
 
           rows: [
@@ -209,14 +308,16 @@ export async function GET(
                 "Asset category",
               value:
                 humanize(
-                  opportunity?.asset_category,
+                  opportunity
+                    ?.asset_category,
                 ),
             },
             {
               label:
                 "Location",
               value:
-                opportunity?.location ??
+                opportunity
+                  ?.location ??
                 "Not specified",
             },
             {
@@ -224,7 +325,8 @@ export async function GET(
                 "Commitment amount",
               value:
                 formatDocumentMoney(
-                  subscription.commitment_amount,
+                  subscription
+                    .commitment_amount,
                 ),
             },
             {
@@ -240,7 +342,7 @@ export async function GET(
                 "Submitted",
               value:
                 formatDocumentDate(
-                  subscription.submitted_at,
+                  displayedSubmittedDate,
                 ),
             },
             {
@@ -248,7 +350,7 @@ export async function GET(
                 "Reviewed",
               value:
                 formatDocumentDate(
-                  subscription.reviewed_at,
+                  displayedReviewedDate,
                 ),
             },
           ],
@@ -309,33 +411,37 @@ function normalizeRelation<
   T,
 >(
   value:
-    T |
-    T[] |
-    null |
-    undefined,
+    | T
+    | T[]
+    | null
+    | undefined,
 ) {
   if (
     Array.isArray(
       value,
     )
   ) {
-    return value[0] ??
-      null;
+    return (
+      value[0] ??
+      null
+    );
   }
 
-  return value ??
-    null;
+  return (
+    value ??
+    null
+  );
 }
 
 function fullName(
   first:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
   last:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
   return [
     first,
@@ -349,9 +455,9 @@ function fullName(
 
 function humanize(
   value:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
   if (
     !value

@@ -43,9 +43,7 @@ export default async function JointFundingConfirmationDetailPage({
     data: obligation,
     error: obligationError,
   } = await admin
-    .from(
-      "joint_investment_funding_obligations",
-    )
+    .from("joint_investment_funding_obligations")
     .select(
       `
       id,
@@ -90,24 +88,12 @@ export default async function JointFundingConfirmationDetailPage({
       )
       `,
     )
-    .eq(
-      "id",
-      obligationId,
-    )
-    .eq(
-      "investor_id",
-      user.id,
-    )
-    .eq(
-      "status",
-      "funded",
-    )
+    .eq("id", obligationId)
+    .eq("investor_id", user.id)
+    .eq("status", "funded")
     .maybeSingle();
 
-  if (
-    obligationError ||
-    !obligation
-  ) {
+  if (obligationError || !obligation) {
     console.error(
       "Joint funding confirmation detail load error:",
       obligationError,
@@ -121,27 +107,19 @@ export default async function JointFundingConfirmationDetailPage({
    * obligation only.
    */
   if (
-    obligation.funded_amount !==
-      obligation.obligation_amount ||
+    obligation.funded_amount !== obligation.obligation_amount ||
     !obligation.funded_at
   ) {
     notFound();
   }
 
-  const member =
-    normalizeRelation(
-      obligation.member,
-    );
+  const member = normalizeRelation(obligation.member);
 
-  const jointSubscription =
-    normalizeRelation(
-      obligation.joint_subscription,
-    );
+  const jointSubscription = normalizeRelation(
+    obligation.joint_subscription,
+  );
 
-  const opportunity =
-    normalizeRelation(
-      obligation.opportunity,
-    );
+  const opportunity = normalizeRelation(obligation.opportunity);
 
   /*
    * Defensive provenance validation.
@@ -150,26 +128,18 @@ export default async function JointFundingConfirmationDetailPage({
     !member ||
     !jointSubscription ||
     !opportunity ||
-    member.id !==
-      obligation.member_id ||
-    member.investor_id !==
-      obligation.investor_id ||
-    member.joint_subscription_id !==
-      obligation.joint_subscription_id ||
-    member.obligation_amount !==
-      obligation.obligation_amount ||
-    jointSubscription.id !==
-      obligation.joint_subscription_id ||
-    jointSubscription.opportunity_id !==
-      obligation.opportunity_id ||
-    opportunity.id !==
-      obligation.opportunity_id
+    member.id !== obligation.member_id ||
+    member.investor_id !== obligation.investor_id ||
+    member.joint_subscription_id !== obligation.joint_subscription_id ||
+    member.obligation_amount !== obligation.obligation_amount ||
+    jointSubscription.id !== obligation.joint_subscription_id ||
+    jointSubscription.opportunity_id !== obligation.opportunity_id ||
+    opportunity.id !== obligation.opportunity_id
   ) {
     console.error(
       "Joint funding confirmation relationship mismatch:",
       {
-        obligationId:
-          obligation.id,
+        obligationId: obligation.id,
       },
     );
 
@@ -183,9 +153,7 @@ export default async function JointFundingConfirmationDetailPage({
     data: externalFunding,
     error: externalFundingError,
   } = await admin
-    .from(
-      "joint_investment_external_funding",
-    )
+    .from("joint_investment_external_funding")
     .select(
       `
       id,
@@ -209,32 +177,14 @@ export default async function JointFundingConfirmationDetailPage({
       verified_at
       `,
     )
-    .eq(
-      "funding_obligation_id",
-      obligation.id,
-    )
-    .eq(
-      "investor_id",
-      user.id,
-    )
-    .eq(
-      "member_id",
-      obligation.member_id,
-    )
-    .eq(
-      "joint_subscription_id",
-      obligation.joint_subscription_id,
-    )
-    .eq(
-      "status",
-      "verified",
-    )
-    .order(
-      "verified_at",
-      {
-        ascending: false,
-      },
-    )
+    .eq("funding_obligation_id", obligation.id)
+    .eq("investor_id", user.id)
+    .eq("member_id", obligation.member_id)
+    .eq("joint_subscription_id", obligation.joint_subscription_id)
+    .eq("status", "verified")
+    .order("verified_at", {
+      ascending: false,
+    })
     .limit(1)
     .maybeSingle();
 
@@ -260,13 +210,8 @@ export default async function JointFundingConfirmationDetailPage({
     | null = null;
 
   if (!externalFunding) {
-    const {
-      data,
-      error,
-    } = await admin
-      .from(
-        "investor_cash_ledger",
-      )
+    const { data, error } = await admin
+      .from("investor_cash_ledger")
       .select(
         `
         id,
@@ -276,26 +221,11 @@ export default async function JointFundingConfirmationDetailPage({
         created_at
         `,
       )
-      .eq(
-        "joint_funding_obligation_id",
-        obligation.id,
-      )
-      .eq(
-        "investor_id",
-        user.id,
-      )
-      .eq(
-        "entry_type",
-        "investment",
-      )
-      .eq(
-        "direction",
-        "debit",
-      )
-      .eq(
-        "status",
-        "posted",
-      )
+      .eq("joint_funding_obligation_id", obligation.id)
+      .eq("investor_id", user.id)
+      .eq("entry_type", "investment")
+      .eq("direction", "debit")
+      .eq("status", "posted")
       .limit(1)
       .maybeSingle();
 
@@ -309,37 +239,49 @@ export default async function JointFundingConfirmationDetailPage({
     cashFunding = data;
   }
 
-  const fundingMethod =
-    externalFunding
-      ? externalFunding.payment_method ===
-        "wire_transfer"
-        ? "Wire Transfer"
-        : externalFunding.payment_method ===
-            "bitcoin"
-          ? "Bitcoin"
-          : humanize(
-              externalFunding.payment_method,
-            )
-      : cashFunding
-        ? "Tevuah Cash Account"
-        : "Not available";
+  const fundingMethod = externalFunding
+    ? externalFunding.payment_method === "wire_transfer"
+      ? "Wire Transfer"
+      : externalFunding.payment_method === "bitcoin"
+        ? "Bitcoin"
+        : humanize(externalFunding.payment_method)
+    : cashFunding
+      ? "Tevuah Cash Account"
+      : "Not available";
 
-  const fundingReference =
-    externalFunding
-      ? externalFunding.payment_method ===
-        "wire_transfer"
-        ? externalFunding.reported_wire_reference ??
+  const fundingReference = externalFunding
+    ? externalFunding.payment_method === "wire_transfer"
+      ? externalFunding.reported_wire_reference ??
+        externalFunding.id
+      : externalFunding.payment_method === "bitcoin"
+        ? externalFunding.reported_bitcoin_tx_hash ??
           externalFunding.id
-        : externalFunding.payment_method ===
-            "bitcoin"
-          ? externalFunding.reported_bitcoin_tx_hash ??
-            externalFunding.id
-          : externalFunding.id
-      : cashFunding?.reference ??
-        cashFunding?.id ??
-        "Not available";
+        : externalFunding.id
+    : cashFunding?.reference ??
+      cashFunding?.id ??
+      "Not available";
 
+  /*
+   * ----------------------------------------------------------
+   * Investor-facing funding chronology
+   * ----------------------------------------------------------
+   *
+   * historical_funded_at
+   *   = admin-controlled historical date/time synchronized
+   *     from the investor's canonical funding notification.
+   *
+   * effective_funded_at
+   *   = existing effective funding chronology.
+   *
+   * funded_at
+   *   = actual system funding timestamp preserved for
+   *     administration and audit.
+   *
+   * Never overwrite funded_at merely to represent history.
+   * ----------------------------------------------------------
+   */
   const effectiveFundingDate =
+    obligation.historical_funded_at ??
     obligation.effective_funded_at ??
     obligation.funded_at;
 

@@ -31,24 +31,22 @@ export async function GET(
     const user =
       await getCurrentUser();
 
-    if (
-      !user
-    ) {
+    if (!user) {
       return NextResponse.json(
         {
           error:
             "Unauthorized.",
         },
         {
-          status:
-            401,
+          status: 401,
         },
       );
     }
 
     const {
       consentId,
-    } = await context.params;
+    } =
+      await context.params;
 
     if (
       !consentId
@@ -59,8 +57,7 @@ export async function GET(
             "Consent ID is required.",
         },
         {
-          status:
-            400,
+          status: 400,
         },
       );
     }
@@ -147,6 +144,7 @@ export async function GET(
      * Admin and super_admin may retrieve any accepted
      * consent for administrative purposes.
      */
+
     if (
       user.role ===
       "investor"
@@ -168,17 +166,14 @@ export async function GET(
             "Forbidden.",
         },
         {
-          status:
-            403,
+          status: 403,
         },
       );
     }
 
     const {
-      data:
-        consent,
-      error:
-        consentError,
+      data: consent,
+      error: consentError,
     } =
       await query.maybeSingle();
 
@@ -195,14 +190,14 @@ export async function GET(
        * Do not reveal whether another investor's
        * consent exists.
        */
+
       return NextResponse.json(
         {
           error:
             "Signed joint investment agreement not found.",
         },
         {
-          status:
-            404,
+          status: 404,
         },
       );
     }
@@ -247,8 +242,7 @@ export async function GET(
             "Joint investment agreement record is incomplete.",
         },
         {
-          status:
-            409,
+          status: 409,
         },
       );
     }
@@ -260,6 +254,7 @@ export async function GET(
      * Every loaded relationship must agree with the
      * canonical consent record.
      */
+
     if (
       investor.id !==
         consent.investor_id ||
@@ -286,9 +281,73 @@ export async function GET(
             "Joint investment agreement relationships are inconsistent.",
         },
         {
-          status:
-            409,
+          status: 409,
         },
+      );
+    }
+
+    /*
+     * --------------------------------------------------------
+     * Historical Joint Investment Agreement document
+     * --------------------------------------------------------
+     *
+     * The database historical synchronization maps the
+     * investor's Joint Investment Approved notification onto
+     * this member's individual agreement document.
+     *
+     * Document identity:
+     *
+     *   document_type = joint_investment_agreement
+     *   source_type   = joint_investment_member_consent
+     *   source_id     = consent.id
+     *
+     * We consume historical_published_at only for the
+     * investor-facing chronology.
+     *
+     * The real consent timestamps remain unchanged.
+     * --------------------------------------------------------
+     */
+
+    const {
+      data: documentRecord,
+      error: documentError,
+    } =
+      await admin
+        .from(
+          "investor_documents",
+        )
+        .select(
+          `
+          id,
+          historical_published_at,
+          published_at,
+          effective_date
+          `,
+        )
+        .eq(
+          "investor_id",
+          consent.investor_id,
+        )
+        .eq(
+          "document_type",
+          "joint_investment_agreement",
+        )
+        .eq(
+          "source_type",
+          "joint_investment_member_consent",
+        )
+        .eq(
+          "source_id",
+          consent.id,
+        )
+        .maybeSingle();
+
+    if (
+      documentError
+    ) {
+      console.error(
+        "Joint investment agreement historical date lookup error:",
+        documentError,
       );
     }
 
@@ -312,6 +371,44 @@ export async function GET(
         member.funding_obligation_bps,
       );
 
+    /*
+     * --------------------------------------------------------
+     * Effective investor-facing chronology
+     * --------------------------------------------------------
+     *
+     * Historical override exists:
+     *
+     *   PDF Effective Date = historical_published_at
+     *   Signed             = historical_published_at
+     *   Accepted           = historical_published_at
+     *
+     * No historical override:
+     *
+     *   Existing actual consent chronology remains unchanged.
+     *
+     * This does NOT mutate signed_at or accepted_at.
+     * --------------------------------------------------------
+     */
+
+    const historicalDate =
+      documentRecord
+        ?.historical_published_at ??
+      null;
+
+    const displayedEffectiveDate =
+      historicalDate ??
+      consent.accepted_at ??
+      consent.signed_at;
+
+    const displayedSignedDate =
+      historicalDate ??
+      consent.signed_at;
+
+    const displayedAcceptedDate =
+      historicalDate ??
+      consent.accepted_at ??
+      consent.signed_at;
+
     const pdfBuffer =
       await buildInvestorDocumentPdf(
         {
@@ -331,8 +428,7 @@ export async function GET(
 
           effectiveDate:
             formatDocumentDate(
-              consent.accepted_at ??
-                consent.signed_at,
+              displayedEffectiveDate,
             ),
 
           rows: [
@@ -456,7 +552,7 @@ export async function GET(
                 "Signed",
               value:
                 formatDocumentDate(
-                  consent.signed_at,
+                  displayedSignedDate,
                 ),
             },
             {
@@ -464,7 +560,7 @@ export async function GET(
                 "Accepted",
               value:
                 formatDocumentDate(
-                  consent.accepted_at,
+                  displayedAcceptedDate,
                 ),
             },
             {
@@ -500,8 +596,7 @@ export async function GET(
     return new Response(
       pdfBuffer,
       {
-        status:
-          200,
+        status: 200,
 
         headers: {
           "Content-Type":
@@ -529,44 +624,45 @@ export async function GET(
           "Unable to generate joint investment agreement.",
       },
       {
-        status:
-          500,
+        status: 500,
       },
     );
   }
 }
 
-function normalizeRelation<
-  T,
->(
+function normalizeRelation<T>(
   value:
-    T |
-    T[] |
-    null |
-    undefined,
+    | T
+    | T[]
+    | null
+    | undefined,
 ) {
   if (
     Array.isArray(
       value,
     )
   ) {
-    return value[0] ??
-      null;
+    return (
+      value[0] ??
+      null
+    );
   }
 
-  return value ??
-    null;
+  return (
+    value ??
+    null
+  );
 }
 
 function fullName(
   first:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
   last:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
   return [
     first,
@@ -580,13 +676,11 @@ function fullName(
 
 function humanize(
   value:
-    string |
-    null |
-    undefined,
+    | string
+    | null
+    | undefined,
 ) {
-  if (
-    !value
-  ) {
+  if (!value) {
     return "Not specified";
   }
 
@@ -606,9 +700,9 @@ function humanize(
 
 function formatBasisPoints(
   value:
-    number |
-    null |
-    undefined,
+    | number
+    | null
+    | undefined,
 ) {
   if (
     value === null ||
@@ -619,7 +713,5 @@ function formatBasisPoints(
 
   return `${(
     value / 100
-  ).toFixed(
-    2,
-  )}%`;
+  ).toFixed(2)}%`;
 }

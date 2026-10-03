@@ -1,10 +1,24 @@
-import { ArrowLeft, CheckCircle2, Download, Landmark } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Download,
+  Landmark,
+} from "lucide-react";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import {
+  notFound,
+  redirect,
+} from "next/navigation";
 
-import { checkAccountAccess } from "@/src/lib/auth/account-status";
-import { getCurrentUser } from "@/src/lib/auth/get-current-user";
-import { createAdminClient } from "@/src/lib/supabase/admin";
+import {
+  checkAccountAccess,
+} from "@/src/lib/auth/account-status";
+import {
+  getCurrentUser,
+} from "@/src/lib/auth/get-current-user";
+import {
+  createAdminClient,
+} from "@/src/lib/supabase/admin";
 
 type PageProps = {
   params: Promise<{
@@ -15,71 +29,225 @@ type PageProps = {
 export default async function FundingConfirmationDetailPage({
   params,
 }: PageProps) {
-  const user = await getCurrentUser();
+  const user =
+    await getCurrentUser();
 
-  if (!user) redirect("/login");
-  if (user.role !== "investor") redirect("/dashboard");
+  if (!user) {
+    redirect("/login");
+  }
 
-  const access = await checkAccountAccess(user.id);
-  if (!access.allowed) redirect("/account-restricted");
+  if (
+    user.role !==
+    "investor"
+  ) {
+    redirect("/dashboard");
+  }
 
-  const { paymentId } = await params;
-  const admin = createAdminClient();
+  const access =
+    await checkAccountAccess(
+      user.id,
+    );
 
-  const { data: payment, error: paymentError } = await admin
-    .from("investment_payments")
-    .select(
-      `
-      id,
-      investor_id,
-      opportunity_id,
-      subscription_id,
-      expected_amount,
-      reported_amount,
-      verified_amount,
-      status,
-      investor_reported_at,
-      verified_at,
-      created_at,
-      opportunity:investment_opportunities!investment_payments_opportunity_id_fkey (
-        id,
-        title,
-        asset_category,
-        location
+  if (
+    !access.allowed
+  ) {
+    redirect(
+      "/account-restricted",
+    );
+  }
+
+  const {
+    paymentId,
+  } = await params;
+
+  const admin =
+    createAdminClient();
+
+  const {
+    data: payment,
+    error: paymentError,
+  } =
+    await admin
+      .from(
+        "investment_payments",
       )
-      `,
-    )
-    .eq("id", paymentId)
-    .eq("investor_id", user.id)
-    .eq("status", "verified")
-    .maybeSingle();
+      .select(
+        `
+        id,
+        investor_id,
+        opportunity_id,
+        subscription_id,
+        expected_amount,
+        reported_amount,
+        verified_amount,
+        status,
+        investor_reported_at,
+        verified_at,
+        created_at,
 
-  if (paymentError || !payment) {
-    console.error("Funding confirmation detail load error:", paymentError);
+        opportunity:investment_opportunities!investment_payments_opportunity_id_fkey (
+          id,
+          title,
+          asset_category,
+          location
+        )
+        `,
+      )
+      .eq(
+        "id",
+        paymentId,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .eq(
+        "status",
+        "verified",
+      )
+      .maybeSingle();
+
+  if (
+    paymentError ||
+    !payment
+  ) {
+    console.error(
+      "Funding confirmation detail load error:",
+      paymentError,
+    );
+
     notFound();
   }
 
-  const { data: position, error: positionError } = await admin
-    .from("investment_positions")
-    .select(
-      `
-      id,
-      principal_amount,
-      currency,
-      status,
-      funded_at
-      `,
-    )
-    .eq("payment_id", payment.id)
-    .eq("investor_id", user.id)
-    .maybeSingle();
+  /*
+   * ----------------------------------------------------------
+   * Actual funded position
+   * ----------------------------------------------------------
+   *
+   * position.funded_at remains the real audit timestamp.
+   * ----------------------------------------------------------
+   */
 
-  if (positionError) {
-    console.error("Funding confirmation position load error:", positionError);
+  const {
+    data: position,
+    error: positionError,
+  } =
+    await admin
+      .from(
+        "investment_positions",
+      )
+      .select(
+        `
+        id,
+        principal_amount,
+        currency,
+        status,
+        funded_at
+        `,
+      )
+      .eq(
+        "payment_id",
+        payment.id,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .maybeSingle();
+
+  if (
+    positionError
+  ) {
+    console.error(
+      "Funding confirmation position load error:",
+      positionError,
+    );
   }
 
-  const opportunity = normalizeRelation(payment.opportunity);
-  const currency = position?.currency ?? "USD";
+  /*
+   * ----------------------------------------------------------
+   * Investor-facing historical document date
+   * ----------------------------------------------------------
+   *
+   * The corresponding Funding Verified notification populates
+   * historical_published_at.
+   *
+   * Actual payment/position timestamps remain unchanged.
+   * ----------------------------------------------------------
+   */
+
+  const {
+    data: documentRecord,
+    error: documentError,
+  } =
+    await admin
+      .from(
+        "investor_documents",
+      )
+      .select(
+        `
+        id,
+        historical_published_at,
+        published_at,
+        effective_date
+        `,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .eq(
+        "document_type",
+        "funding_confirmation",
+      )
+      .eq(
+        "source_type",
+        "investment_payment",
+      )
+      .eq(
+        "source_id",
+        payment.id,
+      )
+      .maybeSingle();
+
+  if (
+    documentError
+  ) {
+    console.error(
+      "Funding confirmation historical date lookup error:",
+      documentError,
+    );
+  }
+
+  const opportunity =
+    normalizeRelation(
+      payment.opportunity,
+    );
+
+  const currency =
+    position?.currency ??
+    "USD";
+
+  /*
+   * Historical timestamp controls the investor-facing funding
+   * chronology.
+   *
+   * Actual database timestamps remain untouched.
+   */
+
+  const historicalDate =
+    documentRecord
+      ?.historical_published_at ??
+    null;
+
+  const displayedVerifiedDate =
+    historicalDate ??
+    payment.verified_at;
+
+  const displayedFundedDate =
+    historicalDate ??
+    position?.funded_at ??
+    payment.verified_at;
 
   return (
     <div className="space-y-8">
@@ -120,19 +288,78 @@ export default async function FundingConfirmationDetailPage({
 
         <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
           Confirmed receipt and verification of capital for{" "}
-          {opportunity?.title ?? "your investment"}.
+          {opportunity?.title ??
+            "your investment"}.
         </p>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <DataCard label="Opportunity" value={opportunity?.title ?? "Not available"} />
-          <DataCard label="Verified amount" value={formatMoney(payment.verified_amount, currency)} />
-          <DataCard label="Expected amount" value={formatMoney(payment.expected_amount, currency)} />
-          <DataCard label="Reported amount" value={formatMoney(payment.reported_amount, currency)} />
-          <DataCard label="Verified date" value={formatDate(payment.verified_at)} />
-          <DataCard label="Position" value={position?.id ?? "Not available"} />
-          <DataCard label="Position status" value={humanize(position?.status)} />
-          <DataCard label="Funded date" value={formatDate(position?.funded_at ?? payment.verified_at)} />
-          <DataCard label="Reference" value={payment.id} />
+          <DataCard
+            label="Opportunity"
+            value={
+              opportunity?.title ??
+              "Not available"
+            }
+          />
+
+          <DataCard
+            label="Verified amount"
+            value={formatMoney(
+              payment.verified_amount,
+              currency,
+            )}
+          />
+
+          <DataCard
+            label="Expected amount"
+            value={formatMoney(
+              payment.expected_amount,
+              currency,
+            )}
+          />
+
+          <DataCard
+            label="Reported amount"
+            value={formatMoney(
+              payment.reported_amount,
+              currency,
+            )}
+          />
+
+          <DataCard
+            label="Verified date"
+            value={formatDate(
+              displayedVerifiedDate,
+            )}
+          />
+
+          <DataCard
+            label="Position"
+            value={
+              position?.id ??
+              "Not available"
+            }
+          />
+
+          <DataCard
+            label="Position status"
+            value={humanize(
+              position?.status,
+            )}
+          />
+
+          <DataCard
+            label="Funded date"
+            value={formatDate(
+              displayedFundedDate,
+            )}
+          />
+
+          <DataCard
+            label="Reference"
+            value={
+              payment.id
+            }
+          />
         </div>
 
         {position?.id ? (
@@ -150,12 +377,19 @@ export default async function FundingConfirmationDetailPage({
   );
 }
 
-function DataCard({ label, value }: { label: string; value: string }) {
+function DataCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div className="rounded-2xl bg-ivory-50 p-5">
       <p className="text-[0.62rem] font-semibold uppercase tracking-widest text-stone-400">
         {label}
       </p>
+
       <p className="mt-2 wrap-break-word text-sm font-semibold text-forest-950">
         {value}
       </p>
@@ -163,30 +397,82 @@ function DataCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function normalizeRelation<T>(value: T | T[] | null | undefined) {
-  return Array.isArray(value) ? value[0] ?? null : value ?? null;
+function normalizeRelation<T>(
+  value:
+    | T
+    | T[]
+    | null
+    | undefined,
+) {
+  return Array.isArray(
+    value,
+  )
+    ? value[0] ?? null
+    : value ?? null;
 }
 
 function formatMoney(
-  cents: number | null | undefined,
+  cents:
+    | number
+    | null
+    | undefined,
   currency: string,
 ) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-  }).format(Number(cents ?? 0) / 100);
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style: "currency",
+      currency,
+    },
+  ).format(
+    Number(
+      cents ?? 0,
+    ) / 100,
+  );
 }
 
-function formatDate(value: string | null | undefined) {
-  if (!value) return "Not available";
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date(value));
+function formatDate(
+  value:
+    | string
+    | null
+    | undefined,
+) {
+  if (!value) {
+    return "Not available";
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  ).format(
+    new Date(value),
+  );
 }
 
-function humanize(value: string | null | undefined) {
-  if (!value) return "Not specified";
-  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+function humanize(
+  value:
+    | string
+    | null
+    | undefined,
+) {
+  if (!value) {
+    return "Not specified";
+  }
+
+  return value
+    .replaceAll(
+      "_",
+      " ",
+    )
+    .replace(
+      /\b\w/g,
+      (
+        letter,
+      ) =>
+        letter.toUpperCase(),
+    );
 }

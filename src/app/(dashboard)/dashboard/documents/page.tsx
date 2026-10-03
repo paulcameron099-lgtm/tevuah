@@ -103,6 +103,7 @@ export default async function InvestorDocumentsPage() {
 
       effective_date,
       published_at,
+      historical_published_at,
       historical_document_date,
 
       reconstructed_from_legacy,
@@ -322,19 +323,25 @@ export default async function InvestorDocumentsPage() {
               (
                 document,
               ) => {
-                const displayDate =
-                  document.reconstructed_from_legacy &&
-                  document.historical_document_date
-                    ? document.historical_document_date
-                    : document.effective_date ??
-                      document.published_at?.slice(
-                        0,
-                        10,
-                      ) ??
-                      document.created_at.slice(
-                        0,
-                        10,
-                      );
+               const historicalPublishedAt =
+  document.historical_published_at ?? null;
+
+        const displayDate =
+          historicalPublishedAt ??
+          (document.reconstructed_from_legacy &&
+          document.historical_document_date
+            ? document.historical_document_date
+            : document.effective_date ??
+              document.published_at ??
+              document.created_at);
+
+        const displayDateIncludesTime =
+          Boolean(historicalPublishedAt) ||
+          (!document.effective_date &&
+            !(
+              document.reconstructed_from_legacy &&
+              document.historical_document_date
+            ));
 
                 return (
                   <article
@@ -385,10 +392,10 @@ export default async function InvestorDocumentsPage() {
                           <CalendarDays className="size-3.5 text-gold-600" />
 
                           <span>
-                            {formatDate(
-                              displayDate,
-                            )}
-                          </span>
+                          {displayDateIncludesTime
+                            ? formatDateTime(displayDate)
+                            : formatDate(displayDate)}
+                        </span>
                         </div>
                       </div>
 
@@ -550,24 +557,38 @@ function humanize(
 }
 
 function formatDate(
-  value:
-    string,
+  value: string,
+) {
+  const normalizedValue =
+    /^\d{4}-\d{2}-\d{2}$/.test(value)
+      ? `${value}T00:00:00`
+      : value;
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    },
+  ).format(
+    new Date(normalizedValue),
+  );
+}
+
+function formatDateTime(
+  value: string,
 ) {
   return new Intl.DateTimeFormat(
     "en-US",
     {
-      year:
-        "numeric",
-
-      month:
-        "short",
-
-      day:
-        "numeric",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
     },
   ).format(
-    new Date(
-      `${value}T00:00:00`,
-    ),
+    new Date(value),
   );
 }

@@ -5,12 +5,22 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 
-import { checkAccountAccess } from "@/src/lib/auth/account-status";
-import { getCurrentUser } from "@/src/lib/auth/get-current-user";
-import { createAdminClient } from "@/src/lib/supabase/admin";
+import Link from "next/link";
+import {
+  notFound,
+  redirect,
+} from "next/navigation";
+
+import {
+  checkAccountAccess,
+} from "@/src/lib/auth/account-status";
+import {
+  getCurrentUser,
+} from "@/src/lib/auth/get-current-user";
+import {
+  createAdminClient,
+} from "@/src/lib/supabase/admin";
 
 type PageProps = {
   params: Promise<{
@@ -21,76 +31,114 @@ type PageProps = {
 export default async function JointInvestmentAgreementDetailPage({
   params,
 }: PageProps) {
-  const user = await getCurrentUser();
+  const user =
+    await getCurrentUser();
 
-  if (!user) redirect("/login");
-  if (user.role !== "investor") redirect("/dashboard");
-
-  const access = await checkAccountAccess(user.id);
-
-  if (!access.allowed) {
-    redirect("/account-restricted");
+  if (!user) {
+    redirect("/login");
   }
 
-  const { consentId } = await params;
+  if (
+    user.role !==
+    "investor"
+  ) {
+    redirect("/dashboard");
+  }
 
-  const admin = createAdminClient();
+  const access =
+    await checkAccountAccess(
+      user.id,
+    );
 
-  const { data: consent, error } = await admin
-    .from("joint_investment_member_consents")
-    .select(
-      `
-      id,
-      joint_subscription_id,
-      member_id,
-      investor_id,
+  if (
+    !access.allowed
+  ) {
+    redirect(
+      "/account-restricted",
+    );
+  }
 
-      consent_status,
+  const {
+    consentId,
+  } = await params;
 
-      agreement_version,
-      disclosure_version,
-      agreement_document_ref,
-      disclosure_document_ref,
+  const admin =
+    createAdminClient();
 
-      signature_name,
-      signature_method,
-
-      signed_at,
-      accepted_at,
-      created_at,
-
-      member:joint_investment_members!joint_investment_member_consents_member_id_fkey (
+  const {
+    data: consent,
+    error,
+  } =
+    await admin
+      .from(
+        "joint_investment_member_consents",
+      )
+      .select(
+        `
         id,
         joint_subscription_id,
+        member_id,
         investor_id,
-        member_slot,
-        ownership_bps,
-        funding_obligation_bps,
-        obligation_amount,
-        member_status
-      ),
 
-      joint_subscription:joint_investment_subscriptions!joint_investment_member_consents_joint_subscription_id_fkey (
-        id,
-        opportunity_id,
-        total_commitment_amount,
-        currency,
-        status,
-        opportunity:investment_opportunities (
+        consent_status,
+
+        agreement_version,
+        disclosure_version,
+        agreement_document_ref,
+        disclosure_document_ref,
+
+        signature_name,
+        signature_method,
+
+        signed_at,
+        accepted_at,
+        created_at,
+
+        member:joint_investment_members!joint_investment_member_consents_member_id_fkey (
           id,
-          title,
-          asset_category,
-          location
-        )
-      )
-      `,
-    )
-    .eq("id", consentId)
-    .eq("investor_id", user.id)
-    .eq("consent_status", "accepted")
-    .maybeSingle();
+          joint_subscription_id,
+          investor_id,
+          member_slot,
+          ownership_bps,
+          funding_obligation_bps,
+          obligation_amount,
+          member_status
+        ),
 
-  if (error || !consent) {
+        joint_subscription:joint_investment_subscriptions!joint_investment_member_consents_joint_subscription_id_fkey (
+          id,
+          opportunity_id,
+          total_commitment_amount,
+          currency,
+          status,
+
+          opportunity:investment_opportunities (
+            id,
+            title,
+            asset_category,
+            location
+          )
+        )
+        `,
+      )
+      .eq(
+        "id",
+        consentId,
+      )
+      .eq(
+        "investor_id",
+        user.id,
+      )
+      .eq(
+        "consent_status",
+        "accepted",
+      )
+      .maybeSingle();
+
+  if (
+    error ||
+    !consent
+  ) {
     console.error(
       "Joint investment agreement detail load error:",
       error,
@@ -115,33 +163,137 @@ export default async function JointInvestmentAgreementDetailPage({
     );
 
   /*
-   * Defensive relationship validation.
+   * ----------------------------------------------------------
+   * Defensive relationship validation
+   * ----------------------------------------------------------
    *
    * The page must never display a consent whose member or
    * joint subscription does not match the authenticated
    * investor's canonical consent.
+   * ----------------------------------------------------------
    */
+
   if (
     !member ||
     !jointSubscription ||
-    member.id !== consent.member_id ||
-    member.investor_id !== consent.investor_id ||
-    member.joint_subscription_id !== consent.joint_subscription_id ||
-    jointSubscription.id !== consent.joint_subscription_id
+    member.id !==
+      consent.member_id ||
+    member.investor_id !==
+      consent.investor_id ||
+    member.joint_subscription_id !==
+      consent.joint_subscription_id ||
+    jointSubscription.id !==
+      consent.joint_subscription_id
   ) {
     console.error(
       "Joint investment agreement relationship mismatch:",
       {
-        consentId: consent.id,
+        consentId:
+          consent.id,
       },
     );
 
     notFound();
   }
 
+  /*
+   * ----------------------------------------------------------
+   * Historical Joint Investment Agreement document
+   * ----------------------------------------------------------
+   *
+   * The document synchronization layer maps the investor's
+   * canonical Joint Investment Approved notification onto the
+   * individual member consent document.
+   *
+   * Document identity:
+   *
+   *   document_type = joint_investment_agreement
+   *   source_type   = joint_investment_member_consent
+   *   source_id     = consent.id
+   *   investor_id   = consent.investor_id
+   *
+   * historical_published_at is therefore the investor-facing
+   * historical agreement chronology.
+   *
+   * Actual consent.signed_at / accepted_at / created_at remain
+   * untouched for administration and audit.
+   * ----------------------------------------------------------
+   */
+
+  const {
+    data: documentRecord,
+    error: documentError,
+  } =
+    await admin
+      .from(
+        "investor_documents",
+      )
+      .select(
+        `
+        id,
+        historical_published_at,
+        published_at,
+        effective_date
+        `,
+      )
+      .eq(
+        "investor_id",
+        consent.investor_id,
+      )
+      .eq(
+        "document_type",
+        "joint_investment_agreement",
+      )
+      .eq(
+        "source_type",
+        "joint_investment_member_consent",
+      )
+      .eq(
+        "source_id",
+        consent.id,
+      )
+      .maybeSingle();
+
+  if (
+    documentError
+  ) {
+    console.error(
+      "Joint investment agreement historical date lookup error:",
+      documentError,
+    );
+  }
+
   const currency =
     jointSubscription.currency ??
     "USD";
+
+  /*
+   * ----------------------------------------------------------
+   * Investor-facing agreement chronology
+   * ----------------------------------------------------------
+   *
+   * Historical override:
+   *
+   *   Accepted / agreement date = historical_published_at
+   *
+   * No historical override:
+   *
+   *   Accepted / agreement date =
+   *     accepted_at ?? signed_at
+   *
+   * The actual consent timestamps remain unchanged.
+   * ----------------------------------------------------------
+   */
+
+  const historicalDate =
+    documentRecord
+      ?.historical_published_at ??
+    null;
+
+  const displayedAcceptedDate =
+    historicalDate ??
+    consent.accepted_at ??
+    consent.signed_at;
 
   return (
     <div className="space-y-8">
@@ -295,8 +447,7 @@ export default async function JointInvestmentAgreementDetailPage({
           <DataCard
             label="Accepted"
             value={formatDate(
-              consent.accepted_at ??
-                consent.signed_at,
+              displayedAcceptedDate,
             )}
           />
 
@@ -318,7 +469,9 @@ export default async function JointInvestmentAgreementDetailPage({
 
           <DataCard
             label="Record reference"
-            value={consent.id}
+            value={
+              consent.id
+            }
           />
         </div>
       </section>
@@ -368,7 +521,9 @@ function normalizeRelation<T>(
     | null
     | undefined,
 ) {
-  return Array.isArray(value)
+  return Array.isArray(
+    value,
+  )
     ? value[0] ?? null
     : value ?? null;
 }
@@ -387,8 +542,9 @@ function formatMoney(
       currency,
     },
   ).format(
-    Number(cents ?? 0) /
-      100,
+    Number(
+      cents ?? 0,
+    ) / 100,
   );
 }
 
@@ -438,10 +594,15 @@ function humanize(
   }
 
   return value
-    .replaceAll("_", " ")
+    .replaceAll(
+      "_",
+      " ",
+    )
     .replace(
       /\b\w/g,
-      (letter) =>
+      (
+        letter,
+      ) =>
         letter.toUpperCase(),
     );
 }
