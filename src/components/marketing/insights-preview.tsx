@@ -38,7 +38,7 @@ export function InsightsPreview() {
             <SectionHeading
               eyebrow="Insights"
               title="Perspective for long-term investors."
-              description="Explore thinking around real assets, agriculture, fine wine, technology and the principles behind disciplined long-term investing."
+              description="Explore perspectives on real assets, agriculture, fine wine, technology and the principles behind disciplined long-term investing."
             />
           </motion.div>
 

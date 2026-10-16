@@ -62,37 +62,37 @@ const faqCategories: FaqCategory[] = [
     title:
       "Becoming a Tevuah Reserve investor",
     description:
-      "How investor relationships begin, how access is established and what happens before an investor can proceed.",
+      "Learn how investor relationships begin, how access is established and what happens before an investment can proceed.",
     items: [
       {
         question:
           "How do I become a Tevuah Reserve investor?",
         answer:
-          "Tevuah Reserve does not use public self-registration for investor accounts. Prospective investors begin by contacting the company to discuss their interests and the investment process. Where an investor proceeds, account access is established through the applicable administrative, eligibility and verification process.",
+          "Tevuah Reserve does not offer public self-registration. Prospective investors begin by contacting the company to discuss their interests and the investment process. If the investor decides to proceed, Tevuah Reserve establishes the investor account and completes the applicable administrative, eligibility and verification requirements.",
       },
       {
         question:
           "Why is there no public registration page?",
         answer:
-          "Investor access is deliberately established through the Tevuah Reserve administrative process rather than through automatic public account creation. This allows the company to manage investor onboarding, verification and access before investment activity takes place.",
+          "Investor access is established through a direct onboarding process rather than open public registration. This allows Tevuah Reserve to establish the appropriate investor relationship, complete required verification and provide access based on the applicable eligibility and administrative requirements.",
       },
       {
         question:
           "Does contacting Tevuah Reserve guarantee that I can invest?",
         answer:
-          "No. An enquiry does not guarantee eligibility, account approval, access to a particular opportunity or an investment allocation. Any applicable investor requirements, verification steps and opportunity-specific conditions must be satisfied before an investment can proceed.",
+          "No. Contacting Tevuah Reserve begins a conversation about investor access and available opportunities. It does not guarantee eligibility, acceptance, allocation or investment capacity. Each investment is subject to its applicable requirements, terms and availability.",
       },
       {
         question:
           "What information may be required during investor verification?",
         answer:
-          "Depending on the applicable process, Tevuah Reserve may request identity information, address information and supporting documentation required to verify the investor and complete relevant compliance checks. Additional information may be requested where necessary.",
+          "The information required depends on the applicable investor and investment requirements. Verification may include information needed to establish identity, address, eligibility and other required administrative or compliance information before investment access is provided.",
       },
       {
         question:
           "I already have an investor account. Where should I go?",
         answer:
-          "Existing investors should use the secure investor login to access their dashboard, review investment positions and documents, and continue applicable investment or account activity.",
+          "Existing investors can use their secure investor access to review available portfolio information, investment documents and relevant activity. If you need assistance with your account or access, contact the Tevuah Reserve team.",
       },
     ],
   },
@@ -103,37 +103,37 @@ const faqCategories: FaqCategory[] = [
     title:
       "Reviewing investment opportunities",
     description:
-      "How opportunities are presented and what investors should consider before deciding whether to proceed.",
+      "Understand how opportunities are presented and what to review before deciding whether to proceed.",
     items: [
       {
         question:
           "What types of opportunities does Tevuah Reserve present?",
         answer:
-          "The platform is designed around selected private-market opportunities connected with productive agricultural estates, vineyards, olive agriculture, agricultural technology and fine wine. Availability varies and investors should review the information provided for each individual opportunity.",
+          "Tevuah Reserve offers selected private-market opportunities across productive agricultural estates, vineyards, olive agriculture, agricultural technology and fine wine. Each opportunity has its own structure, terms, minimum investment, duration, risks and disclosures.",
       },
       {
         question:
           "Where can I view current opportunities?",
         answer:
-          "Published opportunities are presented through the Tevuah Reserve investment marketplace. Individual opportunity pages provide the available project information, investment terms, funding information and relevant supporting material.",
+          "Current opportunities are available through the Tevuah Reserve investment opportunities section. Investors can review the information provided for each opportunity and contact the team when they would like to discuss an opportunity or begin the investment process.",
       },
       {
         question:
           "Does every opportunity have the same minimum investment?",
         answer:
-          "No. Minimum investment amounts can differ between opportunities. The applicable minimum should be reviewed on the specific opportunity before an investor begins the investment process.",
+          "No. Minimum investment amounts vary by opportunity. The applicable minimum is stated with the individual investment opportunity and forms part of the terms investors should review before proceeding.",
       },
       {
         question:
           "What happens when an opportunity becomes fully funded?",
         answer:
-          "Once the available investment capacity has been filled, the opportunity is closed to new investment. A fully funded opportunity may remain visible on the platform for transparency and historical context even though additional investment is no longer available.",
+          "Once an opportunity reaches its available funding capacity, additional investment may no longer be accepted. Investors should not assume that an opportunity remains available after it has been fully funded.",
       },
       {
         question:
           "Does Tevuah Reserve guarantee the target return shown for an opportunity?",
         answer:
-          "No. Target returns, projections, assumptions or similar forward-looking information are not guarantees of performance. Actual outcomes can differ materially and investors should consider the risks, assumptions and opportunity-specific documentation before committing capital.",
+          "No. A target return is not a guarantee of performance. Investment outcomes can differ from the stated target and may be affected by the risks, costs, timing and performance associated with the underlying investment. Investors should review the specific return assumptions and risk disclosures before investing.",
       },
     ],
   },
@@ -144,31 +144,31 @@ const faqCategories: FaqCategory[] = [
     title:
       "Building and monitoring exposure",
     description:
-      "How investors can think about different opportunities and use the platform after investing.",
+      "Understand how your investments are viewed and monitored after you invest.",
     items: [
       {
         question:
           "Can Tevuah Reserve help me understand how different opportunities compare?",
         answer:
-          "Tevuah Reserve can provide information about its opportunities, asset categories and platform process and can discuss relevant portfolio considerations. Investors remain responsible for their own investment decisions and should obtain qualified financial, legal or tax advice where personalised advice is required.",
+          "Yes. Tevuah Reserve can provide information about its investment opportunities, asset categories, structures and investment process and can discuss relevant portfolio considerations with investors. Investors remain responsible for their own investment decisions and should obtain qualified financial, legal or tax advice where personalized advice is required.",
       },
       {
         question:
           "What should I consider when building a private-asset portfolio?",
         answer:
-          "Relevant considerations can include investment objectives, time horizon, concentration, asset-category exposure, liquidity expectations, opportunity-specific risks and the amount of capital committed to private investments. The appropriate balance depends on each investor's circumstances.",
+          "Investors should consider factors such as the type of underlying asset, investment structure, minimum commitment, expected holding period, liquidity, potential return, fees, risks and the investor's overall portfolio objectives. Different private assets can behave differently, so investors should consider how each opportunity fits within their broader investment position.",
       },
       {
         question:
           "What can I see in my investor dashboard?",
         answer:
-          "The investor dashboard is designed to provide a structured view of investment positions, relevant documents, transaction activity and other applicable portfolio information made available through the platform.",
+          "The investor dashboard provides access to information associated with an investor's portfolio and investments. Depending on the investment and information available, this can include investment positions, documents, transaction activity, reporting and relevant updates.",
       },
       {
         question:
           "Will I receive operational updates after investing?",
         answer:
-          "Where reporting is available, Tevuah Reserve can provide relevant investment, estate or asset updates through the investor experience. The nature, frequency and source of reporting may vary by opportunity.",
+          "Where relevant information is available, investors can receive updates concerning the underlying investment and its reported activity. The nature and frequency of reporting depend on the investment, underlying asset and information available from the relevant operators and reporting sources.",
       },
     ],
   },
@@ -179,37 +179,37 @@ const faqCategories: FaqCategory[] = [
     title:
       "Subscriptions, funding and joint investments",
     description:
-      "What happens when an investor decides to proceed with an opportunity.",
+      "Understand what happens after an investor decides to proceed with an opportunity.",
     items: [
       {
         question:
           "How does an investor begin an investment?",
         answer:
-          "An eligible investor begins from the relevant opportunity and follows the applicable investment workflow. The process can include reviewing the commitment, completing required acknowledgements or documentation and following the funding instructions made available for that investment.",
+          "An eligible investor begins with the relevant investment opportunity and follows the applicable investment process. This includes reviewing the investment terms, completing required acknowledgements and documentation, and following the funding instructions provided for that investment.",
       },
       {
         question:
           "How are funding instructions provided?",
         answer:
-          "Applicable funding instructions are presented through the controlled investment process. Investors should use only instructions provided through authorised Tevuah Reserve channels and should verify any unexpected request to change payment details before transferring funds.",
+          "Funding instructions are provided through the applicable investment process after the required documentation and acknowledgements have been completed. Investors should use only the funding instructions provided through the authorized Tevuah Reserve process and should contact the team if they have questions before transferring funds.",
       },
       {
         question:
           "Can two investors invest jointly?",
         answer:
-          "Where joint investment is supported, a joint subscription can include an initiating investor and another participating investor. Each required member must complete the applicable acceptance and consent process before the joint investment can progress.",
+          "Joint investment may be available where the structure of a particular opportunity permits it. The applicable ownership, funding, documentation and administrative requirements must be completed for each investor involved.",
       },
       {
         question:
           "Does a joint investment proceed as soon as one person accepts?",
         answer:
-          "No. A joint investment requiring multiple member acceptances does not progress solely because one member has accepted. The required participating members must complete the applicable consent process before the subscription can move to the next stage.",
+          "No. A joint investment does not automatically proceed when only one investor accepts. The applicable requirements for all participating investors must be completed before the investment can proceed.",
       },
       {
         question:
           "Does starting an investment guarantee capacity?",
         answer:
-          "No. Availability can be limited and is subject to the applicable investment and capacity process. Investors should not assume that viewing or beginning an opportunity permanently reserves an allocation unless the platform expressly confirms the relevant reservation or investment status.",
+          "No. Beginning the investment process does not guarantee that investment capacity will remain available. An opportunity may become fully funded or otherwise unavailable before the investment is completed.",
       },
     ],
   },
@@ -220,37 +220,37 @@ const faqCategories: FaqCategory[] = [
     title:
       "Information throughout the investment lifecycle",
     description:
-      "How investment documents, statements and reporting are handled through the platform.",
+      "Understand how investment documents, statements and reporting are provided after you invest.",
     items: [
       {
         question:
           "Where can I access investment documents?",
         answer:
-          "Documents made available to an approved investor can be accessed through the relevant secure investor experience or opportunity workflow, subject to the applicable access controls.",
+          "Approved investors can access documents associated with their investments through the secure investor experience, subject to the applicable access controls. These may include investment documents, reports, statements and other information relevant to the investment.",
       },
       {
         question:
           "Will joint investors have access to relevant documents?",
         answer:
-          "Where documents or statements relate to a joint investment, access can be provided through the applicable joint investment and investor-document framework, subject to the platform's permissions and document controls.",
+          "Access to documents is provided according to the investor's role, ownership and applicable access permissions. Joint investors receive access to information for which they are authorized.",
       },
       {
         question:
           "How are distributions reflected?",
         answer:
-          "Where an investment generates a distribution and that distribution has been processed through the applicable investment structure, relevant distribution activity can be reflected within the investor's investment records and reporting.",
+          "Where an investment makes a distribution, the applicable transaction and distribution information is reflected in the investor's portfolio records and reporting. The timing and treatment of distributions depend on the terms of the individual investment.",
       },
       {
         question:
           "Are estate and AgTech measurements guaranteed to be real-time?",
         answer:
-          "No. Operational and AgTech reporting should be understood according to the source, measurement timestamp, validation process and reporting frequency provided with the relevant data. Not every metric should be assumed to be live or continuously updated.",
+          "No. Estate and AgTech information depends on the underlying reporting systems, monitoring processes and availability of source data. Information may be reported periodically rather than continuously, and reported measurements should not be treated as a guarantee of real-time conditions.",
       },
       {
         question:
           "How is fine-wine valuation information handled?",
         answer:
-          "Wine-specific valuation history or market information should be presented only where supported by appropriate valuation sources and reporting data. Valuations can change and should not be interpreted as guaranteed sale prices or investment returns.",
+          "Fine-wine valuation information is presented based on the valuation information and supporting sources available for the relevant collection or position. Valuations can change over time and should not be treated as guaranteed realizable prices. Investors should consider provenance, authenticity, custody, condition, storage, market conditions and available valuation evidence when reviewing fine-wine investments.",
       },
     ],
   },
@@ -261,43 +261,43 @@ const faqCategories: FaqCategory[] = [
     title:
       "Understanding private investment risk",
     description:
-      "Important considerations that apply before committing capital.",
+      "Private investments involve risks that should be understood before committing capital.",
     items: [
       {
         question:
           "Can I lose money through a Tevuah Reserve investment?",
         answer:
-          "Yes. Private investments involve risk, including the possible loss of some or all invested capital. Investors should assess the risks of each opportunity and should not invest capital they cannot afford to lose.",
+          "Yes. Private investments involve risk, including the possible loss of some or all invested capital. Investors should carefully review the risks associated with each opportunity and should not invest capital they cannot afford to lose.",
       },
       {
         question:
           "Are private investments liquid?",
         answer:
-          "They may not be. Private investments can involve long holding periods and limited or no readily available secondary market. Investors should not assume that an investment can be sold or redeemed whenever they choose.",
+          "Private investments can be illiquid. An investor may not be able to sell or transfer an investment when they want to, and there may be no established secondary market. Investors should consider the potential holding period and liquidity restrictions before committing capital.",
       },
       {
         question:
           "What risks can affect agricultural investments?",
         answer:
-          "Agricultural and estate investments can be affected by factors including weather, climate conditions, crop performance, disease, water availability, labour, operating costs, commodity or product pricing, regulation and execution by operators. Opportunity-specific risks can differ materially.",
+          "Agricultural investments can be affected by factors including weather, climate, water availability, crop yields, operating costs, commodity and market conditions, land and asset values, regulation and the performance of the underlying operator. The specific risks vary by investment and should be reviewed in the opportunity's documentation.",
       },
       {
         question:
           "What risks apply to fine wine?",
         answer:
-          "Fine wine can be affected by valuation changes, market demand, vintage and producer characteristics, provenance, storage conditions, insurance, custody, authenticity, transaction costs and liquidity. Historical pricing does not guarantee future value.",
+          "Fine-wine investments can be affected by changes in market demand, producer and vintage performance, condition, authenticity, provenance, storage, custody, valuation and liquidity. Market values can change, and an investor may not be able to sell wine at a desired price or within a desired timeframe.",
       },
       {
         question:
           "Is information on the website investment advice?",
         answer:
-          "General platform, educational and opportunity information should not be treated as personalised financial, legal or tax advice. Investors should obtain appropriate professional advice where their circumstances require it.",
+          "Information provided on the Tevuah Reserve website is general information about the company, its platform, investment opportunities and related processes. It is not a substitute for personalized financial, legal or tax advice. Investors should obtain independent professional advice where appropriate.",
       },
       {
         question:
           "Where can I read more about investment risk?",
         answer:
-          "Tevuah Reserve provides a dedicated Risk Disclosure page covering important categories of risk associated with the platform and private investments. Opportunity-specific documentation should also be reviewed because individual investments can involve additional risks.",
+          "Investors should review the Tevuah Reserve Risk Disclosure together with the risk information and disclosures provided for each individual investment opportunity.",
       },
     ],
   },
@@ -476,34 +476,18 @@ export default function FaqPage() {
             <FaqReveal delay={0.08}>
               <div>
                 <p className="text-base leading-8 text-stone-700">
-                  Tevuah Reserve brings together
-                  investment opportunities,
-                  investor onboarding, funding,
-                  documents and portfolio
-                  reporting within a structured
-                  private-market experience.
+                  Tevuah Reserve provides access to selected private-market opportunities alongside the investor onboarding, documentation, funding and portfolio reporting required throughout the investment process.
                 </p>
 
                 <p className="mt-6 text-base leading-8 text-stone-700">
-                  These frequently asked
-                  questions explain how the
-                  platform works and highlight
-                  important considerations that
-                  investors should understand
-                  before making an investment
-                  decision.
+                  These frequently asked questions explain how investor access works, how opportunities are reviewed, how investments are funded and how information is provided after an investment is made.
                 </p>
 
                 <div className="mt-8 flex items-start gap-4 rounded-2xl border border-gold-500/25 bg-gold-500/5 p-5">
                   <HelpCircle className="mt-0.5 size-5 shrink-0 text-gold-600" />
 
                   <p className="text-xs leading-6 text-stone-700">
-                    These answers provide general
-                    platform information.
-                    Opportunity-specific terms,
-                    documents and disclosures
-                    should always be reviewed
-                    separately before investing.
+                    The answers below provide general information about the Tevuah Reserve platform. Investors should review the specific terms, documents and disclosures associated with each opportunity before making an investment decision.
                   </p>
                 </div>
               </div>
@@ -620,18 +604,11 @@ export default function FaqPage() {
                 </p>
 
                 <h2 className="font-display mt-4 max-w-3xl text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
-                  Private investments require
-                  careful consideration.
+                  Private investments require careful consideration.
                 </h2>
 
                 <p className="mt-4 max-w-3xl text-sm leading-7 text-white/60">
-                  Investments can be illiquid,
-                  may involve long holding
-                  periods and can result in the
-                  loss of some or all invested
-                  capital. Review both general
-                  and opportunity-specific risks
-                  before investing.
+                  Private investments can be illiquid, may involve extended holding periods and can result in the loss of some or all invested capital. Investors should review both the general risk information provided by Tevuah Reserve and the specific risks disclosed for each opportunity before investing.
                 </p>
               </div>
 
@@ -668,11 +645,7 @@ export default function FaqPage() {
                 </h2>
 
                 <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
-                  Contact the team if you would
-                  like to discuss a particular
-                  opportunity, investor access or
-                  another question about the
-                  platform.
+                  Contact the team to discuss a particular opportunity, investor access, the investment process or any other question about Tevuah Reserve.
                 </p>
               </div>
 

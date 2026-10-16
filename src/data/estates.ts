@@ -3,22 +3,34 @@ import type { Estate } from "@/src/types/estate";
 export const estates: Estate[] = [
   {
     id: "estate_val_dorcia",
-    slug: "val-dorcia-vineyard-estate",
-    name: "Val d’Orcia Vineyard Estate",
+    slug: "Bordeaux_Grand_Cru_Vineyard_Estate",
+    name: "Bordeaux Grand Cru Vineyard Estate",
+
+    overviewHeading:
+      "Established vineyard land with a long-term stewardship focus.",
+    infrastructureHeading:
+      "The physical systems supporting agricultural operations.",
+    intelligenceHeading:
+      "Agricultural reporting designed around the estate.",
+    intelligenceDescription:
+      "Estate reporting brings together field observations, production records and resource-use information to support operational oversight and informed assessment.",
+    relatedInvestmentsHeading:
+      "Explore the investment associated with this estate.",
+
     estateType: "vineyard",
     estateTypeLabel: "Vineyard Estate",
-    country: "Italy",
-    region: "Tuscany",
-    location: "Val d’Orcia, Tuscany, Italy",
+    country: "France",
+    region: "Bordeaux Grand Cru",
+    location: "Bordeaux Grand Cru Vineyard Estate",
     summary:
-      "An illustrative Tuscan vineyard estate combining productive vines, agricultural infrastructure and long-term estate development.",
+      "A Bordeaux vineyard estate focused on established wine-production infrastructure, productive vineyard land and long-term estate stewardship.",
     description:
-      "The Val d’Orcia Vineyard Estate is presented as a demonstration of how Tevuah Reserve can showcase productive agricultural assets with clear estate information, operational metrics, project context and related investment opportunities.",
+      "The Bordeaux Grand Cru Vineyard Estate focuses on productive vineyard land, wine-production infrastructure and the agricultural management required to maintain long-term estate value. Its operating priorities include vineyard maintenance, resource management, production planning and the preservation of productive capacity.",
     status: "Operating",
-    totalHectares: 86,
-    productiveHectares: 54,
+    totalHectares: 145,
+    productiveHectares: 92,
     primaryCrop: "Wine grapes",
-    established: "Illustrative 1998",
+    established: "Illustrative 1986",
     heroImage: "/images/estates/val-dorcia/hero.jpg",
     cardImage: "/images/estates/val-dorcia/card.jpg",
     coordinates: {
@@ -28,12 +40,12 @@ export const estates: Estate[] = [
     metrics: [
       {
         label: "Total estate",
-        value: "86 ha",
+        value: "145 ha",
         description: "Illustrative total land area",
       },
       {
         label: "Productive vineyard",
-        value: "54 ha",
+        value: "92 ha",
         description: "Illustrative planted area",
       },
       {
@@ -68,65 +80,77 @@ export const estates: Estate[] = [
       {
         title: "Vineyard blocks",
         description:
-          "Illustrative productive blocks managed across multiple planting zones.",
+          "Productive vineyard parcels support vine management, seasonal maintenance and harvest planning.",
       },
       {
-        title: "Irrigation network",
+        title: "Water and soil management",
         description:
-          "Water-management infrastructure designed to support vineyard operations.",
+          "Water distribution, drainage and soil monitoring support resource management and vineyard resilience.",
+      },
+      {
+        title: "Production and storage",
+        description:
+          "Winery and storage facilities, where included in the estate's operating structure, support grape handling and wine production.",
       },
       {
         title: "Estate access",
         description:
-          "Internal agricultural roads and operating access across the property.",
-      },
-      {
-        title: "Storage and operations",
-        description:
-          "Illustrative facilities supporting tools, equipment and estate management.",
+          "Internal roads and equipment access support routine vineyard maintenance and seasonal operations.",
       },
     ],
     technology: [
       {
         title: "Soil monitoring",
         description:
-          "Potential soil-moisture and field-condition monitoring across selected vineyard zones.",
+          "Track soil conditions, moisture levels and field observations across vineyard parcels.",
       },
       {
         title: "Weather observations",
         description:
-          "Estate-level weather data can support agricultural planning and investor reporting.",
+          "Review local weather information to support seasonal planning and vineyard management.",
       },
       {
-        title: "Harvest reporting",
+        title: "Harvest metrics",
         description:
-          "Production and harvest milestones can be published through the investor dashboard.",
+          "Record harvest timing, crop volumes and production milestones using estate operating records.",
       },
     ],
     relatedOpportunitySlugs: [
-      "val-dorcia-vineyard-estate",
+      "Bordeaux-Grand-Cru-Vineyard-Estate",
     ],
     featured: true,
   },
 
   {
     id: "estate_andalusia",
-    slug: "andalusia-heritage-olive-estate",
-    name: "Andalusia Heritage Olive Estate",
+    slug: "Andalusia_Olive_Estate",
+    name: "Andalusia Olive Estate",
+
+    overviewHeading:
+      "Productive olive agriculture with a focus on efficient estate operations.",
+    infrastructureHeading:
+      "The physical systems supporting agricultural operations.",
+    intelligenceHeading:
+      "Agricultural reporting designed around the estate.",
+    intelligenceDescription:
+      "Estate reporting connects field observations, water use and harvest records to support operational oversight and agricultural planning.",
+    relatedInvestmentsHeading:
+      "Explore opportunities associated with Andalusia.",
+
     estateType: "olive",
     estateTypeLabel: "Olive Estate",
     country: "Spain",
     region: "Andalusia",
     location: "Andalusia, Spain",
     summary:
-      "An illustrative Mediterranean olive estate focused on productive groves, irrigation efficiency and premium agricultural operations.",
+      "An olive-growing estate in Andalusia focused on productive groves, agricultural infrastructure, efficient water management and long-term operating performance.",
     description:
-      "This estate profile demonstrates how Tevuah Reserve can present grove characteristics, infrastructure, production context and estate-level reporting for olive-focused agricultural assets.",
+      "The Andalusia Olive Estate focuses on commercial olive cultivation, agricultural infrastructure and the management of productive land. Estate priorities include grove maintenance, water efficiency, harvest planning and improvements to operating infrastructure that support long-term agricultural productivity.",
     status: "Operating",
-    totalHectares: 124,
-    productiveHectares: 96,
+    totalHectares: 380,
+    productiveHectares: 310,
     primaryCrop: "Olives",
-    established: "Illustrative 1987",
+    established: "1978",
     heroImage: "/images/estates/andalusia/hero.jpg",
     cardImage: "/images/estates/andalusia/card.jpg",
     coordinates: {
@@ -136,11 +160,11 @@ export const estates: Estate[] = [
     metrics: [
       {
         label: "Total estate",
-        value: "124 ha",
+        value: "320 ha",
       },
       {
         label: "Productive groves",
-        value: "96 ha",
+        value: "310 ha",
       },
       {
         label: "Irrigation",
@@ -173,65 +197,77 @@ export const estates: Estate[] = [
       {
         title: "Productive groves",
         description:
-          "Illustrative mature olive blocks across the estate.",
+          "Managed olive-growing parcels support pruning, seasonal maintenance and harvest planning.",
       },
       {
-        title: "Drip irrigation",
+        title: "Irrigation network",
         description:
-          "Water distribution infrastructure supporting targeted grove irrigation.",
+          "Water distribution infrastructure supports irrigation management and efficient resource use.",
       },
       {
         title: "Harvest access",
         description:
-          "Agricultural access routes supporting seasonal harvesting.",
+          "Agricultural roads and equipment access support seasonal harvesting and movement of harvested olives.",
       },
       {
-        title: "Estate operations",
+        title: "Storage and processing",
         description:
-          "Illustrative storage and operating facilities.",
+          "Storage facilities and access to suitable processing infrastructure support post-harvest handling and production workflows.",
       },
     ],
     technology: [
       {
         title: "Water-use monitoring",
         description:
-          "Illustrative reporting on irrigation volumes and grove-level efficiency.",
+          "Track irrigation activity and water consumption to support resource planning.",
       },
       {
         title: "Crop observations",
         description:
-          "Operational observations can be recorded throughout the growing cycle.",
+          "Record grove conditions, tree development and seasonal maintenance activity.",
       },
       {
         title: "Harvest metrics",
         description:
-          "Yield and harvest information can feed future investor reports.",
+          "Monitor harvest timing, collected volumes and production outcomes using documented estate records.",
       },
     ],
     relatedOpportunitySlugs: [
-      "andalusia-heritage-olive-estate",
+      "Andalusia-Olive-Estate",
     ],
     featured: true,
   },
 
   {
     id: "estate_alentejo",
-    slug: "alentejo-olive-estate",
-    name: "Alentejo Olive Estate",
+    slug: "Kalamata_Olive_Estate",
+    name: "Kalamata Olive Estate",
+
+    overviewHeading:
+      "Olive-growing land with a focus on long-term agricultural productivity.",
+    infrastructureHeading:
+      "The physical systems supporting agricultural operations.",
+    intelligenceHeading:
+      "Agricultural reporting designed around the estate.",
+    intelligenceDescription:
+      "Agricultural reporting connects field observations with resource use, cultivation activities and seasonal production records.",
+    relatedInvestmentsHeading:
+      "Explore opportunities associated with the Kalamata region.",
+
     estateType: "olive",
     estateTypeLabel: "Olive Estate",
-    country: "Portugal",
-    region: "Alentejo",
-    location: "Alentejo, Portugal",
+    country: "Greece",
+    region: "Kalamata",
+    location: "Kalamata, Greece",
     summary:
-      "An illustrative Portuguese olive estate combining productive agriculture with modern water infrastructure.",
+      "An olive-growing estate in the Kalamata region focused on agricultural development, productive land and infrastructure supporting long-term cultivation.",
     description:
-      "The Alentejo estate demonstrates how agricultural infrastructure, land use, production zones and operating information can be presented alongside investment opportunities.",
+      "The Kalamata Olive Estate focuses on olive cultivation, productive agricultural land and the infrastructure required to support efficient grove management. Its operating priorities include tree maintenance, soil care, water management and the coordination of harvesting and post-harvest activities.",
     status: "Development",
-    totalHectares: 148,
-    productiveHectares: 105,
+    totalHectares: 165,
+    productiveHectares: 128,
     primaryCrop: "Olives",
-    established: "Illustrative development estate",
+    established: "1989",
     heroImage: "/images/estates/alentejo/hero.jpg",
     cardImage: "/images/estates/alentejo/card.jpg",
     coordinates: {
@@ -241,11 +277,11 @@ export const estates: Estate[] = [
     metrics: [
       {
         label: "Total estate",
-        value: "148 ha",
+        value: "165 ha",
       },
       {
         label: "Productive area",
-        value: "105 ha",
+        value: "128 ha",
       },
       {
         label: "Development",
@@ -276,55 +312,77 @@ export const estates: Estate[] = [
     ],
     infrastructure: [
       {
-        title: "Irrigation expansion",
+        title: "Productive groves",
         description:
-          "Illustrative development programme for targeted water infrastructure.",
+          "Olive-growing parcels support tree management, pruning, soil care and seasonal maintenance.",
       },
       {
-        title: "Grove development",
+        title: "Water and soil management",
         description:
-          "Productive and developing olive blocks across the estate.",
+          "Irrigation planning and soil-condition monitoring support resource management and grove development.",
       },
       {
-        title: "Operating routes",
+        title: "Harvest operations",
         description:
-          "Internal agricultural access supporting estate activity.",
+          "Harvest planning, equipment access and handling arrangements support the collection and movement of olives.",
+      },
+      {
+        title: "Storage and processing",
+        description:
+          "Storage arrangements and access to suitable olive-processing facilities support post-harvest handling.",
       },
     ],
     technology: [
       {
-        title: "Irrigation reporting",
+        title: "Field-condition monitoring",
         description:
-          "Illustrative water-use metrics for investor reporting.",
+          "Record observations on tree condition, soil moisture and grove maintenance.",
       },
       {
-        title: "Field monitoring",
+        title: "Weather observations",
         description:
-          "Potential sensor-assisted monitoring across productive blocks.",
+          "Review seasonal weather information to support irrigation and harvest planning.",
+      },
+      {
+        title: "Harvest reporting",
+        description:
+          "Track harvest timing, collected volumes and production records across productive parcels.",
       },
     ],
-    relatedOpportunitySlugs: ["alentejo-olive-estate"],
+    relatedOpportunitySlugs: ["Kalamata-Olive-Estate"],
     featured: false,
   },
 
   {
     id: "estate_rioja",
-    slug: "rioja-vineyard-development",
-    name: "Rioja Vineyard Development",
+    slug: "Napa_Valley_VineyardEstate",
+    name: "Napa Valley Vineyard Estate",
+
+    overviewHeading:
+      "Premium vineyard land with a focus on productive capacity.",
+    infrastructureHeading:
+      "The physical systems supporting agricultural operations.",
+    intelligenceHeading:
+      "Agricultural reporting designed around the estate.",
+    intelligenceDescription:
+      "Structured reporting connects vineyard observations with operating records and seasonal production information.",
+    relatedInvestmentsHeading:
+      "Explore the investment associated with this estate.",
+
     estateType: "vineyard",
     estateTypeLabel: "Vineyard Estate",
-    country: "Spain",
-    region: "La Rioja",
-    location: "La Rioja, Spain",
+    country: "United States",
+    region: "Napa Valley",
+    location: "Napa Valley, United States",
     summary:
-      "An illustrative vineyard-development estate focused on planting, infrastructure and long-term productive capacity.",
+      "A premium Napa Valley vineyard estate focused on expanding productive acreage, improving agricultural infrastructure and strengthening long-term production capacity.",
     description:
-      "This profile represents an estate still progressing through development, allowing Tevuah Reserve to communicate milestones, planted area and infrastructure build-out.",
+      "The Napa Valley Vineyard Estate focuses on vineyard cultivation, agricultural infrastructure and the operational requirements of premium wine production. Estate management priorities include productive acreage, crop quality, resource efficiency and infrastructure capable of supporting long-term agricultural operations.",
     status: "Development",
-    totalHectares: 72,
-    productiveHectares: 26,
+    totalHectares: 210,
+    productiveHectares: 125,
     primaryCrop: "Wine grapes",
-    established: "Illustrative development programme",
+    established: "1994",
     heroImage: "/images/estates/rioja/hero.jpg",
     cardImage: "/images/estates/rioja/card.jpg",
     coordinates: {
@@ -334,11 +392,11 @@ export const estates: Estate[] = [
     metrics: [
       {
         label: "Total estate",
-        value: "72 ha",
+        value: "210 ha",
       },
       {
         label: "Currently productive",
-        value: "26 ha",
+        value: "125 ha",
       },
       {
         label: "Planned planting",
@@ -369,35 +427,45 @@ export const estates: Estate[] = [
     ],
     infrastructure: [
       {
-        title: "Planting programme",
+        title: "Vineyard management",
         description:
-          "Illustrative phased development of additional vineyard blocks.",
+          "Vineyard parcels support planting management, seasonal maintenance and monitoring of vine development.",
       },
       {
-        title: "Water infrastructure",
+        title: "Irrigation and water efficiency",
         description:
-          "Agricultural water systems planned alongside new productive areas.",
+          "Irrigation infrastructure supports crop requirements and resource management in response to local conditions.",
       },
       {
-        title: "Estate roads",
+        title: "Equipment and maintenance",
         description:
-          "Access improvements supporting operations and future harvests.",
+          "Agricultural equipment and maintenance facilities support routine fieldwork and seasonal operations.",
+      },
+      {
+        title: "Production facilities",
+        description:
+          "Wine-production and post-harvest facilities, where included, support grape handling and production workflows.",
       },
     ],
     technology: [
       {
-        title: "Development tracking",
+        title: "Field monitoring",
         description:
-          "Investor reporting can show planting and infrastructure milestones.",
+          "Record vineyard conditions, vine development and maintenance activity across productive parcels.",
       },
       {
-        title: "Field observations",
+        title: "Climate observations",
         description:
-          "Illustrative vineyard health and establishment data.",
+          "Review seasonal weather patterns relevant to crop planning and vineyard management.",
+      },
+      {
+        title: "Harvest reporting",
+        description:
+          "Track harvest volumes, crop condition and production milestones using documented records.",
       },
     ],
     relatedOpportunitySlugs: [
-      "rioja-vineyard-development",
+      "Napa-Valley-Vineyard-Estate",
     ],
     featured: false,
   },

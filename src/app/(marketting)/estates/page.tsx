@@ -91,11 +91,7 @@ export default function EstatesPage() {
 
             <EstatesHeroReveal delay={0.31}>
               <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-                Explore illustrative vineyard and
-                olive estates through operating
-                metrics, development context,
-                agricultural infrastructure and
-                related investment opportunities.
+                Explore vineyard and olive estates across established agricultural regions, with a focus on productive land, agricultural infrastructure, operating conditions and long-term stewardship.
               </p>
             </EstatesHeroReveal>
           </div>
@@ -111,7 +107,7 @@ export default function EstatesPage() {
                   </p>
 
                   <p className="mt-1 text-xs text-white/45">
-                    Illustrative portfolio
+                    Selected estate profiles
                   </p>
                 </div>
               </div>
@@ -127,7 +123,7 @@ export default function EstatesPage() {
                   </p>
 
                   <p className="mt-1 text-xs text-white/45">
-                    Total illustrative land
+                    Total estate land
                   </p>
                 </div>
               </div>
@@ -233,11 +229,7 @@ export default function EstatesPage() {
               delay={0.08}
             >
               <p className="max-w-xl text-sm leading-7 text-stone-700">
-                Each estate profile is designed
-                to combine agricultural
-                information, infrastructure,
-                operating context and related
-                investment opportunities.
+                Each estate profile brings together the agricultural setting, development objectives, operating infrastructure and related investment opportunities.
               </p>
             </EstatesRevealSoft>
           </div>
@@ -254,16 +246,7 @@ export default function EstatesPage() {
           <EstatesRevealSoft>
             <div className="mt-12 rounded-2xl border border-gold-500/25 bg-gold-500/5 px-6 py-5">
               <p className="text-xs leading-6 text-stone-700">
-                Estate names, locations, operating
-                metrics, photographs and
-                agricultural characteristics
-                shown here are illustrative.
-                Verified property, operator and
-                site-specific information must
-                replace demonstration content
-                before it is used in connection
-                with a genuine investment
-                offering.
+                Our approach considers the land, agricultural operations, infrastructure and management practices that shape each estate's long-term prospects. Estate-level information provides context for understanding the underlying assets and the considerations associated with their development and stewardship.
               </p>
             </div>
           </EstatesRevealSoft>

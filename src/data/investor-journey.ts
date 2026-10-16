@@ -16,30 +16,30 @@ export type InvestorJourneyStep = {
 export const investorJourneySteps: InvestorJourneyStep[] = [
   {
     number: "01",
-    title: "Create your account",
+    title: "Speak with our team",
     description:
-      "Register securely and complete the required investor profile, identity and eligibility checks.",
+      "Contact Tevuah Reserve to discuss your investment interests, objectives and available opportunities with an Investment Specialist.",
     icon: ShieldCheck,
   },
   {
     number: "02",
     title: "Explore opportunities",
     description:
-      "Review the estate, investment structure, supporting documents, risk information and project timeline.",
+      "Review the underlying asset, investment structure, supporting documents, risk information, financial terms and project timeline.",
     icon: FileSearch,
   },
   {
     number: "03",
-    title: "Make a commitment",
+    title: "Complete investor onboarding",
     description:
-      "Select an opportunity, review the relevant agreements and complete the investment commitment process.",
+      "Our team coordinates your account setup and required verification before guiding you through the commitment and funding process.",
     icon: WalletCards,
   },
   {
     number: "04",
-    title: "Follow its progress",
+    title: "Follow your investment",
     description:
-      "Track reports, estate milestones, operational data, portfolio activity and future distributions.",
+      "Access relevant portfolio reports, asset updates, operational milestones, investment documents and distribution information through your investor account, as applicable.",
     icon: BarChart3,
   },
 ];

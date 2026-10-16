@@ -35,42 +35,42 @@ export const investmentPrinciples: InvestmentPrinciple[] = [
     id: "real-assets",
     title: "Real-asset orientation",
     description:
-      "We focus the platform experience on productive estates, agricultural infrastructure and carefully presented collectible assets.",
+      "Tevuah Reserve focuses on productive estates, agricultural infrastructure and carefully selected collectible assets with identifiable underlying value.",
     icon: Landmark,
   },
   {
     id: "long-term",
     title: "Long-term perspective",
     description:
-      "Cultivated assets often require patience, operating discipline and realistic holding periods rather than short-term speculation.",
+      "Cultivated assets require patience, operational discipline and realistic holding periods. Our approach is built around long-term ownership and responsible asset management rather than short-term speculation.",
     icon: Sprout,
   },
   {
     id: "transparency",
     title: "Visible information",
     description:
-      "Investors should be able to understand the asset, structure, assumptions, risks, fees and operating context before committing.",
+      "Investors should be able to understand the asset, investment structure, assumptions, fees, risks and operating context before committing capi",
     icon: Eye,
   },
   {
     id: "risk-awareness",
     title: "Risk-aware presentation",
     description:
-      "Opportunity design should explain material risks clearly rather than hiding uncertainty behind optimistic marketing.",
+      "Investment opportunities are presented with clear information about material risks and uncertainty rather than relying on optimistic marketing or performance-focused messaging.",
     icon: Scale,
   },
   {
     id: "documentation",
     title: "Documented review",
     description:
-      "Investment decisions should be supported by structured documentation, version control and defined review processes.",
+      "Investment decisions are supported by structured documentation, controlled records and defined review procedures.",
     icon: FileCheck2,
   },
   {
     id: "stewardship",
     title: "Responsible stewardship",
     description:
-      "Agricultural assets should be managed with attention to land, water, operating sustainability and long-term productivity.",
+      "Agricultural assets require responsible management of land, water, infrastructure and natural resources. Stewardship is considered part of long-term asset performance.",
     icon: Leaf,
   },
 ];
@@ -80,37 +80,37 @@ export const governanceStages: GovernanceStage[] = [
     number: "01",
     title: "Initial screening",
     description:
-      "Review whether the asset and proposed structure fit the platform mandate.",
+      "Assess whether the asset, investment strategy and proposed structure meet the Tevuah Reserve mandate.",
   },
   {
     number: "02",
     title: "Commercial review",
     description:
-      "Assess asset quality, operating model, market context and project economics.",
+      "Evaluate asset quality, operating model, market context, development plans and project economics.",
   },
   {
     number: "03",
     title: "Legal and structural review",
     description:
-      "Review ownership, entity structure, contracts, investor rights and regulatory considerations.",
+      "Review ownership, legal entities, contractual arrangements, investor rights and applicable regulatory considerations.",
   },
   {
     number: "04",
     title: "Financial review",
     description:
-      "Assess assumptions, use of funds, fee structure, liquidity and valuation methodology.",
+      "Evaluate financial assumptions, use of funds, fee structure, liquidity considerations, valuation methodology and relevant financial information.",
   },
   {
     number: "05",
     title: "Risk and disclosure review",
     description:
-      "Identify material risks and confirm that investor-facing disclosures are clear and complete.",
+      "Identify material risks and ensure that investor-facing information and disclosures provide a clear representation of the opportunity.",
   },
   {
     number: "06",
     title: "Publication approval",
     description:
-      "Only approved opportunities should become visible to eligible investors.",
+      "Opportunities that satisfy the applicable review requirements are approved for presentation to eligible investors.",
   },
 ];
 

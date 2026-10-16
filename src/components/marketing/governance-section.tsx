@@ -22,6 +22,7 @@ const reviewStages = [
   "Legal and structural review",
   "Financial assumptions",
   "Risk and disclosure preparation",
+  "Due-diligence framework"
 ];
 
 export function GovernanceSection() {
@@ -48,7 +49,7 @@ export function GovernanceSection() {
             <SectionHeading
               eyebrow="Governance and trust"
               title="Trust should be supported by systems, evidence and oversight."
-              description="A professional investment platform must make its review process, documentation, risks and operational controls visible—not merely rely on design or marketing claims."
+              description="A professional investment platform must make its review process, documentation, risks and operational controls visible. Confidence should be built through evidence, accountability and disciplined processes—not simply through presentation or marketing."
               className="max-w-5xl"
             />
           </motion.div>
@@ -168,7 +169,7 @@ export function GovernanceSection() {
               }}
             >
               <Image
-                src="/images/sections/governance-estate-review.jpg"
+                src="/images/sections/governance-estate-review.PNG"
                 alt="Professional estate review representing Tevuah Reserve governance and due diligence"
                 fill
                 sizes="(max-width: 1024px) 100vw, 48vw"
@@ -177,58 +178,6 @@ export function GovernanceSection() {
             </motion.div>
 
             <div className="absolute inset-0 bg-linear-to-t from-forest-950/75 via-forest-950/15 to-transparent" />
-
-            <motion.div
-              className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/15 bg-forest-950/65 p-5 text-white backdrop-blur-md sm:bottom-8 sm:left-8 sm:right-auto sm:max-w-md"
-              initial={
-                reduceMotion
-                  ? false
-                  : {
-                      opacity: 0,
-                      y: 20,
-                      scale: 0.985,
-                    }
-              }
-              whileInView={{
-                opacity: 1,
-                y: 0,
-                scale: 1,
-              }}
-              viewport={{
-                once: true,
-                amount: 0.45,
-              }}
-              transition={{
-                duration: 0.8,
-                delay: reduceMotion ? 0 : 0.22,
-                ease: premiumEase,
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <motion.span
-                  initial={reduceMotion ? false : { opacity: 0, scale: 0.75 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{
-                    duration: 0.55,
-                    delay: reduceMotion ? 0 : 0.3,
-                    ease: premiumEase,
-                  }}
-                >
-                  <SearchCheck className="size-5 text-gold-400" />
-                </motion.span>
-
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-400">
-                  Review before publication
-                </p>
-              </div>
-
-              <p className="mt-4 text-sm leading-7 text-white/70">
-                The platform should not present an opportunity as approved
-                simply because basic information or attractive imagery has
-                been uploaded.
-              </p>
-            </motion.div>
           </div>
 
           {/* Framework */}
@@ -309,7 +258,7 @@ export function GovernanceSection() {
                 },
               }}
             >
-              Review the opportunity before inviting investor capital.
+              Due diligence begins before investor capital.
             </motion.h3>
 
             <motion.p
@@ -329,10 +278,7 @@ export function GovernanceSection() {
                 },
               }}
             >
-              Before a real opportunity is published, Tevuah Reserve should
-              have a defined internal process for reviewing the asset,
-              operator, ownership structure, financial model, legal documents,
-              fees and material risks.
+              Before an opportunity is made available, Tevuah Reserve reviews the asset, operator, ownership structure, financial model, legal documentation, fees and material risks.
             </motion.p>
 
             <motion.ul
@@ -409,10 +355,7 @@ export function GovernanceSection() {
               }}
             >
               <p className="text-xs leading-6 text-stone-700">
-                The final governance and compliance process must be designed
-                with qualified legal, financial and regulatory advisers for
-                the jurisdictions where the platform, assets and investors are
-                located.
+                The governance and compliance framework is supported by qualified legal, financial and regulatory advisers appropriate to the jurisdictions in which the platform, assets and investors operate.
               </p>
             </motion.div>
           </motion.div>

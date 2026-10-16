@@ -43,13 +43,14 @@ export const investorProcessSteps: InvestorProcessStep[] = [
   {
     id: "create-account",
     number: "02",
-    title: "Create your account",
+    title: "Speak with an Investment Specialist",
     description:
-      "Register for secure investor access and begin building your investor profile.",
+      "Start your investor journey by contacting Tevuah Reserve and discussing your interests and investment objectives with an Investment Specialist.",
     details: [
-      "Email and password registration",
-      "Personal profile information",
-      "Account security setup",
+      "Discuss your investment objectives",
+      "Explore relevant opportunities",
+      "Receive guidance on the investment process",
+      "Investor access established by Tevuah Reserve",
     ],
     icon: UserRoundPlus,
   },

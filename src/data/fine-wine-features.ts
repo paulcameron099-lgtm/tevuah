@@ -18,28 +18,28 @@ export const fineWineFeatures: FineWineFeature[] = [
     id: "provenance",
     title: "Provenance review",
     description:
-      "Records should document origin, producer, vintage, acquisition history and available authenticity information.",
+      "Records document origin, producer, vintage, acquisition history and available authenticity information.",
     icon: FileCheck2,
   },
   {
     id: "storage",
     title: "Professional storage",
     description:
-      "Investment-grade wine should be held under controlled conditions with clear storage records and access procedures.",
+      "Investment-grade wine is held under controlled conditions with documented storage arrangements, custody procedures and appropriate access controls.",
     icon: Archive,
   },
   {
     id: "protection",
     title: "Asset protection",
     description:
-      "Insurance, custody arrangements and ownership records should be clearly presented to investors.",
+      "Insurance, custody arrangements and ownership records are maintained and presented as part of the asset documentation.",
     icon: ShieldCheck,
   },
   {
     id: "reporting",
     title: "Portfolio reporting",
     description:
-      "Investors should be able to review holdings, valuations, activity and relevant market commentary.",
+      "Investors can review holdings, valuations, activity and relevant market information associated with their wine portfolio.",
     icon: ChartNoAxesCombined,
   },
 ];

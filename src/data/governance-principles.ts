@@ -20,42 +20,42 @@ export const governancePrinciples: GovernancePrinciple[] = [
     id: "review",
     title: "Structured opportunity review",
     description:
-      "Each opportunity should pass through documented commercial, operational, legal and financial review before publication.",
+      "Each opportunity undergoes documented commercial, operational, legal and financial review before being made available to investors.",
     icon: ClipboardCheck,
   },
   {
     id: "legal-structure",
     title: "Clear investment structure",
     description:
-      "Investors should understand what they own, how the project is structured and which legal entity manages the asset.",
+      "Investors should understand what they own, how the investment is structured and which legal entity manages the underlying asset.",
     icon: Landmark,
   },
   {
     id: "risk-disclosure",
     title: "Visible risk disclosure",
     description:
-      "Material risks, fees, holding periods, liquidity limits and assumptions should be easy to locate and understand.",
+      "Material risks, fees, holding periods, liquidity limitations and key assumptions are presented clearly and made accessible throughout the investment process.",
     icon: Scale,
   },
   {
     id: "documents",
     title: "Controlled documentation",
     description:
-      "Offering documents, agreements and reports should be versioned, permissioned and stored securely.",
+      "Offering documents, agreements and reports are version-controlled, permissioned and securely maintained.",
     icon: FileLock2,
   },
   {
     id: "reporting",
     title: "Ongoing reporting",
     description:
-      "Investors should receive relevant project updates, operating information and financial records throughout the investment period.",
+      "Investors receive relevant project updates, operating information and financial records throughout the investment period.",
     icon: ScrollText,
   },
   {
     id: "oversight",
     title: "Operational oversight",
     description:
-      "Sensitive actions should be permission-based, auditable and subject to appropriate internal approval controls.",
+      "Sensitive actions are permission-based, auditable and subject to appropriate internal approval controls.",
     icon: ShieldCheck,
   },
 ];

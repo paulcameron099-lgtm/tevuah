@@ -98,10 +98,7 @@ export default function AgTechPage() {
 
             <AgTechHeroReveal delay={0.31}>
               <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-                Tevuah Reserve is designed to bring operational
-                agricultural information into a structured investor
-                experience through monitoring, reporting and verified
-                estate updates.
+                Tevuah Reserve integrates agricultural technology into estate operations to help capture, organize and report information that matters to asset management and investor oversight.
               </p>
             </AgTechHeroReveal>
 
@@ -163,14 +160,11 @@ export default function AgTechPage() {
 
             <AgTechReveal>
               <h2 className="font-display max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl lg:text-6xl">
-                Technology should support the estate—not distract from the
-                asset.
+                Technology should strengthen the asset, not distract from it.
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
-                The objective is not to turn agriculture into a technology
-                demonstration. Data should make estate operations easier to
-                understand, verify and report.
+                Agricultural technology has value when it improves how an estate is monitored, managed and understood. We focus on practical tools that help bring reliable field information into a structured reporting environment.
               </p>
             </AgTechReveal>
           </div>
@@ -212,14 +206,11 @@ export default function AgTechPage() {
               </div>
 
               <h2 className="font-display mt-6 max-w-3xl text-balance text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl lg:text-6xl">
-                Turn field information into investor visibility.
+                Turning field information into investor visibility.
               </h2>
 
               <p className="mt-7 max-w-xl text-base leading-8 text-white/60">
-                Tevuah Reserve is designed to surface selected estate
-                readings, trends and operational milestones within the
-                investor experience after they have been validated and
-                approved for reporting.
+                Agricultural data becomes more useful when it is organized around the estate itself. Tevuah Reserve brings selected operational information together so investors can better understand estate conditions, activity and progress.
               </p>
 
               <AgTechStagger
@@ -340,16 +331,6 @@ export default function AgTechPage() {
               </div>
             </AgTechConsole>
           </div>
-
-          <AgTechRevealSoft>
-            <div className="mt-10 rounded-2xl border border-white/10 bg-white/4 px-6 py-5">
-              <p className="text-xs leading-6 text-white/45">
-                All metrics shown in this interface are illustrative.
-                Genuine estate reporting should identify the data source,
-                collection time, measurement method and verification status.
-              </p>
-            </div>
-          </AgTechRevealSoft>
         </Container>
       </section>
 
@@ -363,13 +344,11 @@ export default function AgTechPage() {
             </p>
 
             <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl lg:text-6xl">
-              From the field to the investor dashboard.
+              From field data to verified reporting.
             </h2>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
-              Good reporting requires more than simply receiving sensor
-              readings. Information needs a clear path from source to
-              validation, interpretation and publication.
+              Reliable agricultural reporting requires more than collecting information. Data must be sourced, reviewed and placed in the right operational context before it becomes part of an investor report.
             </p>
           </AgTechReveal>
 
@@ -402,14 +381,11 @@ export default function AgTechPage() {
               </p>
 
               <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                Water visibility can support better estate management.
+                Better water visibility supports better estate management.
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
-                Irrigation data can help operators understand resource usage,
-                timing and selected performance indicators. It should support
-                operational decisions rather than imply guaranteed
-                agricultural outcomes.
+                Water is a critical operating resource for agricultural estates. Monitoring irrigation activity and resource usage can help operators make informed decisions while giving investors greater visibility into how water management is being handled.
               </p>
 
               <AgTechStagger
@@ -461,13 +437,11 @@ export default function AgTechPage() {
               </p>
 
               <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                Combine field observations with broader estate context.
+                See the estate beyond the individual field.
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
-                Drone and satellite imagery may help identify patterns across
-                larger areas, while operator inspections remain important for
-                understanding what is actually happening on the ground.
+                Satellite imagery, drone surveys and aerial observation can provide a broader view of cultivated areas and estate infrastructure. Combined with on-site inspections and operator knowledge, these tools can help identify changes and areas that warrant further review.
               </p>
 
               <AgTechRevealSoft>
@@ -475,9 +449,7 @@ export default function AgTechPage() {
                   <ShieldCheck className="mt-0.5 size-5 shrink-0 text-gold-600" />
 
                   <p className="text-sm leading-7 text-stone-700">
-                    Technology should improve reporting discipline, not be
-                    used to create a false impression of certainty or
-                    eliminate agricultural risk.
+                    Technology does not replace agricultural expertise. Its role is to improve visibility, strengthen reporting and provide additional information for estate management and investor oversight.
                   </p>
                 </div>
               </AgTechRevealSoft>
@@ -554,14 +526,11 @@ export default function AgTechPage() {
               </p>
 
               <h2 className="font-display mt-5 max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl lg:text-6xl">
-                Agricultural intelligence becomes most valuable when
-                investors can understand it.
+                Agricultural intelligence becomes valuable when it improves understanding.
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/60">
-                Tevuah Reserve is building the reporting layer that can
-                connect validated estate metrics, updates and milestones
-                with each investor&apos;s portfolio experience.
+                Tevuah Reserve has built an agricultural intelligence layer that connects field observations, operational data and verified estate updates with the assets investors follow.
               </p>
             </AgTechReveal>
 

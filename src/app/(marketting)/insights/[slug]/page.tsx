@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 
 import Image from "next/image";
@@ -16,17 +17,19 @@ import {
   InsightsArticleImage,
   InsightsArticleSection,
   InsightsListItem,
-  InsightsReveal,
   InsightsRevealSoft,
   InsightsStagger,
   InsightsTakeawayCard,
 } from "@/src/components/insights/insights-motion";
+
 import { Button } from "@/src/components/ui/button";
 import { Container } from "@/src/components/ui/container";
+
 import {
   getInsightBySlug,
   insights,
 } from "@/src/data/insights";
+
 import { formatArticleDate } from "@/src/lib/formatters";
 
 type InsightPageProps = {
@@ -34,6 +37,11 @@ type InsightPageProps = {
     slug: string;
   }>;
 };
+
+const questionSectionHeadings = new Set([
+  "What investors should look for",
+  "Questions to consider before investing",
+]);
 
 export function generateStaticParams() {
   return insights.map((article) => ({
@@ -45,7 +53,6 @@ export async function generateMetadata({
   params,
 }: InsightPageProps): Promise<Metadata> {
   const { slug } = await params;
-
   const article = getInsightBySlug(slug);
 
   if (!article) {
@@ -57,11 +64,9 @@ export async function generateMetadata({
   return {
     title: article.title,
     description: article.excerpt,
-
     openGraph: {
       title: article.title,
       description: article.excerpt,
-
       images: [
         {
           url: article.image,
@@ -76,18 +81,19 @@ export default async function InsightPage({
   params,
 }: InsightPageProps) {
   const { slug } = await params;
-
   const article = getInsightBySlug(slug);
 
   if (!article) {
     notFound();
   }
 
+  const isInvestorEducation =
+    article.slug ===
+    "understanding-illiquidity-in-private-assets";
+
   return (
     <main className="bg-ivory-100 pt-19 lg:pt-22">
-      {/* ==========================================
-          ARTICLE HEADER
-      ========================================== */}
+      {/* ARTICLE HEADER */}
 
       <section className="py-12 sm:py-16 lg:py-20">
         <Container>
@@ -99,7 +105,6 @@ export default async function InsightPage({
               className="mb-10 w-fit border-forest-900/15 bg-white px-5 text-forest-950 hover:border-forest-900/25 hover:bg-ivory-50 hover:text-forest-950"
             >
               <ArrowLeft className="size-4 shrink-0" />
-
               <span>All insights</span>
             </Button>
           </InsightsArticleHero>
@@ -125,23 +130,24 @@ export default async function InsightPage({
 
             <InsightsArticleHero delay={0.4}>
               <div className="mt-8 flex flex-wrap items-center gap-x-4 gap-y-3 text-sm text-stone-500">
-                <time
-                  dateTime={article.publishedAt}
-                >
-                  {formatArticleDate(
-                    article.publishedAt,
-                  )}
+                <time dateTime={article.publishedAt}>
+                  {formatArticleDate(article.publishedAt)}
                 </time>
 
-                <span className="size-1 rounded-full bg-gold-600" />
+                <span
+                  aria-hidden="true"
+                  className="size-1 rounded-full bg-gold-600"
+                />
 
                 <span className="flex items-center gap-2">
                   <Clock3 className="size-4" />
-
                   {article.readingTime}
                 </span>
 
-                <span className="size-1 rounded-full bg-gold-600" />
+                <span
+                  aria-hidden="true"
+                  className="size-1 rounded-full bg-gold-600"
+                />
 
                 <span>{article.author}</span>
               </div>
@@ -150,9 +156,7 @@ export default async function InsightPage({
         </Container>
       </section>
 
-      {/* ==========================================
-          ARTICLE IMAGE
-      ========================================== */}
+      {/* ARTICLE IMAGE */}
 
       <Container>
         <InsightsArticleImage className="relative aspect-4/3 overflow-hidden rounded-3xl bg-forest-950 sm:aspect-16/10 sm:rounded-4xl lg:aspect-16/8">
@@ -169,9 +173,7 @@ export default async function InsightPage({
         </InsightsArticleImage>
       </Container>
 
-      {/* ==========================================
-          ARTICLE BODY
-      ========================================== */}
+      {/* ARTICLE BODY */}
 
       <section className="py-16 sm:py-20 lg:py-24">
         <Container>
@@ -228,8 +230,34 @@ export default async function InsightPage({
               </InsightsArticleSection>
 
               <div className="mt-12 space-y-12">
-                {article.sections.map(
-                  (section, index) => (
+                {article.sections.map((section, index) => {
+                  const isQuestionSection =
+                    questionSectionHeadings.has(
+                      section.heading ?? "",
+                    );
+
+                  const hasQuestionList =
+                    isQuestionSection &&
+                    section.paragraphs.length >= 3;
+
+                  const openingParagraph =
+                    hasQuestionList
+                      ? section.paragraphs[0]
+                      : null;
+
+                  const closingParagraph =
+                    hasQuestionList
+                      ? section.paragraphs[
+                          section.paragraphs.length - 1
+                        ]
+                      : null;
+
+                  const listItems =
+                    hasQuestionList
+                      ? section.paragraphs.slice(1, -1)
+                      : [];
+
+                  return (
                     <InsightsArticleSection
                       key={`${article.id}-${index}`}
                     >
@@ -239,21 +267,48 @@ export default async function InsightPage({
                         </h2>
                       ) : null}
 
-                      <div className="mt-6 space-y-6">
-                        {section.paragraphs.map(
-                          (paragraph) => (
-                            <p
-                              key={paragraph}
-                              className="text-base leading-8 text-stone-700"
-                            >
-                              {paragraph}
-                            </p>
-                          ),
-                        )}
-                      </div>
+                      {hasQuestionList ? (
+                        <div className="mt-6 space-y-6">
+                          <p className="text-base leading-8 text-stone-700">
+                            {openingParagraph}
+                          </p>
+
+                          <ul className="space-y-4 pl-1">
+                            {listItems.map((item) => (
+                              <li
+                                key={item}
+                                className="flex items-start gap-4 text-base leading-8 text-stone-700"
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className="mt-3 size-1.5 shrink-0 rounded-full bg-gold-600"
+                                />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+
+                          <p className="text-base leading-8 text-stone-700">
+                            {closingParagraph}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-6 space-y-6">
+                          {section.paragraphs.map(
+                            (paragraph) => (
+                              <p
+                                key={paragraph}
+                                className="text-base leading-8 text-stone-700"
+                              >
+                                {paragraph}
+                              </p>
+                            ),
+                          )}
+                        </div>
+                      )}
                     </InsightsArticleSection>
-                  ),
-                )}
+                  );
+                })}
               </div>
 
               {/* KEY TAKEAWAYS */}
@@ -271,26 +326,64 @@ export default async function InsightPage({
                         className="flex items-start gap-3 text-sm leading-7 text-white/70"
                       >
                         <CheckCircle2 className="mt-1 size-4 shrink-0 text-gold-400" />
-
-                        {takeaway}
+                        <span>{takeaway}</span>
                       </InsightsListItem>
                     ),
                   )}
                 </InsightsStagger>
               </InsightsTakeawayCard>
 
-              {/* EDITORIAL DISCLAIMER */}
+              {/* INVESTOR EDUCATION CTA */}
+
+              {isInvestorEducation ? (
+                <InsightsRevealSoft>
+                  <div className="mt-12 rounded-3xl border border-forest-900/10 bg-white p-7 sm:p-9">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-600">
+                      Explore further
+                    </p>
+
+                    <h2 className="font-display mt-4 text-3xl font-medium tracking-[-0.03em] text-forest-950 sm:text-4xl">
+                      Continue your investment research
+                    </h2>
+
+                    <p className="mt-5 max-w-xl text-base leading-8 text-stone-700">
+                      Review available opportunities,
+                      their investment terms and
+                      supporting information, or
+                      contact Tevuah Reserve with
+                      questions about the platform.
+                    </p>
+
+                    <div className="mt-10 flex flex-wrap gap-3">
+                      <Button
+                        href="/investments"
+                        size="sm"
+                      >
+                        Review investment opportunities
+                      </Button>
+
+                      <Button
+                        href="/contact"
+                        variant="outline"
+                        size="sm"
+                      >
+                        Speak with Tevuah Reserve
+                      </Button>
+                    </div>
+                  </div>
+                </InsightsRevealSoft>
+              ) : null}
+
+              {/* EDITORIAL NOTICE */}
 
               <InsightsRevealSoft>
                 <div className="mt-12 border-t border-forest-900/10 pt-8">
                   <p className="text-xs leading-6 text-stone-500">
-                    This article is demonstration
-                    editorial content for the
-                    Tevuah Reserve platform.
-                    Genuine articles should be
-                    fact-checked and sourced
-                    appropriately before
-                    publication.
+                    Published for general educational
+                    purposes. Information may change
+                    over time and should be considered
+                    alongside the relevant investment
+                    documentation and risk disclosures.
                   </p>
                 </div>
               </InsightsRevealSoft>

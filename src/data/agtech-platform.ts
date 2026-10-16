@@ -116,24 +116,24 @@ export const monitoringSteps: MonitoringStep[] = [
     number: "01",
     title: "Collect",
     description:
-      "Field devices, estate operators and approved external sources generate operational observations.",
+      "Information is gathered through estate operators, field equipment, monitoring systems and approved external sources.",
   },
   {
     number: "02",
     title: "Validate",
     description:
-      "Data should be timestamped, checked and linked to its source before appearing in investor reporting.",
+      "Collected information is reviewed for accuracy, timing, source and relevance before being used for reporting.",
   },
   {
     number: "03",
     title: "Interpret",
     description:
-      "Raw readings are converted into understandable estate indicators, trends and project milestones.",
+      "Verified observations are organized into meaningful measurements, trends and operational updates that provide context around estate activity.",
   },
   {
     number: "04",
     title: "Report",
     description:
-      "Approved information can be presented through estate updates, investor dashboards and periodic reports.",
+      "Approved information is incorporated into estate updates, portfolio reporting and other investor communications.",
   },
 ];

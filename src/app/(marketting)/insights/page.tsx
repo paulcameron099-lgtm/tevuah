@@ -85,17 +85,13 @@ export default function InsightsPage() {
 
             <InsightsHeroReveal delay={0.2}>
               <h1 className="font-display mt-7 max-w-5xl text-balance text-5xl leading-[0.94] font-medium tracking-[-0.045em] sm:text-6xl lg:text-8xl">
-                Perspectives from the field,
-                cellar and investment process.
+                Informed perspectives on assets, operations and private investment.
               </h1>
             </InsightsHeroReveal>
 
             <InsightsHeroReveal delay={0.31}>
               <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-                Explore educational content
-                across productive agriculture,
-                technology, fine wine and private
-                investment considerations.
+                Explore insights into vineyard and olive estates, agricultural technology, fine wine and the considerations involved in private-market investing.
               </p>
             </InsightsHeroReveal>
 
@@ -125,12 +121,11 @@ export default function InsightsPage() {
             <div className="mb-10 flex items-end justify-between gap-8">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-                  Featured perspective
+                  Featured insight
                 </p>
 
                 <h2 className="font-display mt-4 text-4xl font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  From the Tevuah Reserve
-                  editorial desk.
+                  From the Tevuah Reserve editorial desk.
                 </h2>
               </div>
             </div>
@@ -223,8 +218,7 @@ export default function InsightsPage() {
                 </p>
 
                 <h2 className="font-display mt-5 max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl lg:text-6xl">
-                  Explore the subjects behind the
-                  assets.
+                  Explore the factors behind the assets.
                 </h2>
               </div>
             </InsightsReveal>
@@ -234,9 +228,7 @@ export default function InsightsPage() {
               delay={0.08}
             >
               <p className="max-w-xl text-sm leading-7 text-stone-700">
-                Search and filter the Tevuah
-                Reserve educational library by
-                asset category or topic.
+                Browse articles by investment category or topic, covering agricultural operations, asset characteristics, technology and private-investment considerations.
               </p>
             </InsightsRevealSoft>
           </div>
@@ -272,23 +264,15 @@ export default function InsightsPage() {
             <InsightsReveal delay={0.06}>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-                  Editorial standard
+                  Editorial standards
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  Education should explain
-                  uncertainty, not hide it.
+                  Clear analysis. Balanced perspectives.
                 </h2>
 
                 <p className="mt-6 max-w-3xl text-base leading-8 text-stone-700">
-                  Genuine Tevuah Reserve
-                  editorial content should
-                  distinguish facts, analysis and
-                  opinion, cite reliable sources
-                  where appropriate, and avoid
-                  presenting educational material
-                  as personalised investment
-                  advice.
+                  Tevuah Reserve's editorial content aims to explain the characteristics, opportunities and risks associated with agricultural assets, technology, fine wine and private investing. Articles distinguish factual information from analysis and opinion, reference reliable sources where appropriate, and do not replace independent due diligence or personalised investment advice.
                 </p>
               </div>
             </InsightsReveal>

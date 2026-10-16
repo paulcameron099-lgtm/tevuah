@@ -120,9 +120,7 @@ export default function HowItWorksPage() {
 
             <HowHeroReveal delay={0.32}>
               <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-                Tevuah Reserve is designed to guide investors through
-                opportunity discovery, verification, investment review,
-                funding and long-term portfolio monitoring.
+                Tevuah Reserve guides investors through opportunity discovery, account verification, investment review, commitment, funding and ongoing portfolio monitoring.
               </p>
             </HowHeroReveal>
 
@@ -201,13 +199,11 @@ export default function HowItWorksPage() {
 
             <HowReveal>
               <h2 className="font-display max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl lg:text-6xl">
-                Eight stages designed around clarity and control.
+                Eight stages built around clarity and control.
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
-                The platform should make each stage understandable without
-                making investment decisions appear simpler or safer than
-                they really are.
+                Tevuah Reserve provides a structured process for reviewing opportunities, completing investor requirements, making investments and monitoring them over time.
               </p>
             </HowReveal>
           </div>
@@ -255,10 +251,7 @@ export default function HowItWorksPage() {
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
-                Real investment access may require identity verification,
-                investor classification, suitability checks and
-                source-of-funds information depending on the offering and
-                jurisdiction.
+                Investment access may require identity verification, investor classification, suitability or appropriateness checks and source-of-funds information, depending on the offering and applicable jurisdiction.
               </p>
 
               <HowStagger
@@ -280,9 +273,7 @@ export default function HowItWorksPage() {
               <HowRevealSoft delay={0.08}>
                 <div className="mt-9 rounded-3xl border border-gold-500/25 bg-gold-500/5 p-6">
                   <p className="text-xs leading-6 text-stone-700">
-                    The exact onboarding requirements must eventually be
-                    determined by qualified legal and compliance advisers for
-                    the jurisdictions where Tevuah Reserve operates.
+                    Investor onboarding requirements are established according to the legal, regulatory and compliance requirements applicable to Tevuah Reserve, its investors and the relevant investment opportunity.
                   </p>
                 </div>
               </HowRevealSoft>
@@ -306,9 +297,7 @@ export default function HowItWorksPage() {
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
-                Investors should be able to review the asset, legal
-                structure, use of funds, assumptions, fees, project
-                timeline and material risks in one place.
+                Each opportunity provides investors with access to information covering the underlying asset, legal structure, use of funds, financial assumptions, fees, project timeline and material risks.
               </p>
 
               <HowStagger
@@ -371,9 +360,7 @@ export default function HowItWorksPage() {
               </h2>
 
               <p className="mt-6 max-w-xl text-base leading-8 text-white/60">
-                A commitment should only progress to funding once the
-                investor, opportunity and documentation requirements have
-                been satisfied.
+                A commitment progresses to funding only after the applicable investor, opportunity and documentation requirements have been satisfied.
               </p>
             </HowReveal>
 
@@ -438,9 +425,7 @@ export default function HowItWorksPage() {
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
-                Investors should continue to receive relevant information
-                throughout the life of the investment rather than hearing
-                only when capital is requested or distributed.
+                Tevuah Reserve provides ongoing information throughout the investment period so investors can remain informed about their holdings and relevant developments.
               </p>
 
               <HowStagger
@@ -482,9 +467,7 @@ export default function HowItWorksPage() {
             </h2>
 
             <p className="mx-auto mt-7 max-w-3xl text-base leading-8 text-stone-700">
-              Investors remain responsible for reviewing the relevant
-              information, understanding the risks and deciding whether an
-              opportunity is appropriate for their circumstances.
+              Investors remain responsible for reviewing the relevant information, understanding the risks and determining whether an investment is appropriate for their circumstances.
             </p>
           </HowReveal>
 
@@ -501,8 +484,7 @@ export default function HowItWorksPage() {
                 </h3>
 
                 <p className="mt-3 text-sm leading-7 text-stone-700">
-                  Private investments can involve capital loss, long holding
-                  periods and limited liquidity.
+                  Private investments can involve capital loss, long holding periods, limited liquidity and other risks specific to the underlying asset and investment structure.
                 </p>
               </article>
             </HowStaggerItem>
@@ -516,8 +498,7 @@ export default function HowItWorksPage() {
                 </h3>
 
                 <p className="mt-3 text-sm leading-7 text-stone-700">
-                  Read relevant offering documents and disclosures before
-                  making a commitment.
+                  Read the relevant offering documents, agreements, disclosures and risk information before making a commitment.
                 </p>
               </article>
             </HowStaggerItem>
@@ -531,8 +512,7 @@ export default function HowItWorksPage() {
                 </h3>
 
                 <p className="mt-3 text-sm leading-7 text-stone-700">
-                  Platform presentation should support informed review rather
-                  than pressure investors into making decisions.
+                  The Tevuah Reserve platform is intended to support informed review. Investors should make their own investment decisions based on their circumstances, objectives and understanding of the opportunity.
                 </p>
               </article>
             </HowStaggerItem>
@@ -555,9 +535,7 @@ export default function HowItWorksPage() {
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/60">
-                Browse the marketplace now. Investor registration and the
-                complete verification workflow will be added during the next
-                application phase.
+                Explore vineyard estates, olive estates, AgTech and fine-wine opportunities and review the information available for each investment before deciding whether to proceed.
               </p>
             </HowReveal>
 

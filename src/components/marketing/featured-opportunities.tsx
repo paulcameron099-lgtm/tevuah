@@ -34,8 +34,8 @@ export function FeaturedOpportunities() {
           >
             <SectionHeading
               eyebrow="Featured opportunities"
-              title="Explore what cultivated investing could look like."
-              description="Review illustrative opportunities across vineyard estates, olive agriculture and agricultural infrastructure."
+              title="Explore opportunities across cultivated assets."
+              description="Review available opportunities across vineyard estates, olive agriculture and agricultural infrastructure."
               className="max-w-4xl"
             />
           </motion.div>

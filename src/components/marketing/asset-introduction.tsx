@@ -78,8 +78,7 @@ export function AssetIntroduction() {
                   ease: premiumEase,
                 }}
               >
-                Real assets shaped by heritage and strengthened by modern
-                intelligence.
+                Real assets shaped by heritage and strengthened by modern intelligence.
               </motion.h2>
             </div>
 
@@ -118,9 +117,7 @@ export function AssetIntroduction() {
                   },
                 }}
               >
-                Tevuah Reserve is being designed to connect investors with
-                carefully presented opportunities across productive
-                agriculture, estate development and fine-wine assets.
+                Tevuah Reserve connects investors with opportunities across productive agriculture, estate development, agricultural technology and fine-wine assets.
               </motion.p>
 
               <motion.p
@@ -140,9 +137,7 @@ export function AssetIntroduction() {
                   },
                 }}
               >
-                Each opportunity will bring together clear documentation,
-                operating information, project milestones and an investor
-                experience built around long-term transparency.
+                Each opportunity is supported by structured information, relevant documentation, operating data, project milestones and ongoing reporting.
               </motion.p>
             </motion.div>
 

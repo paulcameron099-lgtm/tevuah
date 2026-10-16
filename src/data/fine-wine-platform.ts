@@ -46,42 +46,42 @@ export const winePrinciples: WinePrinciple[] = [
     id: "selection",
     title: "Careful selection",
     description:
-      "Potential holdings should be reviewed for producer reputation, vintage, market relevance and collection strategy.",
+      "Review potential holdings based on producer reputation, vintage, market relevance, scarcity and the overall collection strategy.",
     icon: Wine,
   },
   {
     id: "provenance",
     title: "Provenance verification",
     description:
-      "Available records should support the origin, acquisition history and authenticity of each holding.",
+      "Maintain available records supporting origin, acquisition history, ownership and authenticity.",
     icon: FileSearch,
   },
   {
     id: "storage",
     title: "Professional storage",
     description:
-      "Investment-grade wine should be held under appropriate temperature, humidity and security conditions.",
+      "Hold wine under appropriate temperature, humidity, security and handling conditions designed for long-term preservation.",
     icon: Archive,
   },
   {
     id: "custody",
     title: "Documented custody",
     description:
-      "Ownership, storage location and custody arrangements should be clearly recorded and reviewable.",
+      "Maintain clear records of ownership, storage location, custody arrangements and movements of the collection.",
     icon: ShieldCheck,
   },
   {
     id: "authentication",
     title: "Asset verification",
     description:
-      "High-value holdings may require additional inspection, condition checks and authenticity controls.",
+      "Conduct appropriate inspections and condition reviews, particularly for higher-value or older holdings.",
     icon: BadgeCheck,
   },
   {
     id: "reporting",
     title: "Portfolio reporting",
     description:
-      "Investors should be able to review collection composition, activity and illustrative valuation changes.",
+      "Provide structured information on collection composition, holdings, custody, valuation and relevant portfolio activity.",
     icon: ChartNoAxesCombined,
   },
 ];

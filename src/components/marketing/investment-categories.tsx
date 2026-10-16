@@ -81,26 +81,6 @@ export function InvestmentCategories() {
             </motion.div>
           ))}
         </motion.div>
-
-        <motion.div
-          className="mt-8 rounded-2xl border border-forest-900/10 bg-white/60 px-6 py-5"
-          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{
-            once: true,
-            amount: 0.5,
-          }}
-          transition={{
-            duration: 0.7,
-            ease: premiumEase,
-          }}
-        >
-          <p className="text-xs leading-6 text-stone-500">
-            The opportunities and categories currently displayed are for
-            platform-design demonstration purposes. They do not constitute an
-            offer, financial recommendation or guarantee of performance.
-          </p>
-        </motion.div>
       </Container>
     </Section>
   );

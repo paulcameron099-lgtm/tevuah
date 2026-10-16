@@ -27,6 +27,7 @@ import {
   EstateSlugHeroImage,
   EstateSlugHeroReveal,
 } from "@/src/components/estates/estates-motion";
+
 import { EstateGallery } from "@/src/components/estates/estate-gallery";
 import { EstateInfoCard } from "@/src/components/estates/estate-info-card";
 import { EstateMetrics } from "@/src/components/estates/estate-metrics";
@@ -34,10 +35,12 @@ import { EstateStatusBadge } from "@/src/components/estates/estate-status-badge"
 import { OpportunityCard } from "@/src/components/marketing/opportunity-card";
 import { Button } from "@/src/components/ui/button";
 import { Container } from "@/src/components/ui/container";
+
 import {
   estates,
   getEstateBySlug,
 } from "@/src/data/estates";
+
 import { opportunities } from "@/src/data/opportunities";
 
 type EstatePageProps = {
@@ -116,9 +119,7 @@ export default async function EstatePage({
 
   return (
     <main className="bg-ivory-100 pt-19 lg:pt-22">
-      {/* ==========================================
-          HERO
-      ========================================== */}
+      {/* HERO */}
 
       <section className="relative min-h-175 overflow-hidden bg-forest-950 text-white">
         <EstateSlugHeroImage className="absolute inset-0">
@@ -151,16 +152,13 @@ export default async function EstatePage({
               className="mb-10 w-fit border-white/25 bg-forest-950/20 text-white hover:bg-white/10 hover:text-white"
             >
               <ArrowLeft className="size-4 shrink-0" />
-
               All estates
             </Button>
           </EstateSlugHeroReveal>
 
           <EstateSlugHeroReveal delay={0.16}>
             <div className="flex flex-wrap gap-3">
-              <EstateStatusBadge
-                status={estate.status}
-              />
+              <EstateStatusBadge status={estate.status} />
 
               <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.14em] backdrop-blur-md">
                 Illustrative estate
@@ -183,30 +181,23 @@ export default async function EstatePage({
           <EstateSlugHeroReveal delay={0.42}>
             <div className="mt-7 flex items-center gap-2 text-sm text-white/75">
               <MapPin className="size-4 text-gold-400" />
-
               {estate.location}
             </div>
           </EstateSlugHeroReveal>
         </Container>
       </section>
 
-      {/* ==========================================
-          ESTATE METRICS
-      ========================================== */}
+      {/* ESTATE METRICS */}
 
       <section className="border-b border-forest-900/10 bg-white py-7">
         <Container>
           <EstatesRevealSoft>
-            <EstateMetrics
-              metrics={estate.metrics}
-            />
+            <EstateMetrics metrics={estate.metrics} />
           </EstatesRevealSoft>
         </Container>
       </section>
 
-      {/* ==========================================
-          ESTATE OVERVIEW
-      ========================================== */}
+      {/* ESTATE OVERVIEW */}
 
       <section className="py-16 sm:py-20 lg:py-24">
         <Container>
@@ -218,8 +209,7 @@ export default async function EstatePage({
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  Productive land with visible
-                  operating context.
+                  {estate.overviewHeading}
                 </h2>
               </div>
             </EstatesReveal>
@@ -259,23 +249,13 @@ export default async function EstatePage({
             </EstatesReveal>
           </div>
 
-          {/*
-           * Gallery remains responsible for its own
-           * image interactions. Entrance motion stays
-           * on the outside.
-           */}
-
           <EstatesReveal className="mt-14">
-            <EstateGallery
-              images={estate.gallery}
-            />
+            <EstateGallery images={estate.gallery} />
           </EstatesReveal>
         </Container>
       </section>
 
-      {/* ==========================================
-          INFRASTRUCTURE
-      ========================================== */}
+      {/* ESTATE INFRASTRUCTURE */}
 
       <section className="border-y border-forest-900/10 bg-white py-16 sm:py-20 lg:py-24">
         <Container>
@@ -285,45 +265,35 @@ export default async function EstatePage({
             </p>
 
             <h2 className="font-display mt-5 text-4xl font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-              The physical systems supporting
-              agricultural operations.
+              {estate.infrastructureHeading}
             </h2>
           </EstatesReveal>
 
           <EstatesStagger className="grid gap-5 md:grid-cols-2">
-            {estate.infrastructure.map(
-              (item, index) => {
-                const Icon =
-                  infrastructureIcons[
-                    index %
-                      infrastructureIcons.length
-                  ];
+            {estate.infrastructure.map((item, index) => {
+              const Icon =
+                infrastructureIcons[
+                  index % infrastructureIcons.length
+                ];
 
-                return (
-                  <EstatesStaggerItem
-                    key={item.title}
-                    className="h-full"
-                  >
-                    <EstateInfoCard
-                      icon={
-                        <Icon className="size-5" />
-                      }
-                      title={item.title}
-                      description={
-                        item.description
-                      }
-                    />
-                  </EstatesStaggerItem>
-                );
-              },
-            )}
+              return (
+                <EstatesStaggerItem
+                  key={item.title}
+                  className="h-full"
+                >
+                  <EstateInfoCard
+                    icon={<Icon className="size-5" />}
+                    title={item.title}
+                    description={item.description}
+                  />
+                </EstatesStaggerItem>
+              );
+            })}
           </EstatesStagger>
         </Container>
       </section>
 
-      {/* ==========================================
-          ESTATE INTELLIGENCE
-      ========================================== */}
+      {/* ESTATE INTELLIGENCE */}
 
       <section className="bg-forest-950 py-16 text-white sm:py-20 lg:py-24">
         <Container>
@@ -335,16 +305,11 @@ export default async function EstatePage({
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl">
-                  Agricultural reporting designed
-                  around the estate.
+                  {estate.intelligenceHeading}
                 </h2>
 
                 <p className="mt-6 text-sm leading-7 text-white/60">
-                  Operational reporting should be
-                  supported by verified data
-                  sources, measurement timestamps
-                  and clear explanations of how
-                  each metric was collected.
+                  {estate.intelligenceDescription}
                 </p>
 
                 <Button
@@ -353,51 +318,45 @@ export default async function EstatePage({
                   className="mt-8"
                 >
                   Explore AgTech
-
                   <ArrowUpRight className="size-4" />
                 </Button>
               </div>
             </EstatesReveal>
 
             <EstatesStagger className="grid gap-5 md:grid-cols-2">
-              {estate.technology.map(
-                (item, index) => {
-                  const Icon =
-                    technologyIcons[
-                      index %
-                        technologyIcons.length
-                    ];
+              {estate.technology.map((item, index) => {
+                const Icon =
+                  technologyIcons[
+                    index % technologyIcons.length
+                  ];
 
-                  return (
-                    <EstatesStaggerItem
-                      key={item.title}
-                      className="h-full"
-                    >
-                      <article className="h-full rounded-3xl border border-white/10 bg-white/5 p-6">
-                        <span className="flex size-11 items-center justify-center rounded-full bg-gold-500/15 text-gold-400">
-                          <Icon className="size-5" />
-                        </span>
+                return (
+                  <EstatesStaggerItem
+                    key={item.title}
+                    className="h-full"
+                  >
+                    <article className="h-full rounded-3xl border border-white/10 bg-white/5 p-6">
+                      <span className="flex size-11 items-center justify-center rounded-full bg-gold-500/15 text-gold-400">
+                        <Icon className="size-5" />
+                      </span>
 
-                        <h3 className="font-display mt-6 text-2xl font-semibold">
-                          {item.title}
-                        </h3>
+                      <h3 className="font-display mt-6 text-2xl font-semibold">
+                        {item.title}
+                      </h3>
 
-                        <p className="mt-3 text-sm leading-7 text-white/55">
-                          {item.description}
-                        </p>
-                      </article>
-                    </EstatesStaggerItem>
-                  );
-                },
-              )}
+                      <p className="mt-3 text-sm leading-7 text-white/55">
+                        {item.description}
+                      </p>
+                    </article>
+                  </EstatesStaggerItem>
+                );
+              })}
             </EstatesStagger>
           </div>
         </Container>
       </section>
 
-      {/* ==========================================
-          RELATED INVESTMENTS
-      ========================================== */}
+      {/* RELATED INVESTMENTS */}
 
       {relatedOpportunities.length > 0 ? (
         <section className="py-16 sm:py-20 lg:py-24">
@@ -410,8 +369,7 @@ export default async function EstatePage({
                   </p>
 
                   <h2 className="font-display mt-5 max-w-3xl text-4xl font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                    Explore opportunities
-                    connected to this estate.
+                    {estate.relatedInvestmentsHeading}
                   </h2>
                 </div>
               </EstatesReveal>
@@ -422,35 +380,26 @@ export default async function EstatePage({
                   className="focus-ring inline-flex w-fit items-center gap-2 rounded-md text-sm font-semibold text-forest-950 transition hover:text-olive-700"
                 >
                   All opportunities
-
                   <ArrowUpRight className="size-4" />
                 </Link>
               </EstatesRevealSoft>
             </div>
 
             <EstatesStagger className="mt-10 grid gap-7 md:grid-cols-2 xl:grid-cols-3">
-              {relatedOpportunities.map(
-                (opportunity) => (
-                  <EstatesStaggerItem
-                    key={opportunity.id}
-                    className="h-full"
-                  >
-                    <OpportunityCard
-                      opportunity={
-                        opportunity
-                      }
-                    />
-                  </EstatesStaggerItem>
-                ),
-              )}
+              {relatedOpportunities.map((opportunity) => (
+                <EstatesStaggerItem
+                  key={opportunity.id}
+                  className="h-full"
+                >
+                  <OpportunityCard opportunity={opportunity} />
+                </EstatesStaggerItem>
+              ))}
             </EstatesStagger>
           </Container>
         </section>
       ) : null}
 
-      {/* ==========================================
-          DISCLOSURE
-      ========================================== */}
+      {/* DISCLOSURE */}
 
       <section className="border-t border-forest-900/10 bg-white py-12">
         <Container>

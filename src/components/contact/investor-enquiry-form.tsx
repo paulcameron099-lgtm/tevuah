@@ -167,10 +167,7 @@ export function InvestorEnquiryForm({
         </h2>
 
         <p className="mt-4 max-w-xl text-sm leading-7 text-stone-600">
-          Tell us what you are interested in. A
-          member of the Tevuah Reserve team can
-          then discuss the relevant process and
-          available information with you.
+          Tell us what you are interested in and how we can assist. A member of the Tevuah Reserve team will review your enquiry and respond with the relevant information and next steps.
         </p>
       </div>
 

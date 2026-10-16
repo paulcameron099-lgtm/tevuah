@@ -88,27 +88,27 @@ export const metadata: Metadata = {
 
 const custodyPrinciples = [
   {
-    title: "Climate control",
+    title: "Climate-controlled storage",
     description:
-      "Appropriate temperature and humidity conditions are important for long-term storage.",
+      "Maintain appropriate environmental conditions for long-term wine storage.",
     icon: Thermometer,
   },
   {
     title: "Documented custody",
     description:
-      "Storage location, ownership records and movement history should be clearly recorded.",
+      "Maintain records of storage location, ownership and movements within the custody chain.",
     icon: Boxes,
   },
   {
-    title: "Condition review",
+    title: "Security and access",
     description:
-      "Selected holdings may require periodic visual or specialist condition checks.",
+      "Use controlled storage environments with appropriate protection against unauthorized access and handling.",
     icon: BadgeCheck,
   },
   {
-    title: "Insurance framework",
+    title: "Insurance and protection",
     description:
-      "High-value collections should have clear insurance and asset-protection arrangements.",
+      "Maintain appropriate insurance and asset-protection arrangements based on the nature and value of the collection.",
     icon: ShieldCheck,
   },
 ];
@@ -348,19 +348,13 @@ export default async function FineWinePage() {
 
             <FineWineHeroReveal delay={0.2}>
               <h1 className="font-display mt-7 max-w-5xl text-balance text-5xl leading-[0.94] font-medium tracking-[-0.045em] sm:text-6xl lg:text-8xl">
-                Provenance, patience and
-                professional custody.
+                provenance, patience and professional custody.
               </h1>
             </FineWineHeroReveal>
 
             <FineWineHeroReveal delay={0.31}>
               <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-                Tevuah Reserve is designed to
-                present fine-wine opportunities
-                through careful sourcing,
-                documented provenance, specialist
-                storage and transparent portfolio
-                reporting.
+                Tevuah Reserve presents fine-wine opportunities through disciplined selection, documented provenance, professional storage and structured portfolio reporting.
               </p>
             </FineWineHeroReveal>
 
@@ -444,16 +438,11 @@ export default async function FineWinePage() {
 
             <FineWineReveal>
               <h2 className="font-display max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-burgundy-900 sm:text-5xl lg:text-6xl">
-                Fine wine requires more than
-                selecting a desirable bottle.
+                Fine wine is an asset that requires disciplined stewardship.
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
-                The investment experience should
-                make sourcing, provenance, custody,
-                storage and reporting visible
-                instead of presenting wine solely
-                as a luxury object.
+                The value of a fine-wine holding depends on more than the producer or vintage. Provenance, condition, custody, storage and documentation all contribute to how the asset is managed and evaluated.
               </p>
             </FineWineReveal>
           </div>
@@ -496,17 +485,11 @@ export default async function FineWinePage() {
               </div>
 
               <h2 className="font-display mt-6 max-w-3xl text-balance text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl lg:text-6xl">
-                See the collection as a portfolio,
-                not simply a cellar.
+                See the collection as a portfolio, not simply a cellar.
               </h2>
 
               <p className="mt-7 max-w-xl text-base leading-8 text-white/60">
-                The investor dashboard provides a
-                structured foundation for
-                presenting holdings, vintages,
-                custody status, storage information
-                and appropriately sourced
-                wine-specific valuation reporting.
+                Tevuah Reserve organizes fine-wine holdings within a structured portfolio experience, giving investors visibility into the assets they hold, their provenance, custody arrangements, storage status and relevant valuation information.
               </p>
 
               <FineWineRevealSoft delay={0.08}>
@@ -514,10 +497,7 @@ export default async function FineWinePage() {
                   <FileCheck2 className="mt-0.5 size-5 shrink-0 text-gold-400" />
 
                   <p className="text-sm leading-7 text-white/60">
-                    Genuine valuations should
-                    identify the source, valuation
-                    date, methodology and any
-                    material limitations.
+                    The portfolio experience brings individual holdings together so investors can review the composition and status of their fine-wine assets in one place.
                   </p>
                 </div>
               </FineWineRevealSoft>
@@ -583,19 +563,6 @@ export default async function FineWinePage() {
               </div>
             </FineWinePortfolioReveal>
           </div>
-
-          <FineWineRevealSoft>
-            <div className="mt-10 rounded-2xl border border-white/10 bg-white/4 px-6 py-5">
-              <p className="text-xs leading-6 text-white/45">
-                All holdings, producers, values
-                and performance figures displayed
-                here are fictitious demonstration
-                content and are not investment
-                recommendations or live portfolio
-                data.
-              </p>
-            </div>
-          </FineWineRevealSoft>
         </Container>
       </section>
 
@@ -673,16 +640,11 @@ export default async function FineWinePage() {
               </p>
 
               <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-burgundy-900 sm:text-5xl">
-                Physical assets need physical
-                protection.
+                Physical assets require physical protection.
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
-                Fine wine can be damaged by
-                unsuitable storage, mishandling or
-                poor custody controls. Storage and
-                ownership records therefore matter
-                as much as the collection itself.
+                Fine wine is sensitive to its environment and handling. Appropriate storage and clear custody arrangements are therefore fundamental to preserving the condition and integrity of the collection.
               </p>
 
               <FineWineStagger className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -780,29 +742,27 @@ export default async function FineWinePage() {
 
             <FineWineReveal>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-400">
-                Investment risks
+                Investment considerations
               </p>
 
               <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl">
-                Scarcity does not remove
-                investment risk.
+                Fine wine can offer scarcity without removing risk.
               </h2>
 
               <p className="mt-6 text-base leading-8 text-white/60">
-                Fine-wine investing can involve
-                significant uncertainty, long
-                holding periods and specialist
-                costs.
+                Fine-wine assets can involve extended holding periods, limited liquidity and specialist ownership costs. Market prices can change, and the ability to sell a particular holding at a desired price or within a desired timeframe cannot be assumed.
               </p>
 
               <FineWineStagger className="mt-8 space-y-4">
                 {[
                   "Limited liquidity and uncertain resale timing",
                   "Storage, insurance and custody costs",
-                  "Authenticity and provenance risk",
-                  "Changing demand and market pricing",
-                  "Physical damage or storage failure",
+                  "Provenance and authenticity risk",
+                  "Physical damage or deterioration",
+                  "Changes in market demand",
                   "Valuation uncertainty",
+                  "Producer and regional concentration",
+                  "Transaction and selling costs",
                 ].map((risk) => (
                   <FineWineListItem
                     key={risk}
@@ -848,16 +808,14 @@ export default async function FineWinePage() {
               </p>
 
               <h2 className="font-display mt-5 max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-burgundy-900 sm:text-5xl">
-                Explore current fine-wine
-                investment opportunities.
+                Explore available fine-wine opportunities.
               </h2>
 
               <p className="mt-5 max-w-2xl text-sm leading-7 text-stone-600">
-                Published fine-wine opportunities
-                created by Tevuah Reserve
-                administrators appear here
-                automatically and remain part of
-                the main investment marketplace.
+                Tevuah Reserve publishes selected fine-wine opportunities for investors who meet the applicable eligibility and suitability requirements.
+              </p>
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-stone-600">
+                Each opportunity can provide access to relevant information covering the underlying wine assets, investment structure, funding requirements, holding period, risks, documentation and applicable terms.
               </p>
             </FineWineReveal>
 
@@ -933,20 +891,12 @@ export default async function FineWinePage() {
               </p>
 
               <h2 className="font-display mt-5 max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl lg:text-6xl">
-                Bring provenance, custody and
-                portfolio reporting into one
-                investor experience.
+                Bring provenance, custody and portfolio reporting into one investor experience.
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/60">
-                Authenticated investors can review
-                their investment positions,
-                documents and transaction activity
-                directly inside the Tevuah Reserve
-                dashboard. Wine-specific valuation
-                history should be presented when
-                supported by appropriate valuation
-                sources and reporting data.
+                Authenticated investors can review their fine-wine holdings, portfolio positions, supporting documents and transaction activity through the Tevuah Reserve dashboard.
+          Wine-specific valuation information can be reviewed alongside the relevant holding when supported by appropriate valuation sources, reporting records and documented methodologies.
               </p>
             </FineWineReveal>
 

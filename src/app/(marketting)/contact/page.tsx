@@ -41,19 +41,19 @@ const conversationTopics = [
     icon: Compass,
     title: "Explore opportunities",
     description:
-      "Discuss current vineyard, olive estate, AgTech and fine-wine opportunities and understand where each may fit within your investment interests.",
+      "Discuss available vineyard, olive estate, AgTech and fine-wine opportunities, including their investment structure, terms, risks and applicable documentation.",
   },
   {
     icon: MessagesSquare,
     title: "Discuss portfolio objectives",
     description:
-      "Share your objectives, time horizon and areas of interest so the conversation can focus on relevant private-asset opportunities and portfolio considerations.",
+      "Share your investment interests, objectives and time horizon so the conversation can focus on relevant opportunities and portfolio considerations.",
   },
   {
     icon: FileCheck2,
     title: "Understand the process",
     description:
-      "Learn how opportunity review, investor verification, documentation, funding and ongoing reporting work across the Tevuah Reserve platform.",
+      "Learn how opportunity review, investor verification, documentation, funding and ongoing reporting are handled through Tevuah Reserve.",
   },
 ];
 
@@ -62,31 +62,31 @@ const investorJourney = [
     number: "01",
     title: "Start the conversation",
     description:
-      "Tell us which opportunities, asset categories or portfolio questions you would like to discuss.",
+      "Tell us which opportunities, asset categories or investment questions you would like to discuss.",
   },
   {
     number: "02",
     title: "Discuss your interests",
     description:
-      "The Tevuah Reserve team can provide relevant platform and opportunity information and explain the investment process.",
+      "The Tevuah Reserve team will discuss relevant opportunities, the investment process and the information available for review.",
   },
   {
     number: "03",
     title: "Eligibility and verification",
     description:
-      "Where appropriate, investor eligibility, identity and required verification information are reviewed before access progresses.",
+      "Where applicable, investor eligibility, identity and required verification information are reviewed before access progresses.",
   },
   {
     number: "04",
     title: "Investor access",
     description:
-      "Investor accounts are created through the Tevuah Reserve administrative process rather than through public self-registration.",
+      "Investor accounts are established through the Tevuah Reserve administrative process rather than through public self-registration.",
   },
   {
     number: "05",
     title: "Review before investing",
     description:
-      "Eligible investors can review applicable opportunity information, documents, risks and investment terms before making a decision.",
+      "Eligible investors review the applicable opportunity information, investment documents, terms and risk disclosures before deciding whether to proceed.",
   },
 ];
 
@@ -139,12 +139,7 @@ export default function ContactPage() {
 
             <ContactHeroReveal delay={0.31}>
               <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-                Speak with Tevuah Reserve about
-                current opportunities, investor
-                access and the considerations
-                involved in building exposure
-                across productive agriculture,
-                AgTech and fine wine.
+                Contact Tevuah Reserve to discuss available investment opportunities, investor access and the process for evaluating opportunities across vineyards, olive estates, AgTech and fine wine.
               </p>
             </ContactHeroReveal>
 
@@ -179,8 +174,7 @@ export default function ContactPage() {
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  Investor relationships begin
-                  with the Tevuah Reserve team.
+                  Investor relationships begin directly with the Tevuah Reserve team.
                 </p>
               </div>
             </ContactStaggerItem>
@@ -188,12 +182,11 @@ export default function ContactPage() {
             <ContactStaggerItem>
               <div>
                 <p className="text-sm font-semibold">
-                  Curated opportunities
+                  Focused opportunities
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  Discuss assets relevant to your
-                  interests and objectives.
+                  Discuss opportunities aligned with your interests, investment objectives and preferred asset categories.
                 </p>
               </div>
             </ContactStaggerItem>
@@ -205,8 +198,7 @@ export default function ContactPage() {
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  Access follows the applicable
-                  verification and review process.
+                  Investor access is established through the applicable eligibility, verification and onboarding process.
                 </p>
               </div>
             </ContactStaggerItem>
@@ -228,8 +220,7 @@ export default function ContactPage() {
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  Private investing should begin
-                  with understanding.
+                  Private investing begins with a conversation.
                 </h2>
               </div>
             </ContactReveal>
@@ -237,34 +228,16 @@ export default function ContactPage() {
             <ContactReveal delay={0.08}>
               <div>
                 <p className="text-base leading-8 text-stone-700">
-                  Tevuah Reserve does not use a
-                  public self-registration process
-                  for investors. Prospective
-                  investors begin by contacting
-                  the company to discuss their
-                  interests, understand available
-                  opportunities and learn how the
-                  investor process works.
+                  Tevuah Reserve does not offer public self-registration for investors. Prospective investors begin by contacting the team to discuss their interests, understand available opportunities and learn about the investment process.
                 </p>
 
                 <p className="mt-6 text-base leading-8 text-stone-700">
-                  Where an investor proceeds,
-                  access is established through
-                  the applicable administrative,
-                  eligibility and verification
-                  process before investment
-                  activity takes place.
+                  Where an investor chooses to proceed, the required eligibility, administrative and verification steps are completed before investor access is established and investment activity can take place.
                 </p>
 
                 <div className="mt-8 rounded-2xl border border-gold-500/25 bg-gold-500/5 p-5">
                   <p className="text-xs leading-6 text-stone-700">
-                    An initial conversation is
-                    informational. It does not
-                    guarantee investor eligibility,
-                    access to a particular
-                    opportunity, allocation,
-                    suitability or acceptance of
-                    an investment.
+                    An enquiry is informational and does not guarantee eligibility, access to a specific opportunity, allocation, suitability or acceptance of an investment.
                   </p>
                 </div>
               </div>
@@ -285,16 +258,11 @@ export default function ContactPage() {
             </p>
 
             <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl lg:text-6xl">
-              What would you like to understand?
+              Tell us what you are looking for.
             </h2>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
-              The starting point depends on
-              whether you are exploring a
-              particular asset, comparing
-              opportunities or considering how
-              private assets could form part of a
-              broader portfolio.
+              Whether you are interested in a particular opportunity, exploring a specific asset category or considering private assets as part of a broader portfolio, the first step is a direct conversation with the Tevuah Reserve team.
             </p>
           </ContactReveal>
 
@@ -345,11 +313,7 @@ export default function ContactPage() {
                 </h2>
 
                 <p className="mt-6 max-w-md text-sm leading-7 text-white/60">
-                  The process is designed to move
-                  from initial interest to informed
-                  review without treating account
-                  creation as automatic access to
-                  investment opportunities.
+                  Tevuah Reserve follows a structured process from initial enquiry through investor access and opportunity review.
                 </p>
               </div>
             </ContactReveal>
@@ -395,28 +359,15 @@ export default function ContactPage() {
                 </p>
 
                 <h2 className="font-display mt-5 max-w-3xl text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  Look beyond a single
-                  opportunity.
+                  Consider the investment as part of the wider portfolio.
                 </h2>
 
                 <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
-                  Investors may wish to discuss
-                  how different asset categories,
-                  investment horizons, liquidity
-                  characteristics and risk
-                  exposures compare before
-                  deciding whether to pursue a
-                  particular opportunity.
+                  Investment decisions involve more than the characteristics of an individual opportunity. Asset exposure, investment horizon, liquidity, concentration and risk should be considered alongside the investor's broader objectives.
                 </p>
 
                 <p className="mt-5 max-w-2xl text-sm leading-7 text-stone-600">
-                  Tevuah Reserve can explain its
-                  opportunities and platform
-                  process. Where personalised
-                  financial, legal or tax advice
-                  is required, investors should
-                  consult appropriately qualified
-                  professional advisers.
+                  Relevant considerations may include:
                 </p>
               </div>
             </ContactReveal>
@@ -469,11 +420,7 @@ export default function ContactPage() {
                 </h2>
 
                 <p className="mt-6 text-sm leading-7 text-stone-700">
-                  Use the investor enquiry form
-                  for opportunity questions,
-                  portfolio discussions or
-                  information about becoming a
-                  Tevuah Reserve investor.
+                  Use the investor enquiry form to ask about an opportunity, discuss portfolio considerations or learn more about becoming a Tevuah Reserve investor.
                 </p>
 
                 <div className="mt-8 border-t border-forest-900/10 pt-7">
@@ -524,20 +471,11 @@ export default function ContactPage() {
                 </p>
 
                 <h2 className="font-display mt-4 max-w-3xl text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
-                  Understand the opportunity,
-                  documents and risks before
-                  committing capital.
+                  Review the opportunity and understand the risks.
                 </h2>
 
                 <p className="mt-5 max-w-3xl text-sm leading-7 text-white/60">
-                  Private investments may involve
-                  limited liquidity, long holding
-                  periods and the possibility of
-                  losing some or all invested
-                  capital. Opportunity-specific
-                  terms and risk disclosures
-                  should be reviewed carefully
-                  before any investment decision.
+                  Private investments can involve limited liquidity, extended holding periods and the risk of losing some or all invested capital. Investors should review the specific terms, documentation and risk disclosures applicable to each opportunity before committing capital.
                 </p>
 
                 <Link
@@ -572,16 +510,11 @@ export default function ContactPage() {
                 </div>
 
                 <h2 className="font-display mt-5 max-w-3xl text-4xl font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  Existing investors can continue
-                  through their secure account.
+                  Access your investor account.
                 </h2>
 
                 <p className="mt-5 max-w-2xl text-sm leading-7 text-stone-700">
-                  Use your investor dashboard for
-                  investment positions, documents
-                  and account activity. Contact
-                  Tevuah Reserve directly when you
-                  need additional assistance.
+                  Existing investors can use their secure account to review investment positions, documents and account activity. For account assistance or other investor enquiries, contact Tevuah Reserve directly.
                 </p>
               </div>
 

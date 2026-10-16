@@ -104,9 +104,7 @@ export default function AboutPage() {
 
             <AboutHeroReveal delay={0.34}>
               <p className="mt-7 max-w-2xl text-base leading-8 text-white/65 sm:text-lg">
-                Tevuah Reserve is being built around productive land,
-                agricultural intelligence, fine wine and a disciplined
-                approach to investor transparency.
+                Tevuah Reserve focuses on productive land, agricultural intelligence, fine wine and a disciplined approach to asset stewardship and investor transparency.
               </p>
             </AboutHeroReveal>
 
@@ -182,15 +180,11 @@ export default function AboutPage() {
               </h2>
 
               <p className="mt-6 max-w-3xl text-base leading-8 text-stone-700">
-                Tevuah Reserve is designed to connect investors with carefully
-                presented opportunities across vineyard estates, olive
-                agriculture, AgTech infrastructure and fine wine.
+                Tevuah Reserve connects investors with carefully selected opportunities across vineyard estates, olive agriculture, AgTech infrastructure and fine wine.
               </p>
 
               <p className="mt-5 max-w-3xl text-base leading-8 text-stone-700">
-                The platform should help investors understand what they are
-                investing in, how the opportunity is structured, where the
-                capital is being used and which risks remain.
+                Our approach is centered on helping investors understand the underlying asset, how an opportunity is structured, how capital is deployed and which risks remain throughout the investment period.
               </p>
             </AboutReveal>
           </div>
@@ -214,9 +208,7 @@ export default function AboutPage() {
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
-                Attractive design should never become a substitute for
-                understanding the underlying property, operating model,
-                structure and risk.
+                Investment decisions begin with an understanding of the underlying asset. Presentation should never replace the fundamentals of the property, operating model, ownership structure or associated risks.
               </p>
 
               <AboutStagger
@@ -278,12 +270,11 @@ export default function AboutPage() {
               </p>
 
               <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl">
-                Opportunities should pass through a defined review process.
+                Opportunities pass through a defined review process.
               </h2>
 
               <p className="mt-6 max-w-xl text-base leading-8 text-white/60">
-                No opportunity should become investable simply because basic
-                information and attractive photography have been uploaded.
+                An opportunity does not become available to investors simply because its underlying asset is attractive. Each opportunity is subject to a structured review covering the asset, investment structure, operator, financial assumptions, legal documentation and material risks.
               </p>
 
               <AboutRevealSoft delay={0.08}>
@@ -291,9 +282,7 @@ export default function AboutPage() {
                   <ShieldCheck className="mt-0.5 size-5 shrink-0 text-gold-400" />
 
                   <p className="text-sm leading-7 text-white/60">
-                    The final governance framework should be developed with
-                    qualified legal, compliance, financial and regulatory
-                    advisers.
+                    The governance framework incorporates qualified legal, compliance, financial and regulatory expertise appropriate to the jurisdictions in which Tevuah Reserve operates and in which its assets and investors are located.
                   </p>
                 </div>
               </AboutRevealSoft>
@@ -368,13 +357,11 @@ export default function AboutPage() {
             </p>
 
             <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl lg:text-6xl">
-              A multidisciplinary platform needs clearly defined
-              responsibilities.
+              A multidisciplinary platform with clearly defined responsibilities.
             </h2>
 
             <p className="mt-6 max-w-3xl text-base leading-8 text-stone-700">
-              We are defining the functions the final Tevuah Reserve team will
-              require before publishing real leadership profiles.
+              Tevuah Reserve brings together investment, asset management, operations, compliance and investor relations functions to support the full investment lifecycle.
             </p>
           </AboutReveal>
 
@@ -391,17 +378,6 @@ export default function AboutPage() {
               </AboutStaggerItem>
             ))}
           </AboutStagger>
-
-          <AboutRevealSoft delay={0.08}>
-            <div className="mt-8 rounded-3xl border border-gold-500/25 bg-gold-500/5 p-6">
-              <p className="text-xs leading-6 text-stone-700">
-                We are intentionally not displaying invented executives or
-                stock portraits as real members of Tevuah Reserve. Genuine
-                leadership profiles should only be published once real people,
-                roles and biographies have been confirmed.
-              </p>
-            </div>
-          </AboutRevealSoft>
         </Container>
       </section>
 
@@ -419,15 +395,11 @@ export default function AboutPage() {
               </h2>
 
               <p className="mt-6 text-base leading-8 text-stone-700">
-                Tevuah Reserve does not need to pretend that the platform
-                itself operates every vineyard, olive grove or wine-storage
-                facility.
+                Tevuah Reserve works with specialist operators and service providers where their expertise is essential to the management and performance of an underlying asset.
               </p>
 
               <p className="mt-5 text-base leading-8 text-stone-700">
-                Instead, the platform should clearly identify the operating
-                partner responsible for each asset, what their role is and how
-                their performance is monitored.
+                For each applicable opportunity, investors should be able to identify the operating partner, understand its responsibilities and review the framework through which operational performance is monitored.
               </p>
 
               <AboutRevealSoft delay={0.08}>
@@ -531,9 +503,7 @@ export default function AboutPage() {
               </h2>
 
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/60">
-                Explore the public marketplace now. Account creation,
-                verification and the investor dashboard will be built in the
-                next application phase.
+                Explore vineyard estates, olive agriculture, AgTech infrastructure and fine wine opportunities through a platform built around transparency, documentation and long-term asset stewardship.
               </p>
             </AboutReveal>
 

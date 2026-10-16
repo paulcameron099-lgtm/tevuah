@@ -30,6 +30,13 @@ export type Estate = {
   id: string;
   slug: string;
   name: string;
+
+  overviewHeading: string;
+  infrastructureHeading: string;
+  intelligenceHeading: string;
+  intelligenceDescription: string;
+  relatedInvestmentsHeading: string;
+
   estateType: EstateType;
   estateTypeLabel: string;
   country: string;

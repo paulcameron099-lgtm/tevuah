@@ -42,7 +42,7 @@ export function HowItWorks() {
             <SectionHeading
               eyebrow="How it works"
               title="A considered path from discovery to portfolio reporting."
-              description="Tevuah Reserve is being designed to give investors a clear, structured journey through opportunity review, commitment and long-term monitoring."
+              description="Tevuah Reserve guides investors from initial enquiries through opportunity review, investor onboarding, investment commitment and ongoing portfolio reporting."
             />
           </motion.div>
 
@@ -61,10 +61,7 @@ export function HowItWorks() {
             }}
           >
             <p className="max-w-xl text-sm leading-7 text-stone-700">
-              Every genuine opportunity will require its own legal,
-              operational and financial documentation. The platform experience
-              should make that information easier to review without hiding the
-              underlying risks.
+              Each opportunity is supported by relevant legal, operational and financial documentation, giving investors a clearer understanding of its structure, requirements and associated risks before making a decision.
             </p>
 
             <motion.div
@@ -180,7 +177,7 @@ export function HowItWorks() {
               }}
             >
               <Image
-                src="/images/sections/how-it-works-estate-review.jpg"
+                src="/images/sections/how-it-works-estate-review.PNG"
                 alt="An estate review representing the Tevuah Reserve investment process"
                 fill
                 sizes="(max-width: 1024px) 100vw, 55vw"
@@ -190,41 +187,6 @@ export function HowItWorks() {
 
             <div className="absolute inset-0 bg-linear-to-t from-forest-950/65 via-transparent to-forest-950/10" />
 
-            <motion.div
-              className="absolute bottom-6 left-6 right-6 rounded-2xl border border-white/15 bg-forest-950/55 p-5 backdrop-blur-md sm:bottom-8 sm:left-8 sm:right-auto sm:max-w-sm"
-              initial={
-                reduceMotion
-                  ? false
-                  : {
-                      opacity: 0,
-                      y: 24,
-                      scale: 0.98,
-                    }
-              }
-              whileInView={{
-                opacity: 1,
-                y: 0,
-                scale: 1,
-              }}
-              viewport={{
-                once: true,
-                amount: 0.5,
-              }}
-              transition={{
-                duration: 0.8,
-                delay: reduceMotion ? 0 : 0.25,
-                ease: premiumEase,
-              }}
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-400">
-                Structured review
-              </p>
-
-              <p className="mt-3 text-sm leading-6 text-white/75">
-                Opportunity presentation should support informed review, not
-                replace independent judgement or professional advice.
-              </p>
-            </motion.div>
           </div>
 
           {/* Review copy */}
@@ -303,9 +265,7 @@ export function HowItWorks() {
                 },
               }}
             >
-              Each opportunity should present the investment structure, use of
-              funds, estate operator, project assumptions, fees, duration,
-              risks and available documentation in one clear experience.
+              Each opportunity provides information covering the investment structure, use of funds, estate operator, project assumptions, fees, duration, material risks and available documentation.
             </motion.p>
 
             <motion.ul

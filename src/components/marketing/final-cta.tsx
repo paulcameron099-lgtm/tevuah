@@ -290,10 +290,7 @@ export function FinalCta() {
                 </motion.span>
 
                 <p className="text-xs leading-6 text-white/50">
-                  Investments involve risk, including possible loss of
-                  principal and limited liquidity. Investors should review all
-                  available offering information and consider their own
-                  financial circumstances before investing.
+                  Investments involve risk, including possible loss of capital. Information presented on the platform is provided for informational purposes and does not constitute an offer, recommendation or guarantee of investment performance.
                 </p>
               </motion.div>
             </motion.div>

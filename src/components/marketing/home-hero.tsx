@@ -33,7 +33,7 @@ export function HomeHero() {
         }}
       >
         <Image
-          src="/images/hero/tevuah-vineyard-hero.jpg"
+          src="/images/hero/tevuah-vineyard-hero.PNG"
           alt="A vineyard estate representing Tevuah Reserve investments"
           fill
           priority
@@ -137,9 +137,7 @@ export function HomeHero() {
               ease: premiumEase,
             }}
           >
-            Discover carefully considered opportunities across vineyard
-            estates, olive agriculture, AgTech infrastructure and
-            professionally managed fine wine.
+            Access carefully selected opportunities across vineyard estates, olive agriculture, AgTech infrastructure and professionally managed fine wine.
           </motion.p>
 
           <motion.div

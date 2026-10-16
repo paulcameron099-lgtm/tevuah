@@ -123,9 +123,7 @@ export function AgTechSection() {
                 },
               }}
             >
-              Tevuah Reserve can bring estate reporting, agricultural metrics
-              and project milestones into one investor experience—without
-              suggesting that technology removes investment risk.
+              Tevuah Reserve brings estate reporting, agricultural metrics and project milestones together within the investor experience, providing greater visibility into the operational factors affecting an underlying asset.
             </motion.p>
 
             <motion.ul
@@ -253,7 +251,7 @@ export function AgTechSection() {
                 }}
               >
                 <Image
-                  src="/images/agtech/agtech-field-monitoring.jpg"
+                  src="/images/agtech/agtech-field-monitoring.PNG"
                   alt="Agricultural field monitoring representing Tevuah Reserve reporting technology"
                   fill
                   sizes="(max-width: 1024px) 100vw, 60vw"
@@ -473,29 +471,6 @@ export function AgTechSection() {
         />
           </motion.div>
         </div>
-
-        {/* Disclosure */}
-        <motion.div
-          className="mt-12 rounded-2xl border border-white/10 bg-white/4 px-6 py-5"
-          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{
-            once: true,
-            amount: 0.5,
-          }}
-          transition={{
-            duration: 0.7,
-            ease: premiumEase,
-          }}
-        >
-          <p className="text-xs leading-6 text-white/45">
-            The metrics shown in this section are illustrative interface data
-            for the Tevuah Reserve design. Genuine estate information should
-            come from verified operational sources and clearly identify when
-            readings were collected, how they were measured and whether they
-            were independently reviewed.
-          </p>
-        </motion.div>
       </Container>
     </Section>
   );

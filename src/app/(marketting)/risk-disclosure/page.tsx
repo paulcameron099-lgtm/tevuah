@@ -66,8 +66,8 @@ const riskSections: RiskSection[] = [
       "Loss of capital and investment performance",
     icon: ShieldAlert,
     paragraphs: [
-      "Investing involves risk. The value of an investment may fall as well as rise, and an investor may receive back less than the amount invested. In some circumstances, an investor may lose all of the capital committed to an investment.",
-      "Target returns, projected distributions, expected durations, forecasts, assumptions and other forward-looking information are estimates rather than guarantees. Actual performance may differ materially from any target or projection.",
+      "Investing involves the risk of losing capital. The value of an investment may rise or fall, and an investor may receive less than the amount invested. In some circumstances, an investor may lose all of the capital committed.",
+      "Target returns, projected distributions, expected holding periods, forecasts, assumptions and other forward-looking information are estimates and are not guarantees. Actual performance may differ materially from expectations.",
     ],
     points: [
       "Investment returns are not guaranteed.",
@@ -84,11 +84,10 @@ const riskSections: RiskSection[] = [
       "Liquidity and holding-period risk",
     icon: Coins,
     paragraphs: [
-      "Private investments may be illiquid. There may be no established public market in which an investor can sell an investment, and a secondary buyer may not be available when an investor wishes to exit.",
-      "Expected investment durations are estimates and may change. Investors should be prepared to hold an investment for longer than originally anticipated and should not commit capital that they may need to access at short notice.",
+      "Private investments may be illiquid. There may be no established public market for an investment, and a secondary buyer may not be available when an investor wishes to sell or transfer their position.",
+      "The expected duration of an investment may change. An investment may need to be held longer than initially anticipated, and investors should not commit capital that they may need to access in the short term.",
     ],
     points: [
-      "There may be no readily available secondary market.",
       "An early exit may be unavailable, restricted or economically unattractive.",
       "Realisation events may occur later than expected.",
       "Capital may remain committed for an extended period.",
@@ -102,8 +101,8 @@ const riskSections: RiskSection[] = [
       "Agricultural and estate operating risk",
     icon: Grape,
     paragraphs: [
-      "Agricultural assets are exposed to operational and environmental factors that can materially affect production, costs, asset performance and investment outcomes.",
-      "Vineyards, olive estates and other agricultural operations may experience changes in crop yields, input costs, labour availability, disease pressure, water availability, infrastructure requirements and market conditions.",
+      "Agricultural investments are exposed to operational, environmental and market conditions that can materially affect production, costs, asset values and investment performance.",
+      "Vineyards, olive estates and other agricultural operations may be affected by changes in crop yields, input costs, labour availability, plant disease, water availability, infrastructure requirements and market conditions.",
     ],
     points: [
       "Crop yields may be lower than expected.",
@@ -121,8 +120,8 @@ const riskSections: RiskSection[] = [
       "Weather, climate and natural-event risk",
     icon: CloudSun,
     paragraphs: [
-      "Agricultural performance can be materially affected by weather and environmental conditions. Drought, excessive rainfall, frost, heat, wildfire, flooding, storms and other natural events may affect crops, infrastructure and operating results.",
-      "Longer-term changes in climate patterns may alter water requirements, growing conditions, crop suitability, disease pressure and the economics of agricultural operations.",
+      "Agricultural performance can be materially affected by weather and environmental conditions. Drought, excessive rainfall, frost, extreme heat, wildfire, flooding, storms and other natural events may damage crops, infrastructure and other assets and may adversely affect operating results.",
+      "Long-term changes in climate conditions may also affect water availability, growing conditions, crop suitability, disease pressure and the economics of agricultural operations.",
     ],
   },
 
@@ -133,8 +132,8 @@ const riskSections: RiskSection[] = [
       "Fine-wine investment risk",
     icon: Wine,
     paragraphs: [
-      "Fine wine is a specialist asset category whose value can be affected by market demand, producer reputation, vintage characteristics, critic sentiment, provenance, storage conditions, authenticity and broader economic conditions.",
-      "Wine valuations are estimates and may not represent the price at which a holding can actually be sold. Transaction costs, storage, insurance, custody and market liquidity may also affect realised returns.",
+      "Fine wine is a specialist asset category whose value can be affected by market demand, producer reputation, vintage characteristics, market sentiment, provenance, storage conditions, authenticity and broader economic conditions.",
+      "Wine valuations are estimates and may differ from the amount that can ultimately be realised through a sale. Transaction costs, storage, insurance, custody and market liquidity may also affect realised returns.",
     ],
     points: [
       "Market valuations can rise or fall.",
@@ -152,8 +151,9 @@ const riskSections: RiskSection[] = [
       "Valuation and pricing risk",
     icon: BarChart3,
     paragraphs: [
-      "Private and specialist assets may not have continuously observable market prices. Valuations may therefore rely on third-party information, comparable transactions, market data, appraisals, models or other assumptions.",
-      "A reported valuation may differ from the amount ultimately realised through a sale, refinancing, distribution or other liquidity event. Valuation methodologies and available market information may also change over time.",
+      "Private and specialist assets may not have continuously observable market prices. Valuations may therefore rely on third-party information, comparable transactions, market data, appraisals, valuation models or other assumptions.",
+      "A reported valuation may differ materially from the amount ultimately realised through a sale, refinancing, distribution or other liquidity event.",
+      "Valuation methodologies, market conditions and available information may change over time.",
     ],
   },
 
@@ -164,8 +164,9 @@ const riskSections: RiskSection[] = [
       "Concentration and diversification risk",
     icon: Layers3,
     paragraphs: [
-      "Concentrating a significant proportion of capital in one opportunity, operator, geography, agricultural category or specialist asset can increase exposure to adverse events affecting that particular investment.",
-      "Diversification may reduce some forms of concentration risk, but it cannot eliminate investment risk or guarantee against loss.",
+      "Concentrating a significant portion of capital in a single opportunity, operator, geography, agricultural category or specialist asset can increase exposure to adverse events affecting that particular investment.",
+      "Diversification may reduce certain concentration risks but cannot eliminate investment risk or guarantee against loss.",
+      "Investors should consider the effect of each investment on their overall portfolio and level of exposure to particular assets, markets and risk factors.",
     ],
   },
 
@@ -176,8 +177,8 @@ const riskSections: RiskSection[] = [
       "Currency and cross-border risk",
     icon: Landmark,
     paragraphs: [
-      "An opportunity may involve assets, revenues, expenses or transactions denominated in currencies different from an investor's home currency. Exchange-rate movements can therefore increase or reduce investment returns when measured in the investor's preferred currency.",
-      "Cross-border investments may also be affected by different legal systems, banking arrangements, tax rules, transfer restrictions and economic or political conditions.",
+      "An investment may involve assets, revenues, expenses or transactions denominated in a currency different from the investor's home currency. Changes in exchange rates may therefore increase or reduce investment returns when measured in the investor's preferred currency.",
+      "Cross-border investments may also be affected by different legal systems, banking arrangements, tax requirements, transfer restrictions and economic or political conditions.",
     ],
   },
 
@@ -188,8 +189,9 @@ const riskSections: RiskSection[] = [
       "Distribution and cash-flow risk",
     icon: Coins,
     paragraphs: [
-      "Any expected distribution schedule is subject to the actual performance, liquidity and cash requirements of the relevant investment structure or underlying asset.",
-      "Distributions may be lower than expected, delayed, suspended or not made at all. Investors should not rely on projected distributions as guaranteed income.",
+      "Distributions depend on the performance, liquidity and cash requirements of the relevant investment structure and underlying assets.",
+      "Distributions may be lower than expected, delayed, suspended or not made.",
+      "Projected distributions should not be treated as guaranteed income or relied upon as a fixed source of cash flow.",
     ],
   },
 
@@ -200,8 +202,9 @@ const riskSections: RiskSection[] = [
       "Operator, counterparty and third-party risk",
     icon: Users,
     paragraphs: [
-      "Investment outcomes may depend on estate operators, managers, custodians, banks, service providers, suppliers, advisers and other third parties performing their obligations appropriately.",
-      "Operational failure, financial distress, misconduct, disputes, delays or errors by a relevant counterparty or service provider may adversely affect an investment.",
+      "Investment performance may depend on estate operators, managers, custodians, banks, service providers, suppliers, advisers and other third parties performing their respective obligations.",
+      "Operational failures, financial distress, misconduct, disputes, delays or errors by an operator, counterparty or service provider may adversely affect an investment.",
+      "The performance of an investment may therefore depend on parties outside the direct control of the investor or Tevuah Reserve.",
     ],
   },
 
@@ -212,8 +215,8 @@ const riskSections: RiskSection[] = [
       "Joint-investment risk",
     icon: Users,
     paragraphs: [
-      "Where an investment is made jointly, participating investors may have shared rights, obligations or economic interests under the applicable investment structure and documentation.",
-      "A joint investment may require acceptance or action from more than one participating member. Delays, disagreements or a failure by a required participant to complete an applicable step may affect the progression or administration of the joint investment.",
+      "Where an investment is held jointly, participating investors may have shared rights, obligations and economic interests under the applicable investment structure and documentation.",
+      "A joint investment may require action, consent or completion of required steps by more than one participating investor. Delays, disagreements or a failure by a required participant to complete an applicable requirement may affect the administration or progression of the investment.",
     ],
   },
 
@@ -224,8 +227,10 @@ const riskSections: RiskSection[] = [
       "Technology, AgTech and data risk",
     icon: Database,
     paragraphs: [
-      "Technology can improve visibility into agricultural operations, but sensors, communications networks, software platforms and data sources can fail, become unavailable or produce incomplete or inaccurate information.",
-      "AgTech and operational measurements should be interpreted according to their source, timestamp, methodology and validation status. Data displayed through the platform should not be assumed to be continuously available or error-free.",
+      "Technology can improve visibility into agricultural operations, but sensors, communications networks, software platforms and data sources may fail, become unavailable or produce incomplete, delayed or inaccurate information.",
+      "AgTech and operational measurements should be evaluated according to their source, timestamp, methodology and validation status.",
+      "Information displayed through the platform should not be assumed to be continuously available, complete or error-free.",
+      "Technology and data are used to support reporting and operational visibility; they do not eliminate the underlying risks associated with agricultural operations or investment decisions.",
     ],
   },
 
@@ -236,8 +241,9 @@ const riskSections: RiskSection[] = [
       "Cybersecurity and platform risk",
     icon: LockKeyhole,
     paragraphs: [
-      "Digital platforms and service providers are exposed to cybersecurity threats, system outages, unauthorised access, software defects and other technology-related risks.",
-      "Security controls can reduce risk but cannot eliminate it entirely. Interruptions or security incidents may temporarily affect access to accounts, documents, reporting or other platform functionality.",
+      "Digital platforms and service providers are exposed to cybersecurity threats, system outages, unauthorized access, software defects, data loss and other technology-related risks.",
+      "Security controls can reduce these risks but cannot eliminate them entirely.",
+      "A system interruption or security incident may temporarily affect access to investor accounts, documents, reporting or other platform functionality.",
     ],
   },
 
@@ -248,8 +254,9 @@ const riskSections: RiskSection[] = [
       "Legal, regulatory and tax risk",
     icon: Scale,
     paragraphs: [
-      "Laws, regulations, tax rules and regulatory interpretations can change and may affect an investment, an underlying asset, an operator or an investor's own position.",
-      "Tax consequences can differ materially between investors and jurisdictions. Information provided by Tevuah Reserve should not be treated as personalised legal or tax advice. Investors should obtain independent professional advice where appropriate.",
+      "Laws, regulations, tax rules and regulatory interpretations may change and may affect an investment, its underlying assets, the operator or an investor's position.",
+      "Tax consequences may differ materially between investors and jurisdictions.",
+      "TInformation provided by Tevuah Reserve is general information and should not be treated as personalized legal or tax advice. Investors should obtain independent professional advice where appropriate.",
     ],
   },
 
@@ -260,8 +267,9 @@ const riskSections: RiskSection[] = [
       "Information and disclosure risk",
     icon: FileSearch,
     paragraphs: [
-      "Private investments may provide less publicly available information than securities traded on established public markets. Information may also be received periodically rather than continuously.",
-      "Investors should review all material information made available for a specific opportunity, ask questions where information is unclear and consider whether they have sufficient information to make an informed decision.",
+      "Private investments may involve less publicly available information than securities traded on established public markets. Information may also be provided periodically rather than continuously.",
+      "Investors should review all material information made available for a specific opportunity and seek clarification where information is unclear or incomplete.",
+      "Investors are responsible for determining whether they have sufficient information to make an informed investment decision.",
     ],
   },
 
@@ -272,8 +280,10 @@ const riskSections: RiskSection[] = [
       "Forward-looking statements and assumptions",
     icon: BarChart3,
     paragraphs: [
-      "The platform or opportunity materials may contain projections, forecasts, estimates, targets, expected durations and other forward-looking statements. These depend on assumptions and circumstances that may not occur as expected.",
-      "Actual events and results may differ materially because of operational, financial, market, environmental, regulatory or other factors. Forward-looking statements should not be treated as promises or guarantees.",
+      "Investment materials may contain projections, forecasts, estimates, targets, expected durations and other forward-looking statements.",
+      "These statements depend on assumptions and circumstances that may change or may not occur as expected.",
+      "Actual events and results may differ materially from projections because of operational, financial, market, environmental, regulatory and other factors.",
+      "Forward-looking statements should not be interpreted as promises, guarantees or assurances of future performance.",
     ],
   },
 ];
@@ -362,13 +372,7 @@ export default function RiskDisclosurePage() {
 
             <RiskHeroReveal delay={0.31}>
               <p className="mt-7 max-w-3xl text-base leading-8 text-white/65 sm:text-lg">
-                Private investments involve
-                significant risk. Understand the
-                potential for capital loss,
-                illiquidity, operational
-                uncertainty and other material
-                risks before deciding whether to
-                invest.
+                Private investments involve significant risk. Investors may experience partial or complete loss of capital, limited liquidity, changes in valuation, operational disruptions and other risks that may materially affect investment performance.
               </p>
             </RiskHeroReveal>
 
@@ -395,8 +399,7 @@ export default function RiskDisclosurePage() {
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  You may lose some or all of the
-                  capital you invest.
+                  You may lose some or all of the capital you invest.
                 </p>
               </div>
             </RiskStaggerItem>
@@ -408,9 +411,7 @@ export default function RiskDisclosurePage() {
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  Private investments may be
-                  difficult or impossible to sell
-                  when desired.
+                  Private investments may be difficult to sell or transfer when you want to exit.
                 </p>
               </div>
             </RiskStaggerItem>
@@ -422,8 +423,7 @@ export default function RiskDisclosurePage() {
                 </p>
 
                 <p className="mt-1 text-xs leading-5 text-white/45">
-                  Targets, forecasts and
-                  projections may not be achieved.
+                  Target returns, projections and forecasts are not guarantees of future performance.
                 </p>
               </div>
             </RiskStaggerItem>
@@ -452,30 +452,15 @@ export default function RiskDisclosurePage() {
                 </p>
 
                 <h2 className="font-display mt-4 max-w-4xl text-3xl font-medium tracking-[-0.03em] sm:text-4xl lg:text-5xl">
-                  Do not invest unless you
-                  understand the investment and
-                  can bear the risk of loss.
+                  Do not invest unless you understand the investment and can bear the risk of loss.
                 </h2>
 
                 <p className="mt-6 max-w-4xl text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
-                  Investments presented through
-                  Tevuah Reserve may involve
-                  private, specialist, illiquid or
-                  operational assets. The value
-                  and performance of an investment
-                  can be affected by events beyond
-                  the control of Tevuah Reserve,
-                  the investor or the underlying
-                  operator.
+                  Investments offered through Tevuah Reserve may involve private, specialist, illiquid and operational assets. Their value and performance may be affected by market conditions, operating performance, environmental events, regulatory changes and other circumstances beyond the control of Tevuah Reserve, the investor or the underlying operator.
                 </p>
 
                 <p className="mt-5 max-w-4xl text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
-                  Investors should consider their
-                  financial circumstances,
-                  investment objectives, time
-                  horizon, liquidity requirements
-                  and ability to withstand loss
-                  before committing capital.
+                  Before investing, investors should consider their financial circumstances, investment objectives, investment time horizon, liquidity needs and ability to withstand a loss of capital.
                 </p>
               </div>
             </div>
@@ -497,8 +482,7 @@ export default function RiskDisclosurePage() {
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  Understand risk before
-                  committing capital.
+                  Understand the risks before committing capital.
                 </h2>
               </div>
             </RiskReveal>
@@ -506,21 +490,11 @@ export default function RiskDisclosurePage() {
             <RiskReveal delay={0.08}>
               <div className="space-y-6 text-base leading-8 text-stone-700">
                 <p>
-                  This Risk Disclosure provides
-                  general information about
-                  important risks that may arise
-                  when considering investments
-                  presented through Tevuah
-                  Reserve.
+                  This Risk Disclosure sets out material risks associated with investments offered through Tevuah Reserve. It is intended to help investors understand the nature of private-market investing and the risks that may affect an investment.
                 </p>
 
                 <p>
-                  It is not intended to describe
-                  every possible risk and does not
-                  replace the terms, disclosures,
-                  agreements or other information
-                  relating to a specific
-                  investment opportunity.
+                 This disclosure does not cover every risk that may apply to an investment. Each opportunity has its own terms, structure, underlying assets, operators, jurisdictions, holding period and risk factors. Investors must review the information, agreements, disclosures and risk factors applicable to the specific opportunity before investing.
                 </p>
 
                 <p>
@@ -532,17 +506,6 @@ export default function RiskDisclosurePage() {
                   therefore review each
                   opportunity on its own merits.
                 </p>
-
-                <div className="rounded-2xl border border-gold-500/25 bg-gold-500/5 p-5">
-                  <p className="text-xs leading-6 text-stone-700">
-                    Where professional financial,
-                    legal, accounting or tax
-                    advice is required, investors
-                    should obtain advice from
-                    appropriately qualified
-                    independent professionals.
-                  </p>
-                </div>
               </div>
             </RiskReveal>
           </div>
@@ -671,38 +634,21 @@ export default function RiskDisclosurePage() {
                 </p>
 
                 <h2 className="font-display mt-4 text-3xl font-medium tracking-[-0.03em] text-forest-950 sm:text-4xl">
-                  This page is not the complete
-                  risk analysis for any
-                  investment.
+                   Every investment requires its own risk assessment.
                 </h2>
               </div>
 
               <div className="space-y-5 text-sm leading-8 text-stone-700">
                 <p>
-                  Every investment can involve
-                  risks that are specific to its
-                  structure, underlying asset,
-                  operator, geography, financing,
-                  commercial arrangements and
-                  other circumstances.
+                  The risks associated with an investment depend on its structure, underlying assets, operator, geography, financing arrangements, commercial terms and other circumstances.
                 </p>
 
                 <p>
-                  Before investing, review the
-                  opportunity information,
-                  applicable agreements,
-                  supporting documents and
-                  opportunity-specific risk
-                  disclosures made available to
-                  you.
+                  Before investing, review the opportunity information, applicable agreements, supporting documents and opportunity-specific risk disclosures made available to you.
                 </p>
 
                 <p>
-                  If information is unclear or
-                  incomplete, investors should
-                  seek clarification before
-                  committing capital rather than
-                  relying on assumptions.
+                  If material information, assumptions, investment mechanics or risks are unclear, seek clarification before committing capital.
                 </p>
 
                 <Button
@@ -734,15 +680,11 @@ export default function RiskDisclosurePage() {
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl">
-                  Make an informed decision.
+                  Make an informed investment decision.
                 </h2>
 
                 <p className="mt-6 max-w-md text-sm leading-7 text-white/60">
-                  An investment decision should
-                  reflect both the potential
-                  opportunity and the investor&apos;s
-                  ability to tolerate the
-                  associated risks.
+                  An investment decision should take into account both the potential opportunity and the investor's ability to withstand the associated risks.
                 </p>
               </div>
             </RiskReveal>
@@ -752,37 +694,37 @@ export default function RiskDisclosurePage() {
                 {
                   number: "01",
                   title:
-                    "Read the available information",
+                    "Review the available information",
                   description:
-                    "Review the investment terms, documents, assumptions and risk disclosures relevant to the opportunity.",
+                    "Review the investment terms, documents, assumptions and risk disclosures applicable to the opportunity.",
                 },
                 {
                   number: "02",
                   title:
                     "Consider your financial position",
                   description:
-                    "Assess whether you can withstand a loss and whether committed capital may be required elsewhere during the expected holding period.",
+                    "Consider whether you can withstand a partial or complete loss of your investment and whether the committed capital may be needed elsewhere during the expected holding period.",
                 },
                 {
                   number: "03",
                   title:
                     "Consider concentration",
                   description:
-                    "Evaluate how the investment would affect your exposure to a particular asset, sector, geography or risk category.",
+                    "Assess how the investment would affect your exposure to a particular asset, sector, geography or category of risk.",
                 },
                 {
                   number: "04",
                   title:
                     "Ask questions",
                   description:
-                    "Seek clarification where material information, assumptions, investment mechanics or risks are not understood.",
+                    "Seek clarification when material information, assumptions, investment mechanics or risks are not understood.",
                 },
                 {
                   number: "05",
                   title:
                     "Obtain professional advice where needed",
                   description:
-                    "Use appropriately qualified advisers where financial, legal, tax or other professional advice is necessary for your circumstances.",
+                    "Obtain advice from appropriately qualified financial, legal, tax or other professional advisers where such advice is necessary for your circumstances.",
                 },
               ].map((item) => (
                 <RiskStaggerItem
@@ -826,18 +768,13 @@ export default function RiskDisclosurePage() {
                 </h2>
 
                 <p className="mt-5 text-sm leading-7 text-stone-700">
-                  General information presented
-                  through Tevuah Reserve does not
-                  by itself constitute
-                  personalised financial, legal,
-                  tax or accounting advice.
-                  Investors remain responsible
-                  for evaluating whether an
-                  investment is appropriate for
-                  their own circumstances and for
-                  obtaining independent
-                  professional advice where
-                  required.
+                  General information does not constitute personalised advice.
+                </p>
+                <p className="mt-5 text-sm leading-7 text-stone-700">
+                  Information provided through Tevuah Reserve is general information about investments, investment processes, assets and related risks. It does not constitute personalised financial, legal, tax or accounting advice.
+                </p>
+                <p className="mt-5 text-sm leading-7 text-stone-700">
+                  Investors are responsible for evaluating whether an investment is appropriate for their individual circumstances and for obtaining independent professional advice where appropriate.
                 </p>
               </article>
 
@@ -849,14 +786,10 @@ export default function RiskDisclosurePage() {
                 </h2>
 
                 <p className="mt-5 text-sm leading-7 text-stone-700">
-                  Nothing presented through the
-                  platform should be interpreted
-                  as a guarantee of investment
-                  performance, capital
-                  preservation, liquidity,
-                  distributions, valuation,
-                  timing or any particular
-                  investment outcome.
+                  Investment outcomes are not guaranteed.
+                </p>
+                <p className="mt-5 text-sm leading-7 text-stone-700">
+                  Nothing presented through the Tevuah Reserve platform should be interpreted as a guarantee of investment performance, capital preservation, liquidity, distributions, valuation, timing or any particular investment outcome.
                 </p>
               </article>
             </div>
@@ -877,16 +810,11 @@ export default function RiskDisclosurePage() {
               </p>
 
               <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                Risk is part of the investment
-                decision.
+                Understand the investment and its risks.
               </h2>
 
               <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-stone-700">
-                Take the time to understand the
-                investment, the available
-                information and the possibility
-                that actual outcomes may differ
-                substantially from expectations.
+                Investors should review the available information, understand the applicable terms and consider the possibility that actual results may differ materially from expectations.
               </p>
 
               <div className="mt-9 flex flex-wrap justify-center gap-4">
@@ -925,12 +853,7 @@ export default function RiskDisclosurePage() {
               </p>
 
               <p className="max-w-3xl sm:text-right">
-                This disclosure provides general
-                risk information and should be
-                read together with the terms,
-                documents and risk factors
-                applicable to each specific
-                investment opportunity.
+                This disclosure provides general information about material investment risks and should be read together with the terms, documents and risk factors applicable to each specific investment opportunity. Each investor is responsible for reviewing the applicable information and determining whether an investment is appropriate for their circumstances.
               </p>
             </div>
           </RiskRevealSoft>

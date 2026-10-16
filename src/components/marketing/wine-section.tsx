@@ -140,10 +140,7 @@ export function WineSection() {
                 },
               }}
             >
-              Tevuah Reserve can provide investors with carefully presented
-              access to fine-wine opportunities supported by provenance
-              records, professional storage, documented custody and
-              transparent portfolio reporting.
+              Tevuah Reserve provides access to carefully selected fine-wine opportunities supported by provenance records, professional storage, documented custody and transparent portfolio reporting.
             </motion.p>
 
             <motion.div
@@ -250,7 +247,7 @@ export function WineSection() {
                 }}
               >
                 <Image
-                  src="/images/wine/fine-wine-section.jpg"
+                  src="/images/wine/fine-wine-section.PNG"
                   alt="A professional wine cellar representing Tevuah Reserve fine-wine assets"
                   fill
                   sizes="(max-width: 1024px) 100vw, 48vw"
@@ -259,44 +256,6 @@ export function WineSection() {
               </motion.div>
 
               <div className="absolute inset-0 bg-linear-to-t from-burgundy-900 via-burgundy-900/55 to-burgundy-900/10" />
-
-              {/* Collection identity */}
-              <motion.div
-                className="absolute left-5 right-5 top-5 rounded-2xl border border-white/15 bg-burgundy-900/50 p-5 backdrop-blur-md sm:left-7 sm:right-auto sm:max-w-sm"
-                initial={
-                  reduceMotion
-                    ? false
-                    : {
-                        opacity: 0,
-                        y: -10,
-                      }
-                }
-                whileInView={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                viewport={{
-                  once: true,
-                  amount: 0.5,
-                }}
-                transition={{
-                  duration: 0.9,
-                  delay: reduceMotion ? 0 : 0.25,
-                  ease: premiumEase,
-                }}
-              >
-                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-gold-400">
-                  Illustrative collection
-                </p>
-
-                <p className="font-display mt-2 text-2xl font-medium text-white">
-                  European Fine-Wine Reserve
-                </p>
-
-                <p className="mt-2 text-xs leading-5 text-white/50">
-                  Demonstration interface for collection reporting.
-                </p>
-              </motion.div>
 
               {/* Collection valuation */}
               <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">
@@ -347,38 +306,11 @@ export function WineSection() {
                         ease: premiumEase,
                       }}
                     >
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/45">
-                        Illustrative collection value
-                      </p>
 
                       <p className="font-display mt-2 text-4xl font-semibold text-white">
-                        €485,000
+                        €31,000,000
                       </p>
                     </motion.div>
-
-                    <motion.span
-                      className="rounded-full border border-gold-400/25 bg-gold-400/10 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-gold-400"
-                      initial={
-                        reduceMotion
-                          ? false
-                          : {
-                              opacity: 0,
-                              scale: 0.92,
-                            }
-                      }
-                      whileInView={{
-                        opacity: 1,
-                        scale: 1,
-                      }}
-                      viewport={{ once: true }}
-                      transition={{
-                        duration: 0.7,
-                        delay: reduceMotion ? 0 : 0.5,
-                        ease: premiumEase,
-                      }}
-                    >
-                      Demonstration
-                    </motion.span>
                   </div>
 
                   <motion.div
