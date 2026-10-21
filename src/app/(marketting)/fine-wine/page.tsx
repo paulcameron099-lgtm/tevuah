@@ -531,10 +531,6 @@ export default async function FineWinePage() {
                       </p>
                     </div>
                   </div>
-
-                  <span className="rounded-full border border-gold-400/25 bg-gold-400/10 px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-gold-400">
-                    Illustrative
-                  </span>
                 </div>
 
                 <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">

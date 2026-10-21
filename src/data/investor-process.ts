@@ -36,7 +36,7 @@ export const investorProcessSteps: InvestorProcessStep[] = [
     details: [
       "Browse by asset category",
       "Compare locations and investment minimums",
-      "Review illustrative duration and risk information",
+      "Review duration and risk information",
     ],
     icon: Search,
   },

@@ -53,9 +53,10 @@ const complaintSections: ComplaintSection[] = [
     number: "01",
     title: "Purpose of this process",
     paragraphs: [
-      "Tevuah Reserve aims to provide prospective and existing investors with a clear route for raising concerns about the website, investor access, onboarding, investment administration, communications and related services.",
-      "A complaint should be considered carefully, fairly and objectively. Raising a concern should also provide Tevuah Reserve with an opportunity to identify operational issues, correct errors where appropriate and improve the investor experience.",
-      "This page describes the general Tevuah Reserve complaints process. Additional procedures may apply where a particular investment agreement, service provider or applicable law establishes a specific dispute or complaint process.",
+      "Tevuah Reserve provides a channel for prospective and existing investors to raise concerns about the website, investor access, onboarding, investment administration, communications and related services.",
+      "Complaints are considered with regard to the information available, the circumstances of the matter and the relevant contractual, operational and legal requirements.",
+      "The process supports the review of service issues, the correction of errors where appropriate and the identification of improvements to investor services.",
+      "Where an investment agreement, service arrangement or applicable law establishes a specific complaints or dispute-resolution procedure, that procedure also applies.",
     ],
   },
   {
@@ -63,18 +64,18 @@ const complaintSections: ComplaintSection[] = [
     number: "02",
     title: "What you can raise",
     paragraphs: [
-      "You may contact Tevuah Reserve if you are dissatisfied with a service, decision, communication or administrative process connected with your interaction with the platform.",
+      "You may contact Tevuah Reserve if you are dissatisfied with a service, decision, communication or administrative process connected with your interaction with the platform. Matters may include:",
     ],
     points: [
       "Investor enquiries or communications that have not been handled appropriately.",
       "Investor onboarding, account access or verification concerns.",
       "Problems accessing investment information or documents.",
-      "Questions or concerns about subscription or investment administration.",
-      "Funding-instruction or payment-administration concerns.",
-      "Joint-investment invitations, member consent or administrative issues.",
-      "Investor statements, distributions or portfolio-record concerns.",
-      "Privacy, account-security or personal-information concerns.",
-      "Concerns about information presented through the website or investor platform.",
+      "Subscription or investment administration.",
+      "Funding instructions or payment administration.",
+      "Joint-investment invitations, member consent or administrative matters.",
+      "Investor statements, distributions or portfolio records.",
+      "Privacy, account security or personal information.",
+      "Information presented through the website or investor platform.",
       "Conduct, service quality or another matter connected with your relationship with Tevuah Reserve.",
     ],
   },
@@ -83,8 +84,10 @@ const complaintSections: ComplaintSection[] = [
     number: "03",
     title: "Before submitting a complaint",
     paragraphs: [
-      "Some matters can be resolved quickly as an ordinary investor enquiry. If you are simply seeking information, clarification or assistance, you may use the Contact page without treating the matter as a formal complaint.",
-      "If you are dissatisfied with what occurred, believe an error requires investigation, or want the matter formally reviewed, make that clear in your communication so that it can be treated appropriately.",
+      "Some matters can be resolved through an ordinary investor enquiry. ",
+      "If you need information, clarification or assistance, you may contact Tevuah Reserve through the Contact page.",
+      "If you are dissatisfied with the service received, believe an error requires investigation or want a matter formally reviewed, clearly identify your communication as a complaint.",
+      "Providing a clear description of the issue and the outcome you are seeking helps distinguish a formal complaint from a general request for assistance.",
     ],
   },
   {
@@ -92,9 +95,9 @@ const complaintSections: ComplaintSection[] = [
     number: "04",
     title: "How to submit a complaint",
     paragraphs: [
-      "You may submit a complaint through the Tevuah Reserve Contact page. Clearly state that your message is a complaint and provide enough information for the matter to be identified and reviewed.",
-      "If you are an existing investor, provide sufficient information to identify the relevant account, opportunity, investment or transaction without including passwords, authentication credentials or other information that is unnecessary for the complaint.",
-      "Supporting documents may be requested where they are relevant to understanding or resolving the matter.",
+      "Submit your complaint through the Tevuah Reserve Contact page. Clearly state that your message is a complaint and provide sufficient information to identify the matter.",
+      "If you are an existing investor, include relevant account, opportunity, investment or transaction references where applicable. Do not include passwords, authentication codes or other sensitive credentials.",
+      "Supporting documents may be provided where relevant to understanding the issue. If further information is needed, Tevuah Reserve may contact you through the contact details supplied.",
     ],
   },
   {
@@ -102,15 +105,15 @@ const complaintSections: ComplaintSection[] = [
     number: "05",
     title: "Information to include",
     paragraphs: [
-      "Providing clear and relevant information can help Tevuah Reserve understand the concern and avoid unnecessary delays in reviewing it.",
+      "Clear and relevant information helps Tevuah Reserve understand the concern and assess the appropriate response. When submitting a complaint, include:",
     ],
     points: [
       "Your name and appropriate contact information.",
-      "A clear description of the issue or concern.",
+      "A clear description of the issue.",
       "The relevant investment or opportunity, where applicable.",
-      "Relevant dates or sequence of events.",
-      "Any transaction, subscription or other reference information that helps identify the matter.",
-      "Copies or descriptions of relevant communications or documents.",
+      "Relevant dates and a sequence of events.",
+      "Transaction, subscription or other reference information, where applicable.",
+      "Copies or descriptions of relevant communications and documents.",
       "The outcome or resolution you are seeking, where appropriate.",
     ],
   },
@@ -119,9 +122,9 @@ const complaintSections: ComplaintSection[] = [
     number: "06",
     title: "Acknowledgement",
     paragraphs: [
-      "Tevuah Reserve should acknowledge a formal complaint after it has been received and identified as a complaint.",
-      "The acknowledgement may confirm that the matter has been received, identify any additional information required and explain the next stage of the review.",
-      "A fixed acknowledgement period is not stated on this page because any formal service standard should be aligned with the company's final operating and regulatory requirements before it is presented as a commitment to investors.",
+      "Tevuah Reserve reviews incoming complaints and identifies the information required to address each matter.",
+      "Where additional information is needed, you may be contacted to clarify the concern or provide relevant supporting material.",
+      "Any acknowledgement or subsequent communication should identify the complaint where possible and explain the applicable next steps. Acknowledgement of a complaint does not, by itself, mean that its allegations have been accepted or that a particular outcome has been determined.",
     ],
   },
   {
@@ -129,9 +132,9 @@ const complaintSections: ComplaintSection[] = [
     number: "07",
     title: "Review and investigation",
     paragraphs: [
-      "The nature of the review will depend on the complaint. Tevuah Reserve may examine account records, investment records, documents, communications, transaction information, system records and other material relevant to the matter.",
-      "Where appropriate, the review may involve members of the administrative, investment, technical, compliance or other relevant functions.",
-      "The review should be conducted objectively and with appropriate regard for the information provided by the complainant and the records available to Tevuah Reserve.",
+      "The review depends on the nature and complexity of the complaint. Relevant material may include account records, investment documents, correspondence, transaction information, system records and other evidence connected with the matter.",
+      "Where appropriate, the review may involve the relevant administrative, investment, technical, compliance or other responsible personnel.",
+      "The objective is to understand the circumstances, consider the available evidence and determine an appropriate response in light of the applicable agreements, policies and legal requirements.",
     ],
   },
   {
@@ -139,8 +142,9 @@ const complaintSections: ComplaintSection[] = [
     number: "08",
     title: "Requests for additional information",
     paragraphs: [
-      "Tevuah Reserve may contact you for additional information where the available material is insufficient to understand or investigate the complaint.",
-      "Where a complaint concerns account or investment information, reasonable steps may also be taken to verify the identity or authority of the person making the request before sensitive information is disclosed.",
+      "Tevuah Reserve may request additional information where the material provided is insufficient to understand or investigate the complaint.",
+      "For matters involving account access, investment records or confidential information, reasonable identity and authority checks may be necessary before information is disclosed or account-related action is taken.",
+      "Providing requested information promptly can help avoid unnecessary delays. Any information supplied should be relevant to the matter being reviewed.",
     ],
   },
   {
@@ -148,9 +152,10 @@ const complaintSections: ComplaintSection[] = [
     number: "09",
     title: "Our response",
     paragraphs: [
-      "After the complaint has been sufficiently reviewed, Tevuah Reserve should communicate the outcome in a manner appropriate to the circumstances.",
-      "The response may explain the findings, any action taken or proposed, whether further information is required and any internal next step that is available.",
-      "A particular outcome cannot be guaranteed merely because a complaint has been submitted. The response should reflect the available evidence, applicable agreements and relevant legal or operational requirements.",
+      "Following the review, Tevuah Reserve communicates the outcome in a manner appropriate to the circumstances and applicable requirements.",
+      "The response may explain the findings, the basis for the decision, any corrective action taken or proposed, and any further steps available to the complainant.",
+      "Where a matter cannot be fully resolved, the response may explain what remains outstanding and why.",
+      "Submitting a complaint does not guarantee a particular outcome. Decisions are based on the available evidence, relevant agreements and applicable legal and operational requirements.",
     ],
   },
   {
@@ -158,9 +163,9 @@ const complaintSections: ComplaintSection[] = [
     number: "10",
     title: "Timing",
     paragraphs: [
-      "Tevuah Reserve should seek to handle complaints without unnecessary delay while allowing sufficient time for a fair review.",
-      "Some complaints may be resolved relatively quickly, while matters involving multiple records, counterparties, technical investigation or complex investment issues may require more time.",
-      "This page does not publish a fixed statutory or regulatory resolution period because Tevuah Reserve's final regulatory status and applicable complaint-handling requirements have not been established.",
+      "Tevuah Reserve aims to handle complaints promptly and without unnecessary delay while allowing sufficient time for a fair and thorough review.",
+      "Straightforward matters may be addressed more quickly than complaints involving multiple transactions, third parties, extensive documentation or complex investment arrangements.",
+      "Where a review takes longer than expected, appropriate communication about the status of the matter may be provided. Any applicable statutory, regulatory or contractual deadlines take precedence over general processing expectations.",
     ],
   },
   {
@@ -168,9 +173,10 @@ const complaintSections: ComplaintSection[] = [
     number: "11",
     title: "Internal escalation",
     paragraphs: [
-      "If a complaint cannot be resolved at the initial review stage, it may be escalated internally to an appropriate person or function for further consideration.",
-      "The appropriate escalation route will depend on the nature of the complaint and the company's final governance and compliance structure.",
-      "Tevuah Reserve should maintain sufficient separation or oversight where necessary to support an objective review of material complaints.",
+      "Where a complaint remains unresolved or requires further consideration, it may be escalated to an appropriate person or function within Tevuah Reserve.",
+      "The escalation process depends on the nature of the issue, the decisions already made and the appropriate level of review.",
+      "Material complaints should receive suitable oversight, with appropriate attention to impartiality, conflicts of interest and the separation of responsibilities where necessary.",
+      "Where an internal escalation route is available, the relevant steps may be explained in the complaint response or subsequent correspondence.",
     ],
   },
   {
@@ -178,9 +184,10 @@ const complaintSections: ComplaintSection[] = [
     number: "12",
     title: "External rights and escalation",
     paragraphs: [
-      "Depending on the legal entity involved, the investment structure, the investor's jurisdiction and the regulatory framework applicable to the matter, an investor may have rights to pursue a complaint, dispute or other remedy outside Tevuah Reserve.",
-      "This page does not identify Tevuah Reserve as supervised by a particular regulator and does not direct investors to a particular ombudsman, tribunal or regulator unless that route is confirmed to apply.",
-      "Where a specific external complaint or dispute route applies, the relevant information should be provided in the applicable agreement, final complaint response or other appropriate communication.",
+      "Depending on the relevant legal entity, investment structure, contractual terms and applicable jurisdiction, investors may have rights to pursue a dispute, complaint or other remedy through an external body or legal process.",
+      "Any available external route depends on the circumstances of the complaint and the laws and agreements governing the relationship.",
+      "Where an ombudsman, regulator, tribunal, mediation procedure or other external process applies, the relevant information should be provided through the applicable agreement or complaint correspondence.",
+      "Nothing in this policy limits any legal rights or remedies available to an investor under applicable law.",
     ],
   },
   {
@@ -188,8 +195,8 @@ const complaintSections: ComplaintSection[] = [
     number: "13",
     title: "Privacy and confidentiality",
     paragraphs: [
-      "Information provided in connection with a complaint may include personal, investment or other sensitive information.",
-      "Complaint information should be accessed and used only where reasonably necessary to receive, investigate, administer, escalate or respond to the matter, or where disclosure is otherwise required or permitted by applicable law.",
+      "Information submitted in connection with a complaint may include personal information, investment records, financial details and other confidential material.",
+      "Such information is handled with appropriate regard for confidentiality, security and applicable data-protection requirements. Access and use should be limited to what is reasonably necessary to receive, investigate, administer, escalate and respond to the complaint, or otherwise permitted or required by law.",
       "Further information about the handling of personal information is available in the Tevuah Reserve Privacy Policy.",
     ],
   },
@@ -198,9 +205,9 @@ const complaintSections: ComplaintSection[] = [
     number: "14",
     title: "Complaint records",
     paragraphs: [
-      "Tevuah Reserve should maintain appropriate records of formal complaints and their handling.",
-      "Depending on the matter, records may include the complaint, supporting information, relevant correspondence, review activity, findings, decisions, responses and any corrective action.",
-      "Retention should reflect applicable legal, contractual, operational and compliance requirements rather than an arbitrary period stated before those requirements are confirmed.",
+      "Tevuah Reserve maintains appropriate records of complaints and their handling in accordance with applicable requirements.",
+      "Depending on the matter, records may include the original complaint, supporting documents, correspondence, review activity, findings, decisions, responses and corrective actions.",
+      "Complaint records are handled with appropriate access controls and retained in accordance with relevant legal, contractual, operational and compliance obligations.",
     ],
   },
   {
@@ -208,9 +215,9 @@ const complaintSections: ComplaintSection[] = [
     number: "15",
     title: "Fair treatment",
     paragraphs: [
-      "Complaints should be considered on their substance and available evidence.",
-      "A person should not receive inappropriate adverse treatment merely because they have raised a genuine complaint or requested that a concern be reviewed.",
-      "This principle does not prevent Tevuah Reserve from taking appropriate action where platform misuse, fraud, abusive conduct, security threats or other misconduct is identified.",
+      "Complaints are considered on their substance, the available evidence and the circumstances of the matter.",
+      "Raising a genuine concern or requesting a formal review should not, by itself, result in inappropriate adverse treatment.",
+      "This principle does not prevent appropriate action in response to fraud, threats, abusive conduct, security risks, misuse of the platform or other misconduct. Any such action should be considered separately and handled in accordance with applicable requirements.",
     ],
   },
   {
@@ -218,8 +225,10 @@ const complaintSections: ComplaintSection[] = [
     number: "16",
     title: "Urgent account or payment concerns",
     paragraphs: [
-      "A suspected account compromise, unauthorised access, fraudulent communication or unexpected change to funding instructions should not be treated as an ordinary service complaint where immediate protective action may be required.",
-      "Contact Tevuah Reserve promptly through a trusted contact route and do not make a payment solely on the basis of unexpected instructions received by email, messaging services or another unverified channel.",
+      "Suspected account compromise, unauthorised access, fraudulent communications or unexpected changes to funding instructions may require immediate attention outside the ordinary complaint-review process.",
+      "If you suspect that your account has been compromised or receive suspicious payment instructions, contact Tevuah Reserve promptly through a trusted contact channel.",
+      "Do not make a payment solely on the basis of unexpected instructions received by email, messaging services or another unverified channel. Verify payment instructions independently before acting.",
+      "Do not share passwords, authentication codes or other credentials when reporting an urgent concern.",
     ],
   },
   {
@@ -227,8 +236,8 @@ const complaintSections: ComplaintSection[] = [
     number: "17",
     title: "Contact Tevuah Reserve",
     paragraphs: [
-      "You can use the Tevuah Reserve Contact page to raise a complaint, request assistance or ask how a concern should be handled.",
-      "When submitting a formal complaint, clearly identify it as a complaint and provide the relevant facts and supporting information available to you.",
+      "Use the Tevuah Reserve Contact page to submit a complaint, request assistance or ask about the appropriate process for raising a concern.",
+      "Clearly identify your message as a complaint and include the relevant facts, dates, references and supporting information available to you.",
     ],
   },
 ];
@@ -293,12 +302,7 @@ export default function ComplaintsPage() {
 
             <ComplaintsHeroReveal delay={0.31}>
               <p className="mt-7 max-w-3xl text-base leading-8 text-white/65 sm:text-lg">
-                A clear process for raising
-                concerns about investor access,
-                onboarding, investment
-                administration, communications
-                and related Tevuah Reserve
-                services.
+                A clear process for raising concerns about investor access, onboarding, investment administration, communications and services provided by Tevuah Reserve.
               </p>
             </ComplaintsHeroReveal>
 
@@ -340,18 +344,11 @@ export default function ComplaintsPage() {
                 </p>
 
                 <h2 className="font-display mt-4 max-w-4xl text-3xl font-medium tracking-[-0.03em] text-forest-950 sm:text-4xl">
-                  Concerns should have a clear
-                  route to review.
+                  Concerns should have a clear route to review.
                 </h2>
 
                 <p className="mt-6 max-w-4xl text-sm leading-7 text-stone-700 sm:text-base sm:leading-8">
-                  If something has not worked as
-                  expected, tell us what happened
-                  and provide the information
-                  needed to understand the matter.
-                  A formal complaint should be
-                  identified, recorded and
-                  reviewed appropriately.
+                  If something has not worked as expected, tell us what happened and provide the information needed to understand the matter. Formal complaints are handled through an appropriate review process, with attention to the facts, relevant records and circumstances.
                 </p>
               </div>
             </div>
@@ -373,8 +370,7 @@ export default function ComplaintsPage() {
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  Clear, fair and appropriately
-                  documented.
+                  Clear, fair and appropriately documented.
                 </h2>
               </div>
 
@@ -383,22 +379,22 @@ export default function ComplaintsPage() {
                   {
                     icon: UserCheck,
                     title: "Fair review",
-                    text: "Consider the substance of the concern and the information available.",
+                    text: "Consider the substance of the concern and the available evidence.",
                   },
                   {
                     icon: Search,
                     title: "Appropriate investigation",
-                    text: "Review relevant records and request further information where necessary.",
+                    text: "Review relevant records and obtain further information where necessary.",
                   },
                   {
                     icon: FileText,
                     title: "Clear records",
-                    text: "Maintain an appropriate record of formal complaints and their handling.",
+                    text: "Maintain appropriate records of complaints, findings and actions taken.",
                   },
                   {
                     icon: ShieldCheck,
                     title: "Responsible handling",
-                    text: "Protect sensitive investor and complaint information during the process.",
+                    text: "Protect sensitive investor and complaint information throughout the process.",
                   },
                 ].map((item) => {
                   const Icon = item.icon;
@@ -455,17 +451,17 @@ export default function ComplaintsPage() {
               {
                 number: "02",
                 title: "Record",
-                text: "The complaint is identified and relevant information is gathered.",
+                text: "Record the complaint and gather the information needed for review.",
               },
               {
                 number: "03",
                 title: "Review",
-                text: "Relevant records, circumstances and supporting information are considered.",
+                text: "Consider the relevant records, circumstances and supporting evidence.",
               },
               {
                 number: "04",
                 title: "Respond",
-                text: "The outcome and any appropriate next steps are communicated.",
+                text: "Communicate the outcome and explain any appropriate next steps.",
               },
             ].map((item) => (
               <ComplaintsRevealSoft
@@ -633,19 +629,15 @@ export default function ComplaintsPage() {
 
               <div>
                 <p className="max-w-3xl text-base leading-8 text-white/65">
-                  Do not wait for the ordinary
-                  complaint-review process if you
-                  believe your account has been
-                  compromised or you receive
-                  unexpected payment instructions.
+                  Do not wait for the ordinary complaint-review process if you believe your account has been compromised or receive unexpected payment instructions.
                 </p>
 
                 <div className="mt-8 divide-y divide-white/10 border-y border-white/10">
                   {[
                     "Do not disclose passwords or authentication credentials.",
                     "Do not rely solely on unexpected funding instructions received by email or messaging services.",
-                    "Use a trusted Tevuah Reserve contact route to verify suspicious communications.",
-                    "Provide enough information for the issue to be identified without unnecessarily sharing sensitive credentials.",
+                    "Verify suspicious communications through a trusted Tevuah Reserve contact route.",
+                    "Provide sufficient information to identify the issue without unnecessarily sharing sensitive credentials.",
                   ].map((item) => (
                     <div
                       key={item}
@@ -687,11 +679,7 @@ export default function ComplaintsPage() {
                 </h2>
 
                 <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
-                  Use the Contact page and clearly
-                  identify your message as a
-                  complaint. Include the relevant
-                  facts, references and supporting
-                  information available to you.
+                  Use the Contact page and clearly identify your message as a complaint. Include the relevant facts, references and supporting information available to you.
                 </p>
               </div>
 

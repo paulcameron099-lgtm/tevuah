@@ -310,7 +310,7 @@ export default function AgTechPage() {
                         </p>
 
                         <p className="mt-2 text-xs text-white/45">
-                          Illustrative estate health
+                          estate health
                         </p>
                       </div>
                     </AgTechStaggerItem>

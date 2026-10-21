@@ -53,9 +53,9 @@ const cookieSections: CookieSection[] = [
     number: "01",
     title: "About this Cookie Policy",
     paragraphs: [
-      "This Cookie Policy explains how cookies and similar technologies may be used when you access the Tevuah Reserve website and investor platform.",
-      "It should be read together with the Tevuah Reserve Privacy Policy, which provides broader information about how personal information is collected, used, protected and handled.",
-      "The technologies actually used by the platform may change as functionality, infrastructure and service providers develop. Tevuah Reserve should maintain an accurate inventory of technologies in use and update this policy where material changes occur.",
+      "This Cookie Policy explains how cookies and similar technologies are used in connection with the Tevuah Reserve website and investor platform.",
+      "It should be read together with the Tevuah Reserve Privacy Policy, which explains how personal information is collected, used, protected and handled.",
+      "Tevuah Reserve reviews its use of cookies and related technologies in connection with platform functionality, security, service delivery and applicable privacy requirements.",
     ],
   },
 
@@ -64,9 +64,11 @@ const cookieSections: CookieSection[] = [
     number: "02",
     title: "What are cookies?",
     paragraphs: [
-      "Cookies are small pieces of information that a website can store on a browser or device and later access. They can support functions such as maintaining a session, recognising an authenticated user, remembering a preference or supporting website security.",
-      "Some cookies last only for the duration of a browsing session. Others may remain on a device for a defined period or until they are removed.",
-      "The term cookie is often used alongside other technologies that can store or access information on a device. Where appropriate, references to cookies in this policy also include comparable storage or access technologies.",
+      "Cookies are small pieces of information that a website stores on a browser or device and subsequently accesses.",
+      "They can support functions such as maintaining a session, recognising an authenticated user, remembering preferences and protecting website security.",
+      "Some cookies last only for the duration of a browsing session.",
+      "Others remain on a device for a defined period or until they are removed.",
+      "The term cookie is also commonly used to describe comparable technologies that store or access information on a device.",
     ],
   },
 
@@ -75,9 +77,10 @@ const cookieSections: CookieSection[] = [
     number: "03",
     title: "Similar technologies",
     paragraphs: [
-      "Websites and digital applications may use technologies other than traditional browser cookies to store or access information. Depending on implementation, these can include local browser storage, session storage, software-development tools, pixels, tags or comparable technologies.",
-      "The legal treatment of a technology can depend on how it operates, what information it uses, its purpose and the law applicable to the relevant user.",
-      "Tevuah Reserve should assess storage and access technologies according to their actual function rather than relying only on the name given to the technology.",
+      "Digital platforms may use technologies other than traditional browser cookies to store or access information.",
+      "These include local browser storage, session storage, pixels, tags and comparable technologies.",
+      "Their purpose and legal treatment depend on how they operate, the information they handle and the applicable requirements.",
+      "Tevuah Reserve considers these technologies according to their actual function and purpose, including their implications for privacy, security and user choice.",
     ],
   },
 
@@ -86,16 +89,16 @@ const cookieSections: CookieSection[] = [
     number: "04",
     title: "Strictly necessary and essential technologies",
     paragraphs: [
-      "Certain technologies may be necessary for the website or investor platform to provide functionality requested by a user or to operate securely.",
-      "Depending on the platform implementation, necessary technologies may support authentication, session management, security, load balancing, account access, request integrity or the recording of privacy preferences.",
-      "Where applicable law permits necessary technologies to operate without prior consent, they should still be described transparently where required.",
+      "Certain technologies are necessary to provide functionality requested by a user or maintain the secure operation of a website or digital platform.",
+      "Depending on the service involved, these technologies can support authentication, session management, account access, request integrity, platform security and the retention of privacy preferences.",
+      "Essential technologies may include functions for:",
     ],
     points: [
-      "Maintaining secure authenticated investor sessions.",
+      "Maintaining secure investor sessions.",
       "Protecting account access and platform security.",
-      "Supporting essential website or application functionality.",
-      "Maintaining request or session integrity.",
-      "Remembering privacy or cookie choices where a preference mechanism is provided.",
+      "Supporting core website and application functionality.",
+      "Maintaining session and request integrity.",
+      "emembering privacy or cookie choices.",
     ],
   },
 
@@ -104,9 +107,9 @@ const cookieSections: CookieSection[] = [
     number: "05",
     title: "Authentication and account access",
     paragraphs: [
-      "Authenticated investor functionality may require browser storage or cookies to maintain secure account sessions and recognise whether a user is signed in.",
-      "Disabling technologies that are essential to authentication or session management may prevent an investor from signing in or using protected areas of the platform.",
-      "Authentication technologies should be configured and used only for appropriate account, session and security purposes.",
+      "Cookies and similar technologies can support authenticated investor functionality by maintaining secure sessions and recognising whether a user is signed in.",
+      "These technologies help maintain continuity between account requests and protect access to restricted areas of the platform.",
+      "Disabling or deleting technologies required for authentication or session management may interrupt an active session or prevent access to protected functionality.",
     ],
   },
 
@@ -115,8 +118,9 @@ const cookieSections: CookieSection[] = [
     number: "06",
     title: "Security technologies",
     paragraphs: [
-      "Cookies or similar technologies may be used where appropriate to protect the platform, maintain session integrity, identify suspicious requests or support other security controls.",
-      "Security-related technologies should be proportionate to the relevant risk and should not be repurposed for unrelated tracking without appropriate assessment and, where required, user choice.",
+      "Cookies and similar technologies can support measures designed to protect Tevuah Reserve against unauthorised access, suspicious requests and misuse of digital services.",
+      "Depending on their function, these technologies may assist with session integrity, request validation, abuse prevention and other security controls.",
+      "Security-related technologies should be proportionate to their purpose and handled in accordance with applicable privacy and data-protection requirements.",
     ],
   },
 
@@ -125,8 +129,9 @@ const cookieSections: CookieSection[] = [
     number: "07",
     title: "Preference technologies",
     paragraphs: [
-      "The platform may use technologies to remember choices made by a user, such as privacy preferences or other settings that improve or maintain the requested experience.",
-      "Whether a preference technology requires consent depends on its purpose, implementation and the law applicable to the relevant user.",
+      "Preference technologies allow a website or platform to remember choices made by a user, helping maintain a consistent experience across visits.",
+      "Depending on the functionality provided, these choices may include interface settings, language preferences or privacy selections.",
+      "Where a preference technology requires consent under applicable law, it is subject to the appropriate user-choice mechanism.",
     ],
   },
 
@@ -135,9 +140,9 @@ const cookieSections: CookieSection[] = [
     number: "08",
     title: "Analytics and performance technologies",
     paragraphs: [
-      "Analytics technologies can be used to understand how visitors interact with a website, identify technical problems, measure performance and improve digital services.",
-      "This policy does not state that Tevuah Reserve currently uses a particular analytics provider or analytics cookie because a verified production cookie inventory has not yet been established.",
-      "If analytics technologies are introduced or confirmed, Tevuah Reserve should document the provider, purpose, information involved, duration and applicable user choice or consent requirements before representing those technologies as part of the production platform.",
+      "Analytics and performance technologies help assess website usage, identify technical issues and understand how visitors interact with digital services.",
+      "Depending on the tools used, information may include page interactions, browser or device details, performance measurements and usage patterns.",
+      "Analytics technologies are subject to applicable privacy requirements. Where prior consent is required, they must not be activated before the required consent has been obtained.",
     ],
   },
 
@@ -146,9 +151,9 @@ const cookieSections: CookieSection[] = [
     number: "09",
     title: "Advertising and marketing technologies",
     paragraphs: [
-      "Advertising, behavioural profiling and cross-site tracking technologies can involve materially different privacy considerations from technologies required to operate an investor account.",
-      "This policy does not state that Tevuah Reserve currently uses behavioural advertising, retargeting or cross-site marketing cookies.",
-      "If such technologies are introduced, they should be separately assessed and should not be activated merely because a user accesses the website where applicable law requires prior consent or another form of user choice.",
+      "Advertising and marketing technologies may support campaign measurement, targeted advertising, retargeting or behavioural profiling.",
+      "These technologies can involve tracking beyond the immediate website and therefore require appropriate consideration of transparency, privacy and user choice.",
+      "Where Tevuah Reserve uses technologies of this kind, their purposes and relevant providers should be disclosed as required, and prior consent must be obtained wherever applicable law requires it.",
     ],
   },
 
@@ -157,9 +162,9 @@ const cookieSections: CookieSection[] = [
     number: "10",
     title: "First-party and third-party technologies",
     paragraphs: [
-      "A first-party cookie is generally set in connection with the domain a person is visiting. A third-party technology may be provided by another organisation whose service is integrated into the website or platform.",
-      "Third-party technologies may be associated with infrastructure, embedded content, analytics, communications or other services.",
-      "Before using a third-party technology, Tevuah Reserve should understand what information the provider receives, the purposes for which it is used, how long the technology operates and any applicable privacy or consent requirements.",
+      "A first-party cookie is generally associated with the website a user visits. A third-party technology is provided through a service operated by another organisation.",
+      "Third-party services may support website infrastructure, authentication, communications, analytics, embedded content or other digital functions.",
+      "The use of third-party technologies is subject to the relevant provider's role, the information involved, the purpose of processing and applicable legal requirements.",
     ],
   },
 
@@ -168,9 +173,10 @@ const cookieSections: CookieSection[] = [
     number: "11",
     title: "Session and persistent cookies",
     paragraphs: [
-      "Session cookies generally operate for a limited browsing session and may expire when the session or browser is closed.",
-      "Persistent cookies can remain on a device for a longer defined period and may be used, for example, to remember a setting or recognise a returning browser.",
-      "Cookie duration should be appropriate to the purpose for which the technology is used. Tevuah Reserve should not publish specific expiry periods until those periods have been verified against the technologies actually deployed.",
+      "Session cookies generally operate during a browsing session and expire when the session ends, subject to the browser and the cookie's configuration.",
+      "Persistent cookies remain on a device for a defined period or until they are deleted. They may support functions such as remembering preferences or recognising a returning browser.",
+      "Cookie durations should be appropriate to their intended purposes and comply with applicable requirements.",
+      "Where specific retention periods are disclosed, they should reflect the relevant technology's actual configuration.",
     ],
   },
 
@@ -179,9 +185,10 @@ const cookieSections: CookieSection[] = [
     number: "12",
     title: "Consent and user choice",
     paragraphs: [
-      "Cookie and device-storage requirements vary by jurisdiction and by the purpose of the relevant technology.",
-      "Where applicable law requires consent or another user choice before a non-essential technology is used, Tevuah Reserve should provide an appropriate mechanism before activating that technology.",
-      "Where consent is relied upon, users should receive sufficiently clear information to understand what they are choosing and should be able to change or withdraw that choice where required by applicable law.",
+      "Requirements for cookies and device-storage technologies vary by jurisdiction and depend on their purpose and operation.",
+      "Where applicable law requires consent before a non-essential technology is used, consent must be obtained before that technology is activated.",
+      "Users should receive clear information about the relevant categories and purposes and, where required, be able to accept, reject, change or withdraw their choices through an appropriate mechanism.",
+      "Essential technologies may be treated differently where applicable law permits their use without prior consent.",
     ],
   },
 
@@ -190,9 +197,10 @@ const cookieSections: CookieSection[] = [
     number: "13",
     title: "Managing cookies",
     paragraphs: [
-      "Most modern browsers provide controls that allow users to inspect, block or delete cookies and other site data.",
-      "Blocking all cookies or browser storage can affect website functionality. In particular, disabling technologies required for authentication or session management may prevent access to protected investor functionality.",
-      "Where Tevuah Reserve provides an on-site cookie or privacy-preference control, users may also be able to manage optional technologies through that control.",
+      "Most modern browsers provide controls that allow users to inspect, block or delete cookies and other website data.",
+      "Blocking cookies or browser storage may affect website functionality.",
+      "In particular, disabling technologies required for authentication or session management may prevent access to restricted investor functionality.",
+      "Where an on-site cookie-preference tool is available, users can also use that tool to manage the optional technologies covered by its controls.",
     ],
   },
 
@@ -201,9 +209,9 @@ const cookieSections: CookieSection[] = [
     number: "14",
     title: "Browser controls",
     paragraphs: [
-      "Browser settings commonly provide options for deleting stored cookies, blocking cookies, limiting third-party cookies or controlling site-specific storage.",
-      "The exact controls vary between browsers and devices. Users should refer to the current settings and support information provided by their browser or device provider.",
-      "Changing browser settings does not necessarily remove information already stored, so users may need to delete existing site data separately if that is their intention.",
+      "Browser settings commonly provide options for deleting stored cookies, blocking cookies, limiting third-party cookies and managing site-specific storage.",
+      "The available controls vary between browsers and devices. Users should consult the current settings and support information provided by their browser or device manufacturer.",
+      "Changing browser settings does not necessarily remove information already stored. Existing cookies and website data may need to be deleted separately.",
     ],
   },
 
@@ -212,9 +220,10 @@ const cookieSections: CookieSection[] = [
     number: "15",
     title: "Cookie inventory",
     paragraphs: [
-      "A production Cookie Policy should accurately identify the material cookies and similar technologies actually used by the website and investor platform.",
-      "Before Tevuah Reserve publishes a definitive cookie inventory, the deployed application should be audited in a production-like environment, including public pages, authentication, investor account access and any enabled third-party integrations.",
-      "The resulting inventory should record, where appropriate, the technology name, provider, purpose, category, duration and whether user consent or another choice mechanism applies.",
+      "The cookies and similar technologies associated with a website depend on its functionality, infrastructure and integrated services.",
+      "Information about individual technologies should accurately identify their names, providers, purposes, categories and durations, together with any applicable consent or preference requirements.",
+      "Tevuah Reserve's cookie disclosures should reflect the technologies used across its public website, authentication functionality, investor platform and relevant third-party integrations.",
+      "Specific identifiers and retention periods should correspond to the actual technical configuration."
     ],
   },
 
@@ -223,9 +232,9 @@ const cookieSections: CookieSection[] = [
     number: "16",
     title: "Changes to this Cookie Policy",
     paragraphs: [
-      "Tevuah Reserve may update this Cookie Policy as website functionality, platform infrastructure, service providers, technologies or applicable legal requirements change.",
-      "Material changes to the technologies used by the platform should trigger a review of both this policy and any cookie or privacy-preference mechanism in use.",
-      "Where applicable law requires renewed consent or additional notice following a change, the appropriate process should be followed.",
+      "Tevuah Reserve may update this Cookie Policy to reflect changes in website functionality, platform infrastructure, service providers, technologies or applicable legal requirements.",
+      "Changes affecting the use of cookies or the choices available to users will be addressed through appropriate policy updates and notices.",
+      "Where applicable law requires renewed consent or additional notification, the relevant process will be followed.",
     ],
   },
 
@@ -234,8 +243,8 @@ const cookieSections: CookieSection[] = [
     number: "17",
     title: "Personal information and privacy",
     paragraphs: [
-      "Information obtained through cookies or similar technologies may constitute or be associated with personal information depending on the technology and circumstances.",
-      "The Tevuah Reserve Privacy Policy provides broader information about the handling of personal information, including purposes, sharing, retention, security and applicable privacy rights.",
+      "Information obtained through cookies and similar technologies may constitute or be associated with personal information, depending on the technology and circumstances.",
+      "The Tevuah Reserve Privacy Policy provides further information about how personal information is collected, used, shared, retained and protected, together with applicable privacy rights.",
     ],
   },
 
@@ -244,8 +253,7 @@ const cookieSections: CookieSection[] = [
     number: "18",
     title: "Questions about cookies",
     paragraphs: [
-      "If you have a question about this Cookie Policy or the use of browser or device-storage technologies through Tevuah Reserve, you may contact Tevuah Reserve through the Contact page.",
-      "Jurisdiction-specific contact information or regulatory references should be added where required once the applicable legal entity and operating jurisdictions have been confirmed.",
+      "For questions about this Cookie Policy or the use of cookies and similar technologies across Tevuah Reserve, please contact us through the Contact page.",
     ],
   },
 ];
@@ -310,11 +318,7 @@ export default function CookiePolicyPage() {
 
             <CookiesHeroReveal delay={0.31}>
               <p className="mt-7 max-w-3xl text-base leading-8 text-white/65 sm:text-lg">
-                Understand how cookies and
-                similar technologies may support
-                functionality, security,
-                preferences and other digital
-                services across Tevuah Reserve.
+                Learn how cookies and similar technologies support website functionality, security, preferences and digital services across Tevuah Reserve.
               </p>
             </CookiesHeroReveal>
 
@@ -356,19 +360,14 @@ export default function CookiePolicyPage() {
                 </p>
 
                 <h2 className="font-display mt-4 max-w-4xl text-3xl font-medium tracking-[-0.03em] text-forest-950 sm:text-4xl">
-                  Cookies should have a clear
-                  purpose — and users should
-                  understand that purpose.
+                  Cookies serve defined purposes across the digital experience.
                 </h2>
 
                 <p className="mt-6 max-w-4xl text-sm leading-7 text-stone-700 sm:text-base sm:leading-8">
-                  Some browser technologies can
-                  be important for secure account
-                  access and core functionality.
-                  Others may be optional and can
-                  require additional user choice,
-                  depending on their purpose and
-                  applicable law.
+                  Cookies and similar technologies support website functionality, account access, security and user preferences. Depending on their purpose, these technologies can also support performance measurement and marketing activities.
+                </p>
+                <p className="mt-6 max-w-4xl text-sm leading-7 text-stone-700 sm:text-base sm:leading-8">
+                  Tevuah Reserve handles these technologies according to their function and applicable privacy requirements. Users should be able to understand the purpose of relevant technologies and exercise the choices available to them under applicable law.
                 </p>
               </div>
             </div>
@@ -390,16 +389,11 @@ export default function CookiePolicyPage() {
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                  Different purposes require
-                  different treatment.
+                  Different purposes require different treatment.
                 </h2>
 
                 <p className="mt-6 max-w-md text-sm leading-7 text-stone-600">
-                  These categories describe how
-                  technologies may be classified.
-                  They do not claim that every
-                  category is currently deployed
-                  by Tevuah Reserve.
+                  Cookies and similar technologies are classified according to their function, including essential operations, preferences, analytics and marketing. Each category is subject to the requirements applicable to its use.
                 </p>
               </div>
 
@@ -414,20 +408,20 @@ export default function CookiePolicyPage() {
                   {
                     icon: Settings2,
                     title: "Preferences",
-                    text: "Technologies that may remember settings or choices made by a user.",
-                    status: "Purpose dependent",
+                    text: "Technologies that remember settings or choices made by a user.",
+                    status: "User preferences",
                   },
                   {
                     icon: BarChart3,
                     title: "Analytics",
-                    text: "Technologies that may measure performance and website usage.",
-                    status: "Not assumed active",
+                    text: "Technologies that measure performance and website usage.",
+                    status: "Performance insights",
                   },
                   {
                     icon: Fingerprint,
                     title: "Marketing",
-                    text: "Advertising, profiling or cross-site tracking technologies.",
-                    status: "Not assumed active",
+                    text: "Technologies used for advertising, profiling or cross-site tracking.",
+                    status: "User choice",
                   },
                 ].map((item) => {
                   const Icon = item.icon;
@@ -472,45 +466,18 @@ export default function CookiePolicyPage() {
             <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-                  Current policy status
+                  Cookie management
                 </p>
 
                 <h2 className="font-display mt-5 text-3xl font-medium tracking-[-0.03em] text-forest-950 sm:text-4xl">
-                  We should document what the
-                  platform actually uses.
+                  Understanding the technologies behind your experience.
                 </h2>
               </div>
 
               <div className="space-y-5 text-sm leading-7 text-stone-700">
                 <p>
-                  A cookie policy should not list
-                  analytics providers, advertising
-                  networks, cookie names or
-                  retention periods merely because
-                  they are common on other
-                  websites.
+                  Cookies, authentication, preferences, analytics and consent controls serve different purposes across digital services. Their use should be transparent, proportionate and consistent with applicable privacy requirements.
                 </p>
-
-                <p>
-                  Before the final production
-                  policy is published, Tevuah
-                  Reserve should audit the
-                  technologies actually created
-                  or accessed across the public
-                  website, authentication flow
-                  and authenticated investor
-                  platform.
-                </p>
-
-                <div className="rounded-2xl border border-gold-500/25 bg-gold-500/5 p-5">
-                  <p className="text-xs leading-6 text-stone-700">
-                    The verified inventory can
-                    then be added with exact
-                    cookie or storage names,
-                    providers, purposes, durations
-                    and applicable user controls.
-                  </p>
-                </div>
               </div>
             </div>
           </CookiesReveal>
@@ -635,89 +602,7 @@ export default function CookiePolicyPage() {
             )}
           </div>
         </Container>
-      </section>
-
-      {/* ==========================================
-          COOKIE INVENTORY
-      ========================================== */}
-
-      <section className="border-y border-forest-900/10 bg-ivory-100 py-16 sm:py-20 lg:py-24">
-        <Container>
-          <CookiesReveal>
-            <div className="grid gap-10 rounded-4xl bg-forest-950 p-7 text-white sm:p-10 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16 lg:p-12">
-              <div>
-                <Cookie className="size-7 text-gold-400" />
-
-                <p className="mt-7 text-xs font-semibold uppercase tracking-[0.2em] text-gold-400">
-                  Production inventory
-                </p>
-
-                <h2 className="font-display mt-4 text-3xl font-medium tracking-[-0.03em] sm:text-4xl">
-                  Audit first. Publish exact
-                  details second.
-                </h2>
-              </div>
-
-              <div>
-                <p className="text-sm leading-7 text-white/65">
-                  Before launch, the deployed
-                  application should be inspected
-                  so the final inventory reflects
-                  the technologies users actually
-                  encounter.
-                </p>
-
-                <div className="mt-8 divide-y divide-white/10 border-y border-white/10">
-                  {[
-                    {
-                      number: "01",
-                      title: "Name",
-                      text: "Exact cookie, local-storage or comparable technology identifier.",
-                    },
-                    {
-                      number: "02",
-                      title: "Provider",
-                      text: "The organisation or service responsible for the technology.",
-                    },
-                    {
-                      number: "03",
-                      title: "Purpose",
-                      text: "Why the technology is used and what functionality it supports.",
-                    },
-                    {
-                      number: "04",
-                      title: "Duration",
-                      text: "Whether it is session-based or how long it persists.",
-                    },
-                    {
-                      number: "05",
-                      title: "Control",
-                      text: "Whether it is essential or subject to an applicable preference or consent mechanism.",
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.number}
-                      className="grid gap-3 py-5 sm:grid-cols-[55px_140px_1fr]"
-                    >
-                      <p className="font-display text-lg text-gold-400">
-                        {item.number}
-                      </p>
-
-                      <p className="text-sm font-semibold text-white">
-                        {item.title}
-                      </p>
-
-                      <p className="text-sm leading-7 text-white/55">
-                        {item.text}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CookiesReveal>
-        </Container>
-      </section>
+      </section>    
 
       {/* ==========================================
           USER CONTROL
@@ -742,12 +627,10 @@ export default function CookiePolicyPage() {
                 </h2>
 
                 <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
-                  Blocking technologies that are
-                  required for secure
-                  authentication or essential
-                  functionality may prevent parts
-                  of the investor platform from
-                  working correctly.
+                  You can manage cookies and website data through your browser settings. Where an on-site cookie-preference tool is available, it can provide additional control over the optional technologies covered by that tool.
+                </p>
+                <p className="mt-4 max-w-3xl text-sm leading-7 text-stone-600">
+                  Blocking technologies required for secure authentication or essential functionality may affect access to parts of the investor platform..
                 </p>
               </div>
 

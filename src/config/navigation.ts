@@ -57,6 +57,12 @@ export const moreNavigation = [
     description:
       "Perspectives on cultivated assets, agricultural technology, fine wine and private markets.",
   },
+  {
+    label: "Events",
+    href: "/events",
+    description:
+      "Explore estate experiences, investor briefings, industry conversations and educational sessions.",
+  },
 ] as const;
 
 export const mobileNavigation = [

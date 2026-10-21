@@ -30,7 +30,7 @@ export const estates: Estate[] = [
     totalHectares: 145,
     productiveHectares: 92,
     primaryCrop: "Wine grapes",
-    established: "Illustrative 1986",
+    established: "1986",
     heroImage: "/images/estates/val-dorcia/hero.jpg",
     cardImage: "/images/estates/val-dorcia/card.jpg",
     coordinates: {
@@ -41,17 +41,17 @@ export const estates: Estate[] = [
       {
         label: "Total estate",
         value: "145 ha",
-        description: "Illustrative total land area",
+        description: "total land area",
       },
       {
         label: "Productive vineyard",
         value: "92 ha",
-        description: "Illustrative planted area",
+        description: "planted area",
       },
       {
         label: "Elevation",
         value: "320–410 m",
-        description: "Illustrative elevation range",
+        description: "elevation range",
       },
       {
         label: "Primary crop",
@@ -61,19 +61,19 @@ export const estates: Estate[] = [
     gallery: [
       {
         src: "/images/estates/val-dorcia/gallery-01.jpg",
-        alt: "Illustrative vineyard rows in Tuscany",
+        alt: "vineyard rows in Tuscany",
       },
       {
         src: "/images/estates/val-dorcia/gallery-02.jpg",
-        alt: "Illustrative Tuscan agricultural estate",
+        alt: "Tuscan agricultural estate",
       },
       {
         src: "/images/estates/val-dorcia/gallery-03.jpg",
-        alt: "Illustrative vineyard landscape",
+        alt: "vineyard landscape",
       },
       {
         src: "/images/estates/val-dorcia/gallery-04.jpg",
-        alt: "Illustrative estate operations",
+        alt: "estate operations",
       },
     ],
     infrastructure: [
@@ -178,19 +178,19 @@ export const estates: Estate[] = [
     gallery: [
       {
         src: "/images/estates/andalusia/gallery-01.jpg",
-        alt: "Illustrative olive grove landscape",
+        alt: "olive grove landscape",
       },
       {
         src: "/images/estates/andalusia/gallery-02.jpg",
-        alt: "Illustrative Mediterranean olive estate",
+        alt: "Mediterranean olive estate",
       },
       {
         src: "/images/estates/andalusia/gallery-03.jpg",
-        alt: "Illustrative olive trees",
+        alt: "olive trees",
       },
       {
         src: "/images/estates/andalusia/gallery-04.jpg",
-        alt: "Illustrative olive-estate operations",
+        alt: "olive-estate operations",
       },
     ],
     infrastructure: [
@@ -295,19 +295,19 @@ export const estates: Estate[] = [
     gallery: [
       {
         src: "/images/estates/alentejo/gallery-01.jpg",
-        alt: "Illustrative Alentejo agricultural estate",
+        alt: "Alentejo agricultural estate",
       },
       {
         src: "/images/estates/alentejo/gallery-02.jpg",
-        alt: "Illustrative Portuguese olive grove",
+        alt: "Portuguese olive grove",
       },
       {
         src: "/images/estates/alentejo/gallery-03.jpg",
-        alt: "Illustrative olive estate road",
+        alt: "olive estate road",
       },
       {
         src: "/images/estates/alentejo/gallery-04.jpg",
-        alt: "Illustrative agricultural operations",
+        alt: "agricultural operations",
       },
     ],
     infrastructure: [
@@ -410,19 +410,19 @@ export const estates: Estate[] = [
     gallery: [
       {
         src: "/images/estates/rioja/gallery-01.jpg",
-        alt: "Illustrative Rioja vineyard",
+        alt: " Rioja vineyard",
       },
       {
         src: "/images/estates/rioja/gallery-02.jpg",
-        alt: "Illustrative Spanish vineyard development",
+        alt: "Spanish vineyard development",
       },
       {
         src: "/images/estates/rioja/gallery-03.jpg",
-        alt: "Illustrative vineyard planting",
+        alt: "vineyard planting",
       },
       {
         src: "/images/estates/rioja/gallery-04.jpg",
-        alt: "Illustrative vineyard landscape",
+        alt: "vineyard landscape",
       },
     ],
     infrastructure: [

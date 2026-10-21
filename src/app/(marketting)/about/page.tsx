@@ -295,59 +295,6 @@ export default function AboutPage() {
         </Container>
       </section>
 
-      {/* Review controls */}
-      <section className="border-b border-forest-900/10 bg-white py-16 sm:py-20 lg:py-24">
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
-            <AboutImageReveal className="relative min-h-135 overflow-hidden rounded-4xl">
-              <Image
-                src="/images/about/governance-review.jpg"
-                alt="Professional estate review representing Tevuah Reserve governance"
-                fill
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                className="object-cover"
-              />
-
-              <div className="absolute inset-0 bg-linear-to-t from-forest-950/60 via-transparent to-transparent" />
-            </AboutImageReveal>
-
-            <AboutReveal>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-                Review before publication
-              </p>
-
-              <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                Trust depends on controls behind the interface.
-              </h2>
-
-              <p className="mt-6 text-base leading-8 text-stone-700">
-                A professional investment platform requires permissions,
-                documented approvals, secure records and audit history behind
-                every important operational action.
-              </p>
-
-              <AboutStagger
-                className="mt-8 grid gap-4 sm:grid-cols-2"
-                stagger={0.08}
-                amount={0.15}
-              >
-                {controlPoints.map((item) => (
-                  <AboutStaggerItem key={item}>
-                    <div className="rounded-xl border border-forest-900/10 bg-ivory-100 p-5">
-                      <ShieldCheck className="size-5 text-gold-600" />
-
-                      <p className="mt-4 text-sm font-semibold text-forest-950">
-                        {item}
-                      </p>
-                    </div>
-                  </AboutStaggerItem>
-                ))}
-              </AboutStagger>
-            </AboutReveal>
-          </div>
-        </Container>
-      </section>
-
       {/* Team */}
       <section className="py-16 sm:py-20 lg:py-24">
         <Container>

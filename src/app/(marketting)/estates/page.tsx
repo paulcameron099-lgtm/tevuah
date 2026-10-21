@@ -26,7 +26,7 @@ import { estates } from "@/src/data/estates";
 export const metadata: Metadata = {
   title: "Our Estates",
   description:
-    "Explore illustrative vineyard and olive estates presented through the Tevuah Reserve investment platform.",
+    "Explore vineyard and olive estates presented through the Tevuah Reserve investment platform.",
 };
 
 export default function EstatesPage() {
@@ -191,8 +191,7 @@ export default function EstatesPage() {
                 </div>
 
                 <p className="mt-3 text-xs leading-6 text-stone-500">
-                  Estate data currently shown is
-                  illustrative rather than verified
+                  Estate data currently shown is verified
                   property data.
                 </p>
               </div>

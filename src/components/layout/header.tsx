@@ -7,6 +7,7 @@ import {
   ChevronDown,
   CircleHelp,
   Mail,
+  CalendarDays,
   FileWarning,
   Menu,
   Newspaper,
@@ -66,6 +67,9 @@ function getMoreIcon(href: string) {
 
     case "/insights":
       return Newspaper;
+
+    case "/events":
+      return CalendarDays;
 
     default:
       return ArrowUpRight;
@@ -333,7 +337,7 @@ export function Header() {
                   <div
                     role="menu"
                     aria-label="More navigation"
-                    className="w-145 overflow-hidden rounded-3xl border border-forest-900/10 bg-ivory-50 shadow-[0_24px_80px_rgba(10,23,18,0.16)]"
+                    className="w-170 overflow-hidden rounded-3xl border border-forest-900/10 bg-ivory-50 shadow-[0_28px_90px_rgba(10,23,18,0.18)]"
                   >
                     <div className="border-b border-forest-900/10 px-6 py-5">
                       <div className="flex items-end justify-between gap-8">

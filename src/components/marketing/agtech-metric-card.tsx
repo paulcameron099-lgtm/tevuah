@@ -21,10 +21,6 @@ export function AgTechMetricCard({
         <span className="flex size-10 items-center justify-center rounded-full bg-gold-500/15 text-gold-400">
           <Icon className="size-4.5" />
         </span>
-
-        <span className="rounded-full border border-white/10 bg-white/4 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/55">
-          Illustrative
-        </span>
       </div>
 
       <p className="mt-6 text-xs font-semibold uppercase tracking-[0.15em] text-white/45">

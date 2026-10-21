@@ -81,7 +81,7 @@ export default function HowItWorksPage() {
       <section className="relative flex min-h-180 items-end overflow-hidden bg-forest-950 pt-19 text-white lg:pt-22">
         <HowHeroImage className="absolute inset-0">
           <Image
-            src="/images/hero/how-it-works-page-hero.jpg"
+            src="/images/hero/how-it-works-page-hero.jpeg"
             alt="Estate review representing the Tevuah Reserve investor process"
             fill
             priority

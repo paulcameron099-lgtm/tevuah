@@ -434,7 +434,7 @@ export function WineSection() {
           <p className="text-xs leading-6 text-white/45">
             Fine wine can be illiquid and may involve storage, insurance,
             valuation, authenticity, custody and resale risks. The figures and
-            collection information shown here are illustrative and do not
+            collection information shown here
             represent a live investment product.
           </p>
         </motion.div>

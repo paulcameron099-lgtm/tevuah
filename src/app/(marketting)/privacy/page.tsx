@@ -56,9 +56,9 @@ const privacySections: PrivacySection[] = [
     number: "01",
     title: "Scope of this Privacy Policy",
     paragraphs: [
-      "This Privacy Policy explains how personal information may be collected, used, stored, disclosed and otherwise handled when you interact with the Tevuah Reserve website, submit an investor enquiry, proceed through investor onboarding, access an investor account or use investment-related platform services.",
-      "The policy is intended to provide clear information about the principal categories of personal information used within the Tevuah Reserve platform and the purposes for which that information may be required.",
-      "Additional privacy information may be provided where a particular investment, service, verification process or third-party provider requires more specific disclosure.",
+      "This Privacy Policy explains how Tevuah Reserve handles personal information when you visit the website, submit an investor enquiry, complete investor onboarding, access an investor account or use investment-related services.",
+      "It describes the categories of information that may be collected, the purposes for which it is used, the circumstances in which it may be shared and the measures taken to protect it.",
+      "Additional privacy information may apply to particular services, investment arrangements or verification processes.",
     ],
   },
 
@@ -67,21 +67,20 @@ const privacySections: PrivacySection[] = [
     number: "02",
     title: "Personal information we may collect",
     paragraphs: [
-      "The information Tevuah Reserve processes depends on how you interact with the company and platform. A visitor making an initial enquiry will generally provide substantially less information than an approved investor completing verification and investment activity.",
+      "The personal information collected depends on your relationship with Tevuah Reserve and the services you use. A visitor submitting an initial enquiry will generally provide less information than an investor completing verification and participating in an investment.",
     ],
     points: [
-      "Identity information, such as your name and other identifying details.",
-      "Contact information, such as your email address, country or jurisdiction and other contact details you provide.",
-      "Investor-enquiry information, including investment interests, indicative investment range and messages submitted to Tevuah Reserve.",
-      "Account information associated with investor access and authentication.",
-      "Identity and verification information supplied during investor onboarding.",
-      "Address information and supporting address-verification documentation.",
-      "Investment, subscription and commitment records.",
-      "Joint-investment membership, invitation, acceptance and consent records where applicable.",
-      "Funding, payment-instruction and transaction-related records associated with investments.",
-      "Investment documents, acknowledgements, signatures, statements and other investor records.",
-      "Communications exchanged with Tevuah Reserve.",
-      "Technical and security information generated when the platform is accessed or used.",
+      "Identity information: Name and other identifying details.",
+      "Contact information: Email address, telephone number, country or jurisdiction and other contact details you provide.",
+      "Enquiry information: Investment interests, indicative investment range and messages submitted through the website.",
+      "Account information: Information associated with investor access and authentication.",
+      "Verification information: Identity documents, address details and supporting documentation required during onboarding.",
+      "Investment records: Subscription details, commitments, ownership or economic interests and investment status.",
+      "Joint-investment records: Invitations, participation details, consent and acceptance records where applicable.",
+      "Funding and transaction information: Records associated with investment funding, payment instructions and transactions.",
+      "Investor documents: Agreements, disclosures, acknowledgements, signatures, statements and related records.",
+      "Communications: Correspondence between you and Tevuah Reserve.",
+      "Technical information: Information relating to website use, authentication, platform activity and security.",
     ],
   },
 
@@ -90,9 +89,9 @@ const privacySections: PrivacySection[] = [
     number: "03",
     title: "Investor enquiries",
     paragraphs: [
-      "When you submit an investor enquiry through the Tevuah Reserve Contact page, the platform may collect information such as your name, email address, country or jurisdiction, primary investment interest, indicative investment range and the content of your message.",
-      "This information is used to receive and respond to your enquiry, understand the nature of your interest, communicate with you about the investor process and determine appropriate next steps.",
-      "Submitting an enquiry does not automatically create an investor account and does not guarantee investor eligibility, access to an opportunity or acceptance of an investment.",
+      "When you submit an enquiry through the Tevuah Reserve Contact page, we collect the information you provide, which may include your name, email address, country or jurisdiction, investment interests, indicative investment range and message.",
+      "We use this information to respond to your enquiry, understand your interests, communicate relevant information and explain the next steps in the investor process.",
+      "Submitting an enquiry does not automatically create an investor account or guarantee eligibility, access to an investment opportunity or acceptance of an investment.",
     ],
   },
 
@@ -101,9 +100,9 @@ const privacySections: PrivacySection[] = [
     number: "04",
     title: "Investor accounts and authentication",
     paragraphs: [
-      "Tevuah Reserve does not provide unrestricted public self-registration for investor accounts. Where a prospective investor proceeds through the applicable process, investor access may be established administratively.",
-      "Account-related information may be processed to create and maintain investor access, authenticate users, protect account security, associate platform activity with the appropriate investor and provide access to authorised investment information.",
-      "Authentication and account systems may generate technical records necessary to maintain security and investigate suspected unauthorised access.",
+      "Tevuah Reserve does not offer unrestricted public self-registration for investor accounts. Investor access is established administratively after the applicable onboarding requirements have been addressed.",
+      "Account information is used to establish and maintain authorised access, authenticate users, manage permissions, associate activity with the appropriate investor and provide access to relevant investment information.",
+      "Technical records associated with authentication and account activity may also be used to protect account security, investigate suspected unauthorised access and maintain the integrity of the platform.",
     ],
   },
 
@@ -112,9 +111,9 @@ const privacySections: PrivacySection[] = [
     number: "05",
     title: "Identity, KYC and address verification",
     paragraphs: [
-      "Investor onboarding may require Tevuah Reserve to collect and process information necessary to verify identity, address and other information relevant to the investor onboarding or compliance process.",
-      "Depending on the applicable process, this may include identity numbers, identity-document images, address information, supporting documents and information used to review or verify the investor.",
-      "Verification information may be particularly sensitive. Access should therefore be limited to authorised persons and service providers with a legitimate need to use the information for the relevant verification, compliance, security or administrative purpose.",
+      "Investor onboarding may require information to verify identity, confirm an address, assess eligibility and meet applicable compliance requirements.",
+      "Depending on the relevant process, this may include identity numbers, identity-document images, address information, supporting documents and information needed to assess or verify an investor's details.",
+      "Access to verification information is restricted according to the requirements of the relevant process and the responsibilities of authorised personnel and service providers. This information is handled for verification, compliance, security and administrative purposes, subject to applicable privacy requirements.",
     ],
   },
 
@@ -123,9 +122,8 @@ const privacySections: PrivacySection[] = [
     number: "06",
     title: "Investment and portfolio information",
     paragraphs: [
-      "When an investor participates in an opportunity, Tevuah Reserve may process information relating to investment commitments, subscriptions, funding, ownership or economic interests, investment status, portfolio records, statements, documents and distributions.",
-      "This information is used to administer investments, maintain investor records, provide platform reporting, support investment workflows and preserve records relating to the investment lifecycle.",
-      "Investment records may need to remain associated with an investor after an opportunity closes or an investment is completed where continued recordkeeping is appropriate or required.",
+      "When you participate in an investment, Tevuah Reserve processes information relating to subscriptions, commitments, funding, ownership or economic interests, investment status, portfolio positions, statements, distributions and related documentation.",
+      "This information supports investment administration, transaction recordkeeping, investor communications and portfolio reporting. Investment records may be retained after an opportunity closes or an investment ends where necessary for recordkeeping, contractual, legal or other permitted purposes.",
     ],
   },
 
@@ -134,9 +132,9 @@ const privacySections: PrivacySection[] = [
     number: "07",
     title: "Joint-investment information",
     paragraphs: [
-      "Where investors participate jointly, Tevuah Reserve may process information relating to each participating member, the joint subscription, ownership or funding allocation, invitations, consent status, acknowledgements and signatures.",
-      "Some information relating to a joint investment may necessarily be associated with or visible to other authorised participants in that joint investment where required to administer the shared investment relationship.",
-      "Tevuah Reserve should limit such access to information that is appropriate for the joint investment and applicable platform permissions.",
+      "Where an investment involves multiple participants, Tevuah Reserve may process information relating to each participant, the joint subscription, funding allocations, invitations, consent, acknowledgements and signatures.",
+      "Information may be shared with other authorised participants where reasonably necessary to administer the joint investment, confirm participation or manage the associated documentation.",
+      "Access to joint-investment information is subject to applicable permissions, confidentiality requirements and the rights of the individuals concerned.",
     ],
   },
 
@@ -145,9 +143,9 @@ const privacySections: PrivacySection[] = [
     number: "08",
     title: "Documents, signatures and acknowledgements",
     paragraphs: [
-      "The platform may process documents and records associated with onboarding, investment review, agreements, disclosures, acknowledgements, signatures, statements and other investor activity.",
-      "Where an electronic acceptance or signature process is used, records may include the relevant document reference or version, signature name, acceptance timestamp and technical information associated with the acceptance process.",
-      "These records may be retained where necessary to demonstrate the investment process, preserve transaction history or administer the relevant investor relationship.",
+      "Tevuah Reserve may process documents and records associated with onboarding, investment review, agreements, disclosures, acknowledgements, signatures, statements and other investor activity.",
+      "Electronic acceptance and signature records may include the relevant document or version reference, the name associated with the acceptance, a timestamp and technical information relating to the transaction.",
+      "These records support the administration of investments, the preservation of transaction history and the management of the investor relationship.",
     ],
   },
 
@@ -156,9 +154,10 @@ const privacySections: PrivacySection[] = [
     number: "09",
     title: "Technical, device and security information",
     paragraphs: [
-      "When you use the website or investor platform, certain technical information may be generated as part of providing and securing the service.",
-      "Depending on the relevant platform process, this may include IP address information, browser or user-agent information, authentication events, timestamps, security records, request information and other technical data required for operation, troubleshooting, fraud prevention or security.",
-      "Technical information should be used proportionately and in connection with legitimate platform, administrative and security purposes.",
+      "When you access the website or investor platform, technical information may be generated to support the operation, maintenance and security of the service.",
+      "Depending on the systems and services used, this information may include IP addresses, browser information, authentication events, timestamps, request records and other technical data.",
+      "Such information may be used for troubleshooting, service administration, fraud prevention, security monitoring and investigation of suspected misuse.",
+      "Technical information is handled in a manner appropriate to its purpose and subject to applicable privacy requirements.",
     ],
   },
 
@@ -167,22 +166,22 @@ const privacySections: PrivacySection[] = [
     number: "10",
     title: "How personal information may be used",
     paragraphs: [
-      "Tevuah Reserve may process personal information where necessary to operate the website and investor platform and to administer relationships with prospective and existing investors.",
+      "Tevuah Reserve uses personal information to operate the website and investor platform, respond to enquiries and administer relationships with prospective and existing investors. Purposes include:",
     ],
     points: [
-      "Respond to investor enquiries and communications.",
-      "Establish and administer approved investor access.",
-      "Authenticate users and protect investor accounts.",
-      "Complete identity, address and other applicable verification processes.",
-      "Administer investment subscriptions and joint investments.",
-      "Provide and manage investment documents and acknowledgements.",
-      "Provide applicable funding instructions and maintain transaction records.",
+      "Responding to investor enquiries and communications.",
+      "Establishing and administering approved investor access.",
+      "Authenticating users and protecting investor accounts.",
+      "Completing identity, address and other applicable verification processes.",
+      "Administering investment subscriptions and joint investments.",
+      "Managing investment documents, acknowledgements and signatures.",
+      "Providing authorised funding instructions and maintaining transaction records.",
       "Maintain portfolio, statement and distribution records.",
-      "Provide investor communications and relevant investment updates.",
-      "Operate, maintain and improve platform functionality.",
-      "Detect, investigate and prevent suspected fraud, misuse or security incidents.",
-      "Maintain records required for operational, contractual, compliance or legal purposes.",
-      "Establish, exercise or defend legal rights where necessary.",
+      "Communicating relevant investment and administrative information.",
+      "Operating, maintaining and improving platform functionality.",
+      "Detecting and investigating suspected fraud, misuse and security incidents.",
+      "Maintaining operational, contractual, compliance and legal records.",
+      "Establishing, exercising or defending legal claims where necessary.",
     ],
   },
 
@@ -191,9 +190,10 @@ const privacySections: PrivacySection[] = [
     number: "11",
     title: "Basis for processing",
     paragraphs: [
-      "The lawful basis or other legal justification for processing personal information depends on the applicable privacy law, the jurisdiction, the type of information and the purpose for which it is processed.",
-      "Depending on the circumstances and applicable law, processing may be connected with steps requested by an individual, performance or administration of contractual relationships, compliance with legal obligations, legitimate operational or security interests, consent where appropriate, or another basis recognised by applicable law.",
-      "Tevuah Reserve should identify and document the appropriate basis for each material processing activity once the company's legal entity, operating jurisdictions and applicable privacy regimes have been finalised.",
+      "The legal basis for processing personal information depends on the applicable privacy law, the nature of the information and the purpose of the processing.",
+      "Depending on the circumstances, processing may be necessary to take steps requested by an individual, perform or administer a contract, comply with a legal obligation, pursue legitimate operational or security interests, or meet another recognised legal basis.",
+      "Where consent is required, personal information will be processed on that basis. Consent may be withdrawn in accordance with applicable law, without affecting the lawfulness of processing carried out before withdrawal.",
+      "The applicable legal basis and any relevant conditions depend on the processing activity and the law governing it.",
     ],
   },
 
@@ -202,17 +202,17 @@ const privacySections: PrivacySection[] = [
     number: "12",
     title: "When information may be shared",
     paragraphs: [
-      "Personal information should not be disclosed merely because it is held by Tevuah Reserve. Information may, however, need to be shared where another person or organisation has a legitimate role in providing the platform, administering an investment or satisfying an applicable requirement.",
+      "Tevuah Reserve does not disclose personal information indiscriminately. Information may be shared where necessary to provide services, administer investments, maintain platform security, meet legal obligations or protect legitimate rights. Recipients may include:",
     ],
     points: [
-      "Technology, hosting, database and infrastructure providers supporting the platform.",
+      "Technology, hosting, database and infrastructure providers.",
       "Authentication, communications and email-service providers.",
-      "Identity, verification or compliance-service providers where used.",
-      "Banks, payment-related providers or financial-service counterparties where relevant to investment funding or administration.",
-      "Estate operators, investment administrators, custodians or other parties involved in administering a particular investment where appropriate.",
-      "Professional advisers such as legal, accounting or compliance advisers where necessary.",
-      "Authorities, regulators, courts or other recipients where disclosure is required or permitted by applicable law.",
-      "Other parties involved in a corporate transaction, restructuring or transfer, subject to appropriate confidentiality and legal requirements.",
+      "Identity-verification and compliance-service providers.",
+      "Banks, payment providers and financial-service counterparties involved in investment funding or administration.",
+      "Estate operators, investment administrators, custodians and other parties involved in a relevant investment.",
+      "Legal, accounting, compliance and other professional advisers.",
+      "Courts, regulators, public authorities or other recipients where disclosure is required or permitted by applicable law.",
+      "Parties involved in a corporate transaction, restructuring or business transfer, subject to applicable confidentiality and legal requirements.",
     ],
   },
 
@@ -221,9 +221,9 @@ const privacySections: PrivacySection[] = [
     number: "13",
     title: "Service providers and infrastructure",
     paragraphs: [
-      "Tevuah Reserve relies on technology and service providers to operate parts of its digital infrastructure. Such providers may process personal information on behalf of Tevuah Reserve or, depending on the service and circumstances, under their own applicable responsibilities.",
-      "Access by service providers should be limited to what is reasonably necessary for the relevant service and should be subject to appropriate contractual, confidentiality, security and data-protection requirements where required.",
-      "The categories of service providers used by the platform may change as infrastructure and operational requirements develop.",
+      "Tevuah Reserve uses technology and service providers to support the operation of its website, investor platform and related services.",
+      "Depending on their role, these providers may process personal information on behalf of Tevuah Reserve or handle information under their own legal responsibilities.",
+      "Access to personal information is limited to what is reasonably necessary for the services provided. Appropriate contractual, confidentiality, security and data-protection measures apply where required.",
     ],
   },
 
@@ -232,9 +232,9 @@ const privacySections: PrivacySection[] = [
     number: "14",
     title: "International processing and transfers",
     paragraphs: [
-      "Digital services may involve infrastructure, service providers or recipients located in more than one country. As a result, personal information may in some circumstances be processed outside the country in which an investor is located.",
-      "Where applicable privacy law imposes requirements on international transfers of personal information, Tevuah Reserve should use the transfer mechanism or safeguard required for the relevant processing arrangement.",
-      "The specific international-transfer framework applicable to Tevuah Reserve should be confirmed after the company's operating jurisdictions, infrastructure arrangements and applicable privacy laws have been established.",
+      "Personal information may be processed in countries other than the country in which an investor resides, including where technology infrastructure or service providers operate across borders.",
+      "Where international transfers are subject to legal requirements, Tevuah Reserve will apply the safeguards or transfer mechanisms required by the applicable privacy law.",
+      "The treatment of international transfers depends on the countries involved, the recipient, the nature of the information and the applicable legal requirements.",
     ],
   },
 
@@ -243,9 +243,9 @@ const privacySections: PrivacySection[] = [
     number: "15",
     title: "How long information is retained",
     paragraphs: [
-      "Tevuah Reserve should retain personal information only for as long as reasonably necessary for the purpose for which it was collected or for another legitimate purpose permitted or required by applicable law.",
-      "Different categories of information may require different retention periods. Relevant considerations may include the duration of the investor relationship, investment lifecycle, recordkeeping requirements, compliance obligations, dispute or limitation periods, security requirements and the need to establish or defend legal rights.",
-      "Information that is no longer required should be deleted, anonymised or otherwise handled in accordance with the applicable retention process, subject to legal or operational requirements that justify continued retention.",
+      "Tevuah Reserve retains personal information for as long as reasonably necessary for the purposes for which it was collected, subject to applicable legal and regulatory requirements.",
+      "Retention periods depend on the type of information and the circumstances. Relevant considerations include the duration of the investor relationship, the investment lifecycle, recordkeeping obligations, compliance requirements, security needs and the time necessary to establish or defend legal claims.",
+      "When personal information is no longer required, it is deleted, anonymised or otherwise handled in accordance with applicable retention requirements, unless continued retention is legally justified.",
     ],
   },
 
@@ -254,9 +254,9 @@ const privacySections: PrivacySection[] = [
     number: "16",
     title: "Information security",
     paragraphs: [
-      "Tevuah Reserve should use technical and organisational safeguards appropriate to the nature of the information and the risks associated with its processing.",
-      "Measures may include authentication controls, access restrictions, database permissions, secure document access, monitoring, logging and other technical or administrative controls designed to reduce the risk of unauthorised access, disclosure, alteration or loss.",
-      "No digital system can be guaranteed to be completely secure. Investors should also protect their credentials and promptly report suspected unauthorised account activity.",
+      "Tevuah Reserve uses appropriate technical and organisational measures to protect personal information against unauthorised access, disclosure, alteration, loss or misuse.",
+      "Security measures may include authentication controls, access restrictions, database permissions, secure document access, monitoring, logging and other administrative or technical safeguards appropriate to the information and associated risks.",
+      "No digital system can be guaranteed to be completely secure. Investors should protect their account credentials and notify Tevuah Reserve promptly if they suspect unauthorised access or activity.",
     ],
   },
 
@@ -265,19 +265,18 @@ const privacySections: PrivacySection[] = [
     number: "17",
     title: "Your privacy rights",
     paragraphs: [
-      "Depending on the privacy law applicable to you and the relevant processing activity, you may have rights in relation to your personal information.",
-      "These rights are not identical in every jurisdiction and may be subject to conditions, limitations or exceptions under applicable law.",
+      "Depending on the privacy law applicable to you and the circumstances of the processing, you may have rights concerning your personal information. These rights may include:",
     ],
     points: [
-      "Request information about how your personal information is processed.",
-      "Request access to personal information held about you.",
-      "Request correction of inaccurate or incomplete information.",
-      "Request deletion of information in circumstances where a right to deletion applies.",
-      "Request restriction of certain processing where recognised by applicable law.",
-      "Object to certain processing where an applicable right to object exists.",
-      "Request portability of eligible information where applicable.",
-      "Withdraw consent where processing relies on consent, without affecting processing lawfully carried out before withdrawal.",
-      "Raise a concern or complaint about the handling of your personal information.",
+      "Requesting information about how your personal information is processed.",
+      "Requesting access to personal information held about you.",
+      "Requesting correction of inaccurate or incomplete information.",
+      "Requesting deletion where the right to deletion applies.",
+      "Requesting restriction of processing where permitted by law.",
+      "Objecting to certain processing where a right to object exists.",
+      "Requesting a copy of eligible information in a portable format where applicable.",
+      "Withdrawing consent where processing relies on consent.",
+      "Raising a concern or complaint about the handling of your personal information.",
     ],
   },
 
@@ -286,9 +285,9 @@ const privacySections: PrivacySection[] = [
     number: "18",
     title: "Privacy requests and identity verification",
     paragraphs: [
-      "If you make a request concerning your personal information, Tevuah Reserve may need to take reasonable steps to confirm your identity before disclosing information or acting on the request.",
-      "This is intended to protect personal information from being disclosed, changed or deleted in response to an unauthorised request.",
-      "The manner and timing for responding to a privacy request will depend on the applicable law and the nature of the request.",
+      "If you submit a request concerning your personal information, Tevuah Reserve may need to verify your identity before disclosing information or making changes.",
+      "This helps protect personal information against unauthorised access, alteration or deletion.",
+      "Requests will be handled in accordance with the applicable legal requirements, including any relevant response periods, verification requirements and permitted exceptions.",
     ],
   },
 
@@ -297,8 +296,8 @@ const privacySections: PrivacySection[] = [
     number: "19",
     title: "Automated decision-making",
     paragraphs: [
-      "This Privacy Policy does not state that Tevuah Reserve currently makes solely automated decisions producing legal or similarly significant effects on investors.",
-      "If such processing is introduced in the future, the relevant privacy information should be updated to explain the processing and any rights that apply under the relevant law.",
+      "Personal information may be processed using automated systems for technical operations, account administration, verification support and security purposes.",
+      "Where automated processing is used to make decisions that are subject to specific privacy protections, information about that processing and the rights available to affected individuals will be provided as required by applicable law.",
     ],
   },
 
@@ -307,8 +306,8 @@ const privacySections: PrivacySection[] = [
     number: "20",
     title: "Cookies and similar technologies",
     paragraphs: [
-      "The website or platform may use cookies or similar browser technologies where required for functionality, authentication, security, preferences or other legitimate platform purposes.",
-      "The specific cookies and similar technologies actually used by Tevuah Reserve should be described in the separate Cookie Policy, including their purposes and any available choices where required.",
+      "The website and investor platform may use cookies and similar technologies to support functionality, authentication, security, preferences and other website operations.",
+      "The Cookie Policy provides further information about the cookies and similar technologies used, their purposes and the choices available to users where applicable.",
     ],
   },
 
@@ -317,9 +316,9 @@ const privacySections: PrivacySection[] = [
     number: "21",
     title: "Investor communications",
     paragraphs: [
-      "Tevuah Reserve may use contact information to respond to enquiries, provide account or investment-related communications, deliver documents, communicate material administrative information and provide other communications connected with the investor relationship.",
-      "Marketing or optional promotional communications, if introduced, should be handled in accordance with applicable law and any preferences or consent requirements that apply.",
-      "Administrative, security or investment-related communications may need to be sent independently of marketing preferences where they are necessary to administer the relevant relationship or service.",
+      "Tevuah Reserve uses contact information to respond to enquiries, administer investor accounts, deliver relevant documents, communicate investment-related information and provide important administrative or security notices.",
+      "Marketing and promotional communications are handled in accordance with applicable law and any consent or preference requirements that apply.",
+      "Administrative, security and investment-related communications may still be necessary even where an individual has opted out of optional marketing communications.",
     ],
   },
 
@@ -328,8 +327,9 @@ const privacySections: PrivacySection[] = [
     number: "22",
     title: "Third-party websites and services",
     paragraphs: [
-      "The Tevuah Reserve website may contain links to third-party websites or services. Those third parties may operate under their own privacy policies and practices.",
-      "This Privacy Policy applies to Tevuah Reserve's handling of personal information and does not automatically govern independent third-party websites or services.",
+      "The Tevuah Reserve website may contain links to third-party websites or services. Those services may collect and process personal information under their own privacy policies and practices.",
+      "This Privacy Policy applies to Tevuah Reserve's handling of personal information and does not govern independent third-party websites or services.",
+      "Users should review the privacy information provided by third parties before submitting personal information through their services.",
     ],
   },
 
@@ -338,8 +338,9 @@ const privacySections: PrivacySection[] = [
     number: "23",
     title: "Changes to this Privacy Policy",
     paragraphs: [
-      "Tevuah Reserve may update this Privacy Policy to reflect changes to the platform, processing activities, service providers, legal requirements or operational practices.",
-      "The current version should be made available through the website. Where applicable law requires additional notice or consent for a material change, the appropriate process should be followed.",
+      "Tevuah Reserve may update this Privacy Policy to reflect changes in its services, platform operations, information-handling practices or applicable legal requirements.",
+      "The current version will be made available through the website, together with the date of the latest revision.",
+      "Where applicable law requires notice or consent for a material change, the relevant process will be followed.",
     ],
   },
 
@@ -348,9 +349,8 @@ const privacySections: PrivacySection[] = [
     number: "24",
     title: "Contact and privacy enquiries",
     paragraphs: [
-      "Questions about this Privacy Policy or the handling of personal information may be submitted through the Tevuah Reserve Contact page.",
-      "Before this policy is relied upon as the final production privacy notice, the identity and contact details of the applicable legal entity or data controller, and any required privacy contact or representative, should be added once confirmed.",
-      "Where applicable law gives an individual the right to complain to a privacy or data-protection authority, that right and the relevant authority should be identified once the applicable jurisdiction has been established.",
+      "For questions about this Privacy Policy, requests concerning personal information or enquiries about how investor records are handled, please contact Tevuah Reserve through the Contact page.",
+      "Requests will be handled in accordance with applicable privacy requirements. Where the law provides a right to complain to a data-protection or privacy authority, that right remains available subject to the applicable legal framework.",
     ],
   },
 ];
@@ -416,11 +416,7 @@ export default function PrivacyPage() {
 
             <PrivacyHeroReveal delay={0.31}>
               <p className="mt-7 max-w-3xl text-base leading-8 text-white/65 sm:text-lg">
-                Understand how personal
-                information may be collected,
-                used, protected and handled when
-                you interact with Tevuah Reserve
-                and the investor platform.
+                Understand how Tevuah Reserve collects, uses, protects and handles personal information when you interact with the website, submit an investor enquiry or use the investor platform.
               </p>
             </PrivacyHeroReveal>
 
@@ -462,19 +458,11 @@ export default function PrivacyPage() {
                 </p>
 
                 <h2 className="font-display mt-4 max-w-4xl text-3xl font-medium tracking-[-0.03em] text-forest-950 sm:text-4xl">
-                  Investor information should be
-                  handled carefully and for clear
-                  purposes.
+                  Personal information deserves careful handling.
                 </h2>
 
                 <p className="mt-6 max-w-4xl text-sm leading-7 text-stone-700 sm:text-base sm:leading-8">
-                  Tevuah Reserve uses personal
-                  information to support investor
-                  enquiries, onboarding,
-                  verification, secure account
-                  access, investment
-                  administration and related
-                  platform services.
+                  Tevuah Reserve uses personal information to respond to investor enquiries, manage onboarding and verification, support secure account access, administer investments and provide related platform services.
                 </p>
               </div>
             </div>
@@ -506,22 +494,22 @@ export default function PrivacyPage() {
                   {
                     icon: Eye,
                     title: "Transparency",
-                    text: "Explain what information is used and why it is required.",
+                    text: "Explain what information is collected, how it is used and when it may be shared.",
                   },
                   {
                     icon: Database,
                     title: "Data minimisation",
-                    text: "Collect information that is appropriate for the relevant purpose.",
+                    text: "Collect information relevant to the purpose for which it is required.",
                   },
                   {
                     icon: LockKeyhole,
                     title: "Security",
-                    text: "Apply appropriate controls to protect sensitive investor information.",
+                    text: "Protect personal and investor information through appropriate access controls and security measures.",
                   },
                   {
                     icon: UserCheck,
                     title: "Accountability",
-                    text: "Maintain appropriate responsibility for how personal information is handled.",
+                    text: "Handle personal information responsibly and in accordance with applicable privacy requirements.",
                   },
                 ].map((item) => {
                   const Icon = item.icon;
@@ -562,46 +550,26 @@ export default function PrivacyPage() {
             <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-                  Policy status
+                  Privacy and data protection
                 </p>
 
                 <h2 className="font-display mt-5 text-3xl font-medium tracking-[-0.03em] text-forest-950 sm:text-4xl">
-                  Legal details must reflect the
-                  final operating structure.
+                  Personal information is handled with care and for defined purposes.
                 </h2>
               </div>
 
               <div className="space-y-5 text-sm leading-7 text-stone-700">
                 <p>
-                  Privacy requirements depend on
-                  factors including the legal
-                  entity operating the platform,
-                  where it operates, where
-                  investors are located and the
-                  nature of the processing
-                  involved.
+                  Tevuah Reserve’s privacy practices cover the collection, use, storage and sharing of personal information throughout the investor relationship, from initial enquiries and identity verification to investment administration and portfolio reporting.
                 </p>
 
                 <p>
-                  This policy therefore does not
-                  invent a data-controller entity,
-                  registered address, privacy
-                  officer, supervisory authority
-                  or jurisdiction-specific legal
-                  basis that has not yet been
-                  confirmed.
+                  Personal information is handled in accordance with applicable privacy and data-protection requirements. The information collected, the purposes for which it is used, and the circumstances in which it may be shared depend on the services provided and the nature of the relationship with Tevuah Reserve.
                 </p>
 
                 <div className="rounded-2xl border border-gold-500/25 bg-gold-500/5 p-5">
                   <p className="text-xs leading-6 text-stone-700">
-                    Entity-specific contact
-                    details, applicable legal
-                    bases, international-transfer
-                    arrangements and
-                    jurisdiction-specific rights
-                    should be finalised before
-                    this policy is relied upon as
-                    the production legal notice.
+                   Where information is shared with service providers or processed across borders, appropriate arrangements must be established to protect that information and meet applicable legal requirements. Privacy enquiries and requests concerning personal information may be submitted through the contact channels provided in this policy.
                   </p>
                 </div>
               </div>
@@ -743,8 +711,7 @@ export default function PrivacyPage() {
               </p>
 
               <h2 className="font-display mt-5 max-w-4xl text-4xl leading-none font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">
-                Information changes as the
-                investor relationship develops.
+                Information is handled throughout the investor relationship.
               </h2>
             </div>
           </PrivacyReveal>
@@ -755,25 +722,25 @@ export default function PrivacyPage() {
                 number: "01",
                 icon: Mail,
                 title: "Enquiry",
-                text: "Basic contact, jurisdiction, investment-interest and enquiry information.",
+                text: "Contact details, jurisdiction, investment interests and enquiry correspondence.",
               },
               {
                 number: "02",
                 icon: Fingerprint,
                 title: "Onboarding",
-                text: "Account, identity, address and verification information where an investor proceeds.",
+                text: "Account information, identity and address details, and verification records where required.",
               },
               {
                 number: "03",
                 icon: FileCheck2,
                 title: "Investment",
-                text: "Subscription, consent, document, funding and transaction-related records.",
+                text: "Subscription documents, consents, funding information and transaction records.",
               },
               {
                 number: "04",
                 icon: Database,
                 title: "Portfolio",
-                text: "Investment positions, statements, distributions, documents and lifecycle records.",
+                text: "Investment positions, statements, distributions, documents and records associated with the investment lifecycle.",
               },
             ].map((item) => {
               const Icon = item.icon;
@@ -824,28 +791,22 @@ export default function PrivacyPage() {
                 </p>
 
                 <h2 className="font-display mt-5 text-4xl leading-none font-medium tracking-[-0.035em] sm:text-5xl">
-                  Sensitive information requires
-                  controlled access.
+                  Sensitive information requires controlled access.
                 </h2>
               </div>
 
               <div>
                 <p className="max-w-3xl text-base leading-8 text-white/65">
-                  Identity documents, investor
-                  records and investment
-                  information should be accessible
-                  only where the person, service
-                  or system has an appropriate
-                  reason to access them.
+                  Investor identity documents, personal information and investment records must be protected against unauthorised access and disclosure.
                 </p>
 
                 <div className="mt-8 divide-y divide-white/10 border-y border-white/10">
                   {[
-                    "Use authentication and permissions to restrict investor access.",
-                    "Limit administrative access according to operational responsibilities.",
+                    "Use authentication and permissions to control investor access.",
+                    "Restrict administrative access according to authorised responsibilities.",
                     "Protect sensitive documents through appropriate storage and access controls.",
-                    "Maintain records that support security monitoring and investigation.",
-                    "Review suspected unauthorised activity and take appropriate protective action.",
+                    "Maintain relevant security records to support monitoring and investigation.",
+                    " Investigate suspected unauthorised activity and take appropriate protective measures.",
                   ].map(
                     (item, index) => (
                       <div
@@ -892,11 +853,7 @@ export default function PrivacyPage() {
                 </h2>
 
                 <p className="mt-6 max-w-2xl text-base leading-8 text-stone-700">
-                  Contact Tevuah Reserve if you
-                  have a question about personal
-                  information, investor records or
-                  how information associated with
-                  your platform use is handled.
+                  Contact Tevuah Reserve if you have a question about personal information, investor records or the handling of information associated with your use of the website and platform.
                 </p>
               </div>
 

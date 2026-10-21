@@ -162,14 +162,7 @@ export function Footer() {
               </p>
 
               <p className="max-w-3xl lg:text-right">
-                Investments involve risk,
-                including possible loss of
-                capital. Information presented on
-                the platform may include
-                illustrative or demonstration
-                content and does not constitute an
-                offer, recommendation or
-                guarantee.
+                Investments involve risk, including possible loss of capital. Information presented on the platform is provided for informational purposes and does not constitute an offer, recommendation or guarantee of investment performance.
               </p>
             </div>
           </FooterRevealSoft>

@@ -375,7 +375,7 @@ export function AgTechSection() {
                       </p>
 
                       <p className="mt-1 text-xs text-white/45">
-                        Last illustrative update: today
+                        Last update: today
                       </p>
                     </div>
                   </div>

@@ -161,7 +161,7 @@ export default async function EstatePage({
               <EstateStatusBadge status={estate.status} />
 
               <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[0.65rem] font-semibold uppercase tracking-[0.14em] backdrop-blur-md">
-                Illustrative estate
+                 estate
               </span>
             </div>
           </EstateSlugHeroReveal>

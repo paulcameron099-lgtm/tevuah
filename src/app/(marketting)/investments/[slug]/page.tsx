@@ -548,7 +548,7 @@ export default async function InvestmentOpportunityPage({
                 )}
 
                 <p className="mt-5 text-xs leading-6 text-white/40">
-                  Target returns are illustrative and
+                  Target returns
                   are not guaranteed. Private-market
                   investments involve risk, including
                   potential loss of capital and

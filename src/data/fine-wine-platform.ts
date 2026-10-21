@@ -89,7 +89,7 @@ export const winePrinciples: WinePrinciple[] = [
 export const winePortfolioMetrics: WinePortfolioMetric[] = [
   {
     id: "collection-value",
-    label: "Illustrative collection value",
+    label: "collection value",
     value: "€485,000",
     description: "Demonstration portfolio only",
   },
@@ -97,19 +97,19 @@ export const winePortfolioMetrics: WinePortfolioMetric[] = [
     id: "holdings",
     label: "Collection holdings",
     value: "42",
-    description: "Illustrative wines and cases",
+    description: "wines and cases",
   },
   {
     id: "regions",
     label: "Wine regions",
     value: "5",
-    description: "Illustrative geographic exposure",
+    description: "geographic exposure",
   },
   {
     id: "storage",
     label: "Storage status",
     value: "Protected",
-    description: "Illustrative specialist custody",
+    description: "specialist custody",
   },
 ];
 
@@ -120,7 +120,7 @@ export const wineRegions: WineRegion[] = [
     country: "France",
     allocation: 34,
     description:
-      "Illustrative exposure to established producers and recognised appellations.",
+      "exposure to established producers and recognised appellations.",
   },
   {
     id: "burgundy",
@@ -128,7 +128,7 @@ export const wineRegions: WineRegion[] = [
     country: "France",
     allocation: 28,
     description:
-      "Illustrative exposure to scarce production and producer-specific holdings.",
+      "exposure to scarce production and producer-specific holdings.",
   },
   {
     id: "champagne",
@@ -136,7 +136,7 @@ export const wineRegions: WineRegion[] = [
     country: "France",
     allocation: 15,
     description:
-      "Illustrative allocation to selected vintage and prestige cuvée holdings.",
+      "allocation to selected vintage and prestige cuvée holdings.",
   },
   {
     id: "tuscany",
@@ -144,7 +144,7 @@ export const wineRegions: WineRegion[] = [
     country: "Italy",
     allocation: 13,
     description:
-      "Illustrative exposure to premium Italian wine estates.",
+      "exposure to premium Italian wine estates.",
   },
   {
     id: "rioja",
@@ -152,14 +152,14 @@ export const wineRegions: WineRegion[] = [
     country: "Spain",
     allocation: 10,
     description:
-      "Illustrative exposure to selected Spanish producers and mature vintages.",
+      "exposure to selected Spanish producers and mature vintages.",
   },
 ];
 
 export const wineCollectionHoldings: WineCollectionHolding[] = [
   {
     id: "holding-01",
-    producer: "Illustrative Château A",
+    producer: "Château A",
     wine: "Grand Vin",
     region: "Bordeaux",
     vintage: "2016",
@@ -169,7 +169,7 @@ export const wineCollectionHoldings: WineCollectionHolding[] = [
   },
   {
     id: "holding-02",
-    producer: "Illustrative Domaine B",
+    producer: "Domaine B",
     wine: "Premier Cru",
     region: "Burgundy",
     vintage: "2018",
@@ -179,7 +179,7 @@ export const wineCollectionHoldings: WineCollectionHolding[] = [
   },
   {
     id: "holding-03",
-    producer: "Illustrative House C",
+    producer: "House C",
     wine: "Vintage Cuvée",
     region: "Champagne",
     vintage: "2012",
@@ -189,7 +189,7 @@ export const wineCollectionHoldings: WineCollectionHolding[] = [
   },
   {
     id: "holding-04",
-    producer: "Illustrative Estate D",
+    producer: "Estate D",
     wine: "Riserva",
     region: "Tuscany",
     vintage: "2017",

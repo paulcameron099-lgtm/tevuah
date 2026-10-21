@@ -39,10 +39,6 @@ export function EstateCard({
 
         <div className="absolute left-5 right-5 top-5 flex items-start justify-between gap-4">
           <EstateStatusBadge status={estate.status} />
-
-          <span className="rounded-full border border-white/20 bg-forest-950/40 px-3 py-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white backdrop-blur-md">
-            Illustrative
-          </span>
         </div>
 
         <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between gap-5">
