@@ -49,7 +49,7 @@ export const investmentPrinciples: InvestmentPrinciple[] = [
     id: "transparency",
     title: "Visible information",
     description:
-      "Investors should be able to understand the asset, investment structure, assumptions, fees, risks and operating context before committing capi",
+      "Investors should be able to understand the asset, investment structure, assumptions, fees, risks and operating context before committing capital",
     icon: Eye,
   },
   {

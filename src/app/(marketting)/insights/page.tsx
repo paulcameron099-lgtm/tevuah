@@ -52,7 +52,7 @@ export default function InsightsPage() {
       <section className="relative flex min-h-165 items-end overflow-hidden bg-forest-950 pt-19 text-white lg:pt-22">
         <InsightsHeroImage className="absolute inset-0">
           <Image
-            src="/images/hero/insights-page-hero.jpg"
+            src="/images/hero/insights-page-hero.jpeg"
             alt="Cultivated landscape representing Tevuah Reserve insights"
             fill
             priority

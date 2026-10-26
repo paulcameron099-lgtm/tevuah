@@ -31,8 +31,8 @@ export const estates: Estate[] = [
     productiveHectares: 92,
     primaryCrop: "Wine grapes",
     established: "1986",
-    heroImage: "/images/estates/val-dorcia/hero.jpg",
-    cardImage: "/images/estates/val-dorcia/card.jpg",
+    heroImage: "/images/estates/val-dorcia/card.jpeg",
+    cardImage: "/images/estates/val-dorcia/card.jpeg",
     coordinates: {
       latitude: 43.058,
       longitude: 11.613,
@@ -60,19 +60,19 @@ export const estates: Estate[] = [
     ],
     gallery: [
       {
-        src: "/images/estates/val-dorcia/gallery-01.jpg",
+        src: "/images/estates/val-dorcia/gallery-01.jpeg",
         alt: "vineyard rows in Tuscany",
       },
       {
-        src: "/images/estates/val-dorcia/gallery-02.jpg",
+        src: "/images/estates/val-dorcia/gallery-02.jpeg",
         alt: "Tuscan agricultural estate",
       },
       {
-        src: "/images/estates/val-dorcia/gallery-03.jpg",
+        src: "/images/estates/val-dorcia/gallery-03.jpeg",
         alt: "vineyard landscape",
       },
       {
-        src: "/images/estates/val-dorcia/gallery-04.jpg",
+        src: "/images/estates/val-dorcia/gallery-04.jpeg",
         alt: "estate operations",
       },
     ],
@@ -151,8 +151,8 @@ export const estates: Estate[] = [
     productiveHectares: 310,
     primaryCrop: "Olives",
     established: "1978",
-    heroImage: "/images/estates/andalusia/hero.jpg",
-    cardImage: "/images/estates/andalusia/card.jpg",
+    heroImage: "/images/estates/andalusia/card.jpeg",
+    cardImage: "/images/estates/andalusia/card.jpeg",
     coordinates: {
       latitude: 37.544,
       longitude: -4.727,
@@ -177,19 +177,19 @@ export const estates: Estate[] = [
     ],
     gallery: [
       {
-        src: "/images/estates/andalusia/gallery-01.jpg",
+        src: "/images/estates/andalusia/gallery-01.jpeg",
         alt: "olive grove landscape",
       },
       {
-        src: "/images/estates/andalusia/gallery-02.jpg",
+        src: "/images/estates/andalusia/gallery-02.jpeg",
         alt: "Mediterranean olive estate",
       },
       {
-        src: "/images/estates/andalusia/gallery-03.jpg",
+        src: "/images/estates/andalusia/gallery-03.jpeg",
         alt: "olive trees",
       },
       {
-        src: "/images/estates/andalusia/gallery-04.jpg",
+        src: "/images/estates/andalusia/gallery-04.jpeg",
         alt: "olive-estate operations",
       },
     ],
@@ -268,8 +268,8 @@ export const estates: Estate[] = [
     productiveHectares: 128,
     primaryCrop: "Olives",
     established: "1989",
-    heroImage: "/images/estates/alentejo/hero.jpg",
-    cardImage: "/images/estates/alentejo/card.jpg",
+    heroImage: "/images/estates/alentejo/card.jpeg",
+    cardImage: "/images/estates/alentejo/card.jpeg",
     coordinates: {
       latitude: 38.015,
       longitude: -7.865,
@@ -294,19 +294,19 @@ export const estates: Estate[] = [
     ],
     gallery: [
       {
-        src: "/images/estates/alentejo/gallery-01.jpg",
+        src: "/images/estates/alentejo/gallery-01.jpeg",
         alt: "Alentejo agricultural estate",
       },
       {
-        src: "/images/estates/alentejo/gallery-02.jpg",
+        src: "/images/estates/alentejo/gallery-02.jpeg",
         alt: "Portuguese olive grove",
       },
       {
-        src: "/images/estates/alentejo/gallery-03.jpg",
+        src: "/images/estates/alentejo/gallery-03.jpeg",
         alt: "olive estate road",
       },
       {
-        src: "/images/estates/alentejo/gallery-04.jpg",
+        src: "/images/estates/alentejo/gallery-04.jpeg",
         alt: "agricultural operations",
       },
     ],
@@ -383,8 +383,8 @@ export const estates: Estate[] = [
     productiveHectares: 125,
     primaryCrop: "Wine grapes",
     established: "1994",
-    heroImage: "/images/estates/rioja/hero.jpg",
-    cardImage: "/images/estates/rioja/card.jpg",
+    heroImage: "/images/estates/rioja/card.jpeg",
+    cardImage: "/images/estates/rioja/card.jpeg",
     coordinates: {
       latitude: 42.466,
       longitude: -2.445,
@@ -409,19 +409,19 @@ export const estates: Estate[] = [
     ],
     gallery: [
       {
-        src: "/images/estates/rioja/gallery-01.jpg",
+        src: "/images/estates/rioja/gallery-01.jpeg",
         alt: " Rioja vineyard",
       },
       {
-        src: "/images/estates/rioja/gallery-02.jpg",
+        src: "/images/estates/rioja/gallery-02.jpeg",
         alt: "Spanish vineyard development",
       },
       {
-        src: "/images/estates/rioja/gallery-03.jpg",
+        src: "/images/estates/rioja/gallery-03.jpeg",
         alt: "vineyard planting",
       },
       {
-        src: "/images/estates/rioja/gallery-04.jpg",
+        src: "/images/estates/rioja/gallery-04.jpeg",
         alt: "vineyard landscape",
       },
     ],

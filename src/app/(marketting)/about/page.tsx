@@ -230,7 +230,7 @@ export default function AboutPage() {
 
             <AboutImageReveal className="relative min-h-140 overflow-hidden rounded-4xl">
               <Image
-                src="/images/about/investment-philosophy.jpg"
+                src="/images/about/investment-philosophy.jpeg"
                 alt="Vineyard estate representing the Tevuah Reserve investment philosophy"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -364,7 +364,7 @@ export default function AboutPage() {
 
             <AboutImageReveal className="relative min-h-140 overflow-hidden rounded-4xl">
               <Image
-                src="/images/about/operating-partners.jpg"
+                src="/images/about/operating-partners.jpeg"
                 alt="Estate operator representing Tevuah Reserve operating partnerships"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -384,7 +384,7 @@ export default function AboutPage() {
             <div className="grid overflow-hidden rounded-4xl bg-forest-950 text-white lg:grid-cols-[1.05fr_0.95fr]">
               <AboutImageReveal className="relative min-h-120 lg:min-h-155">
                 <Image
-                  src="/images/about/stewardship.jpg"
+                  src="/images/about/stewardship.jpeg"
                   alt="Cultivated land representing long-term stewardship"
                   fill
                   sizes="(max-width: 1024px) 100vw, 55vw"

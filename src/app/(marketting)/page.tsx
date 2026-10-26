@@ -10,6 +10,8 @@ import { InvestmentCategories } from "@/src/components/marketing/investment-cate
 import { TrustStrip } from "@/src/components/marketing/trust-strip";
 import { WineSection } from "@/src/components/marketing/wine-section";
 
+export const dynamic = "force-dynamic";
+
 export default function HomePage() {
   return (
     <main>

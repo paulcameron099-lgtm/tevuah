@@ -333,7 +333,7 @@ export default function RiskDisclosurePage() {
       <section className="relative flex min-h-155 items-end overflow-hidden bg-forest-950 pt-19 text-white lg:pt-22">
         <RiskHeroImage className="absolute inset-0">
           <Image
-            src="/images/hero/estates-page-hero.jpg"
+            src="/images/hero/risk-page-hero.jpeg"
             alt=""
             fill
             priority

@@ -37,7 +37,7 @@ export const events: TevuahEvent[] = [
     format: "Fine wine masterclass and tasting",
     category: "Fine wine",
     eyebrow: "Fine Wine · Masterclass and Tasting",
-    image: "/images/hero/fine-wine-page-hero.jpg",
+    image: "/images/hero/fine-wine-page-hero.jpeg",
 
     summary:
       "Explore the character, provenance and collectibility of Napa Valley wines through a specialist tasting and discussion. Examine how vintage quality, producer reputation, storage conditions and market demand influence the assessment of fine wine as a collectible asset.",
@@ -109,7 +109,7 @@ export const events: TevuahEvent[] = [
     format: "Technology and investment briefing",
     category: "AgTech",
     eyebrow: "AgTech · Technology and Investment Briefing",
-    image: "/images/hero/our-estates-page-hero.jpg",
+    image: "/images/hero/our-estates-page-hero.jpeg",
 
     summary:
       "Explore how precision agriculture, sensor networks and field intelligence are changing the management of productive land. This session examines the practical application of agricultural data, from irrigation efficiency to crop monitoring, operational planning and resource management.",
@@ -188,7 +188,7 @@ export const events: TevuahEvent[] = [
     format: "Olive estate and production briefing",
     category: "Olive estates",
     eyebrow: "Olive Estates · Estate and Production Briefing",
-    image: "/images/hero/our-estates-page-hero.jpg",
+    image: "/images/estates/our-estates-page-hero.jpeg",
 
     summary:
       "A closer look at the commercial realities of olive cultivation, from harvest timing and irrigation to milling, oil quality and market positioning. Examine the operational decisions that influence productivity and the long-term stewardship of established olive estates.",
@@ -274,7 +274,7 @@ export const events: TevuahEvent[] = [
     category: "Fine wine",
     eyebrow:
       "Fine Wine · Investment Seminar and Guided Tasting",
-    image: "/images/hero/fine-wine-page-hero.jpg",
+    image: "/images/wine/fine-wine-page-hero.jpeg",
 
     summary:
       "An informed discussion of fine wine as a collectible asset, covering provenance, custody, valuation, liquidity and secondary-market dynamics. Explore the considerations involved in building and managing a collection over an extended holding period.",

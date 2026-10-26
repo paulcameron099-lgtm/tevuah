@@ -81,7 +81,7 @@ export default function HowItWorksPage() {
       <section className="relative flex min-h-180 items-end overflow-hidden bg-forest-950 pt-19 text-white lg:pt-22">
         <HowHeroImage className="absolute inset-0">
           <Image
-            src="/images/hero/how-it-works-page-hero.jpeg"
+            src="/images/how-it-works/how-it-works-page-hero.jpeg"
             alt="Estate review representing the Tevuah Reserve investor process"
             fill
             priority
@@ -388,31 +388,12 @@ export default function HowItWorksPage() {
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
             <HowImageReveal className="relative min-h-135 overflow-hidden rounded-4xl">
               <Image
-                src="/images/how-it-works/portfolio-monitoring.jpg"
+                src="/images/how-it-works/portfolio-monitoring.jpeg"
                 alt="Investor portfolio monitoring"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
-
-              <div className="absolute inset-0 bg-linear-to-t from-forest-950/55 via-transparent to-transparent" />
-
-              <HowRevealSoft className="absolute bottom-6 left-6 right-6 sm:bottom-8 sm:left-8 sm:right-auto sm:max-w-sm">
-                <div className="rounded-3xl border border-white/15 bg-forest-950/65 p-5 text-white backdrop-blur-md">
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-400">
-                    Investor dashboard
-                  </p>
-
-                  <p className="font-display mt-3 text-2xl font-semibold">
-                    Portfolio monitoring
-                  </p>
-
-                  <p className="mt-2 text-xs leading-6 text-white/55">
-                    Future dashboard interface for investments, updates,
-                    documents and distributions.
-                  </p>
-                </div>
-              </HowRevealSoft>
             </HowImageReveal>
 
             <HowReveal>

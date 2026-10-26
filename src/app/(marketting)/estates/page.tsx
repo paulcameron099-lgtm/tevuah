@@ -51,7 +51,7 @@ export default function EstatesPage() {
       <section className="relative flex min-h-170 items-end overflow-hidden bg-forest-950 pt-19 text-white lg:pt-22">
         <EstatesHeroImage className="absolute inset-0">
           <Image
-            src="/images/hero/estates-page-hero.jpg"
+            src="/images/hero/estates-page-hero.jpeg"
             alt="Mediterranean cultivated landscape representing Tevuah Reserve estates"
             fill
             priority

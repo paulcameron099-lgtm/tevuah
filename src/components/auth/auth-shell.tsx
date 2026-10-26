@@ -18,7 +18,7 @@ export function AuthShell({
         {/* Left image */}
         <div className="relative hidden min-h-190 overflow-hidden bg-forest-950 lg:block">
           <Image
-            src="/images/auth/auth-vineyard.jpg"
+            src="/images/auth/auth-vineyard.jpeg"
             alt="Vineyard landscape"
             fill
             priority
@@ -29,20 +29,11 @@ export function AuthShell({
           <div className="absolute inset-0 bg-linear-to-b from-forest-950/35 via-forest-950/40 to-forest-950/90" />
 
           <div className="relative z-10 flex h-full min-h-190 flex-col justify-between p-10 xl:p-14">
-            <div>
-              <p className="font-display text-2xl font-semibold text-white">
-                Tevuah Reserve
-              </p>
-
-              <p className="mt-3 max-w-sm text-sm leading-7 text-white/65">
-                Access a considered approach to real assets,
-                productive estates and fine wine.
-              </p>
-            </div>
+            <div />
 
             <div className="max-w-lg">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-400">
-                Private investment platform
+                Tevuah Reserve
               </p>
 
               <h2 className="font-display mt-5 text-4xl leading-[1.05] font-medium tracking-[-0.04em] text-white xl:text-5xl">
@@ -70,7 +61,7 @@ export function AuthShell({
 
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-600">
-                Investor access
+                Private Investor Portal
               </p>
 
               <h1 className="font-display mt-4 text-4xl font-medium tracking-[-0.035em] text-forest-950 sm:text-5xl">

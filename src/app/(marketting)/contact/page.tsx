@@ -100,7 +100,7 @@ export default function ContactPage() {
       <section className="relative flex min-h-170 items-end overflow-hidden bg-forest-950 pt-19 text-white lg:pt-22">
         <ContactHeroImage className="absolute inset-0">
           <Image
-            src="/images/hero/estates-page-hero.jpg"
+            src="/images/hero/contact-page-hero.jpeg"
             alt="Cultivated estate landscape representing Tevuah Reserve investor relationships"
             fill
             priority

@@ -13,7 +13,7 @@ export default function LoginPage() {
   return (
     <AuthShell
       title="Welcome back."
-      description="Sign in to access your Tevuah Reserve investor account, portfolio and investment activity."
+      description="Sign in to your Tevuah Reserve account to review your portfolio, access investment information and follow your investment activity."
     >
       <LoginForm />
     </AuthShell>

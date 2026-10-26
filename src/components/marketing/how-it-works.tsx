@@ -177,7 +177,7 @@ export function HowItWorks() {
               }}
             >
               <Image
-                src="/images/sections/how-it-works-estate-review.PNG"
+                src="/images/sections/how-it-works-estate-review.jpeg"
                 alt="An estate review representing the Tevuah Reserve investment process"
                 fill
                 sizes="(max-width: 1024px) 100vw, 55vw"

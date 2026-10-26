@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
 
 import {
   ArrowLeft,
@@ -15,13 +16,13 @@ import {
   X,
 } from "lucide-react";
 
-import {
-  Container,
-} from "@/src/components/ui/container";
+import { Container } from "@/src/components/ui/container";
+import type { TevuahEvent } from "@/src/data/event";
 
-import type {
-  TevuahEvent,
-} from "@/src/data/event";
+import {
+  EventHeroReveal,
+  EventReveal,
+} from "@/src/components/events/event-motion";
 
 type FormValues = {
   firstName: string;
@@ -125,18 +126,12 @@ export function EventRegistrationForm({
 }: {
   event: TevuahEvent;
 }) {
-  const [form, setForm] =
-    useState<FormValues>(initial);
+  const reducedMotion = useReducedMotion();
 
-  const [submitting, setSubmitting] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-  const [success, setSuccess] =
-    useState(false);
-    
+  const [form, setForm] = useState<FormValues>(initial);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   function set<K extends keyof FormValues>(
     key: K,
@@ -148,23 +143,21 @@ export function EventRegistrationForm({
     }));
   }
 
+  useEffect(() => {
+    if (!success) return;
 
-useEffect(() => {
-  if (!success) return;
-
-  function handleEscape(event: KeyboardEvent) {
-    if (event.key === "Escape") {
-      setSuccess(false);
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSuccess(false);
+      }
     }
-  }
 
-  document.addEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", handleEscape);
 
-  return () => {
-    document.removeEventListener("keydown", handleEscape);
-  };
-}, [success]);
-
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [success]);
 
   async function submit(
     eventObject: FormEvent<HTMLFormElement>,
@@ -177,42 +170,32 @@ useEffect(() => {
     setSubmitting(true);
 
     try {
-      const response = await fetch(
-        "/api/events/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...form,
-            eventSlug: event.slug,
-          }),
+      const response = await fetch("/api/events/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          ...form,
+          eventSlug: event.slug,
+        }),
+      });
 
       const result: {
         ok?: boolean;
         error?: string;
       } = await response.json();
 
-      
-        if (!response.ok || !result.ok) {
+      if (!response.ok || !result.ok) {
         throw new Error(
-            result.error ||
+          result.error ||
             "Unable to submit your enquiry. Please try again.",
         );
-        }
+      }
 
-        // Clear all form fields after successful submission
-        setForm({ ...initial });
-
-        // Clear any previous error
-        setError("");
-
-        // Display success confirmation modal
-        setSuccess(true);
-
+      setForm({ ...initial });
+      setError("");
+      setSuccess(true);
     } catch (submissionError) {
       setError(
         submissionError instanceof Error
@@ -228,30 +211,33 @@ useEffect(() => {
     <main className="bg-ivory-100 pb-20 pt-32 lg:pt-38">
       <Container>
         <div className="mx-auto max-w-4xl">
-          <Link
-            href={`/events/${event.slug}`}
-            className="focus-ring inline-flex items-center gap-2 text-sm font-semibold text-forest-950 hover:text-gold-700"
-          >
-            <ArrowLeft className="size-4" />
-            Back to event
-          </Link>
+          {/* PAGE INTRODUCTION */}
 
-          <p className="mt-10 text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
-            Event Registration
-          </p>
+          <EventHeroReveal>
+            <Link
+              href={`/events/${event.slug}`}
+              className="focus-ring inline-flex items-center gap-2 text-sm font-semibold text-forest-950 hover:text-gold-700"
+            >
+              <ArrowLeft className="size-4" />
+              Back to event
+            </Link>
 
-          <h1 className="font-display mt-4 text-5xl font-medium tracking-[-0.04em] text-forest-950 sm:text-6xl">
-            Register your interest
-          </h1>
+            <p className="mt-10 text-xs font-semibold uppercase tracking-[0.2em] text-gold-600">
+              Event Registration
+            </p>
 
-          <p className="mt-6 max-w-3xl text-base leading-8 text-stone-600">
-            Submit your details to register your
-            interest in attending a Tevuah Reserve
-            event. Our events team will review your
-            enquiry and follow up with information
-            about availability, participation
-            requirements and next steps.
-          </p>
+            <h1 className="font-display mt-4 text-5xl font-medium tracking-[-0.04em] text-forest-950 sm:text-6xl">
+              Register your interest
+            </h1>
+
+            <p className="mt-6 max-w-3xl text-base leading-8 text-stone-600">
+              Submit your details to register your interest
+              in attending a Tevuah Reserve event. Our
+              events team will review your enquiry and
+              follow up with information about availability,
+              participation requirements and next steps.
+            </p>
+          </EventHeroReveal>
 
           <form
             onSubmit={submit}
@@ -259,7 +245,7 @@ useEffect(() => {
           >
             {/* 01 — EVENT DETAILS */}
 
-            <section className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
+            <EventReveal className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
               <h2 className="font-display text-2xl font-medium text-forest-950">
                 01 — Event details
               </h2>
@@ -290,11 +276,11 @@ useEffect(() => {
                   </div>
                 ))}
               </dl>
-            </section>
+            </EventReveal>
 
             {/* 02 — YOUR DETAILS */}
 
-            <section className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
+            <EventReveal className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
               <h2 className="font-display text-2xl font-medium text-forest-950">
                 02 — Your details
               </h2>
@@ -399,11 +385,11 @@ useEffect(() => {
                   </select>
                 </label>
               </div>
-            </section>
+            </EventReveal>
 
             {/* 03 — PARTICIPATION */}
 
-            <section className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
+            <EventReveal className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
               <h2 className="font-display text-2xl font-medium text-forest-950">
                 03 — Your participation
               </h2>
@@ -430,16 +416,14 @@ useEffect(() => {
                   ].map(([value, label]) => (
                     <label
                       key={value}
-                      className="flex cursor-pointer items-start gap-3 rounded-xl border border-forest-900/10 p-4 text-sm text-stone-700"
+                      className="flex cursor-pointer items-start gap-3 rounded-xl border border-forest-900/10 p-4 text-sm text-stone-700 transition-colors hover:border-gold-600/30 hover:bg-ivory-50"
                     >
                       <input
                         type="radio"
                         name="intent"
                         required
                         checked={form.intent === value}
-                        onChange={() =>
-                          set("intent", value)
-                        }
+                        onChange={() => set("intent", value)}
                         className="mt-1 accent-emerald-900"
                       />
 
@@ -500,28 +484,23 @@ useEffect(() => {
                   disabled={form.attendance === "alone"}
                   className={`${inputClass} disabled:opacity-60`}
                 >
-                  {["1", "2", "3", "4", "5+"].map(
-                    (value) => (
-                      <option
-                        key={value}
-                        value={value}
-                      >
-                        {value}
-                      </option>
-                    ),
-                  )}
+                  {["1", "2", "3", "4", "5+"].map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
                 </select>
               </label>
 
               <p className="mt-4 text-xs leading-6 text-stone-500">
-                Guest attendance is subject to
-                availability and confirmation.
+                Guest attendance is subject to availability
+                and confirmation.
               </p>
-            </section>
+            </EventReveal>
 
             {/* 04 — ADDITIONAL INFORMATION */}
 
-            <section className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
+            <EventReveal className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
               <h2 className="font-display text-2xl font-medium text-forest-950">
                 04 — Additional information
               </h2>
@@ -531,9 +510,7 @@ useEffect(() => {
                 team should know about your enquiry.
               </p>
 
-              <label
-                className={`${labelClass} mt-6 block`}
-              >
+              <label className={`${labelClass} mt-6 block`}>
                 Questions or comments
 
                 <textarea
@@ -549,17 +526,16 @@ useEffect(() => {
               </label>
 
               <p className="mt-3 text-xs leading-6 text-stone-500">
-                You may use this section to ask about
-                the programme, event schedule,
-                attendance requirements,
-                accessibility or other practical
-                arrangements.
+                You may use this section to ask about the
+                programme, event schedule, attendance
+                requirements, accessibility or other
+                practical arrangements.
               </p>
-            </section>
+            </EventReveal>
 
             {/* 05 — COMMUNICATION PREFERENCES */}
 
-            <section className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
+            <EventReveal className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
               <h2 className="font-display text-2xl font-medium text-forest-950">
                 05 — Communication preferences
               </h2>
@@ -588,9 +564,7 @@ useEffect(() => {
                       <input
                         type="radio"
                         name="futureEvents"
-                        checked={
-                          form.futureEvents === value
-                        }
+                        checked={form.futureEvents === value}
                         onChange={() =>
                           set("futureEvents", value)
                         }
@@ -602,207 +576,197 @@ useEffect(() => {
                   ))}
                 </div>
               </fieldset>
-            </section>
+            </EventReveal>
 
             {/* 06 — PRIVACY AND SUBMISSION */}
 
-           
-        <section className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
-        <h2 className="font-display text-2xl font-medium text-forest-950">
-            06 — Privacy and submission
-        </h2>
+            <EventReveal className="rounded-3xl border border-forest-900/10 bg-white p-6 sm:p-9">
+              <h2 className="font-display text-2xl font-medium text-forest-950">
+                06 — Privacy and submission
+              </h2>
 
-        <label className="mt-6 flex items-start gap-3 text-sm leading-7 text-stone-700">
-            <input
-            type="checkbox"
-            required
-            checked={form.privacyAccepted}
-            onChange={(event) =>
-                set(
-                "privacyAccepted",
-                event.target.checked,
-                )
-            }
-            className="mt-1.5 accent-emerald-900"
-            />
+              <label className="mt-6 flex items-start gap-3 text-sm leading-7 text-stone-700">
+                <input
+                  type="checkbox"
+                  required
+                  checked={form.privacyAccepted}
+                  onChange={(event) =>
+                    set(
+                      "privacyAccepted",
+                      event.target.checked,
+                    )
+                  }
+                  className="mt-1.5 accent-emerald-900"
+                />
 
-            <span>
-            <strong className="text-forest-950">
-                Privacy acknowledgement *
-            </strong>
+                <span>
+                  <strong className="text-forest-950">
+                    Privacy acknowledgement *
+                  </strong>
 
-            <span className="block">
-                I acknowledge that my information
-                will be processed in accordance
-                with the Tevuah Reserve Privacy
-                Policy for the purpose of handling
-                my event enquiry and communicating
-                with me about the event.
-            </span>
-            </span>
-        </label>
+                  <span className="block">
+                    I acknowledge that my information
+                    will be processed in accordance
+                    with the Tevuah Reserve Privacy
+                    Policy for the purpose of handling
+                    my event enquiry and communicating
+                    with me about the event.
+                  </span>
+                </span>
+              </label>
 
-        {/* Privacy Policy and Submit Button */}
+              <div className="mt-6 flex flex-wrap items-center gap-x-20 gap-y-5">
+                <Link
+                  href="/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="focus-ring inline-flex min-h-12 items-center gap-2 text-sm font-semibold text-forest-950 underline underline-offset-4"
+                >
+                  Read the Privacy Policy
+                  <ArrowUpRight className="size-4" />
+                </Link>
 
-        <div className="mt-6 flex flex-wrap items-center gap-x-20 gap-y-5">
-            <Link
-            href="/privacy-policy"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="focus-ring inline-flex min-h-12 items-center gap-2 text-sm font-semibold text-forest-950 underline underline-offset-4"
-            >
-            Read the Privacy Policy
-            <ArrowUpRight className="size-4" />
-            </Link>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-forest-950 px-7 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {submitting
+                    ? "Submitting enquiry…"
+                    : "Submit Registration Enquiry"}
 
-            <button
-            type="submit"
-            disabled={submitting}
-            className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-forest-950 px-7 text-sm font-semibold text-white transition hover:bg-forest-800 disabled:cursor-wait disabled:opacity-60"
-            >
-            {submitting
-                ? "Submitting enquiry…"
-                : "Submit Registration Enquiry"}
+                  <ArrowUpRight className="size-4" />
+                </button>
+              </div>
 
-            <ArrowUpRight className="size-4" />
-            </button>
-        </div>
+              {error && (
+                <p
+                  role="alert"
+                  className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+                >
+                  {error}
+                </p>
+              )}
 
-        {error && (
-            <p
-            role="alert"
-            className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
-            >
-            {error}
-            </p>
-        )}
-
-        <p className="mt-5 text-xs leading-7 text-stone-500">
-            By submitting this form, you are
-            expressing interest in attending the
-            selected event. Submission does not
-            guarantee a place or confirm admission.
-            Attendance remains subject to
-            availability and confirmation by the
-            Tevuah Reserve events team. Your
-            enquiry will be reviewed, and you
-            will be contacted via email.
-        </p>
-        </section>
-
+              <p className="mt-5 text-xs leading-7 text-stone-500">
+                By submitting this form, you are expressing
+                interest in attending the selected event.
+                Submission does not guarantee a place or
+                confirm admission. Attendance remains subject
+                to availability and confirmation by the Tevuah
+                Reserve events team. Your enquiry will be
+                reviewed, and you will be contacted via email.
+              </p>
+            </EventReveal>
           </form>
         </div>
       </Container>
 
-      {/* SUCCESS MODAL */}
+      {/* ANIMATED SUCCESS MODAL */}
 
-      
-{/* ==========================================
-    SUCCESS MODAL
-========================================== */}
-
-{success && (
-  <div
-    className="fixed inset-0 z-200 overflow-y-auto bg-forest-950/75 px-4 py-6 backdrop-blur-sm sm:py-10"
-    role="presentation"
-    onClick={() => setSuccess(false)}
-  >
-    <div className="flex min-h-full items-center justify-center">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="success-title"
-        aria-describedby="success-description"
-        onClick={(event) => event.stopPropagation()}
-        className="relative my-auto w-full max-w-2xl rounded-3xl bg-white p-7 shadow-2xl sm:p-10"
-      >
-        {/* CLOSE ICON */}
-
-        <button
-          type="button"
+      {success && (
+        <div
+          className="fixed inset-0 z-200 overflow-y-auto bg-forest-950/75 px-4 py-6 backdrop-blur-sm sm:py-10"
+          role="presentation"
           onClick={() => setSuccess(false)}
-          aria-label="Close confirmation"
-          className="focus-ring absolute right-5 top-5 rounded-full p-2 text-stone-500 transition hover:bg-stone-100 hover:text-forest-950"
         >
-          <X className="size-5" />
-        </button>
-
-        {/* SUCCESS INDICATOR */}
-
-        <div className="flex size-14 items-center justify-center rounded-full bg-emerald-50">
-          <CheckCircle2 className="size-8 text-emerald-700" />
-        </div>
-
-        <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-gold-700">
-          Enquiry sent successfully
-        </p>
-
-        <h2
-          id="success-title"
-          className="font-display mt-3 text-3xl font-medium text-forest-950 sm:text-4xl"
-        >
-          What happens next?
-        </h2>
-
-        <p
-          id="success-description"
-          className="mt-4 text-sm leading-7 text-stone-600"
-        >
-          Thank you for your interest in a Tevuah
-          Reserve event. Your registration enquiry
-          has been submitted to our events team.
-          Here is what you can expect next.
-        </p>
-
-        {/* NEXT STEPS */}
-
-        <div className="mt-8 space-y-5 border-t border-forest-900/10 pt-7">
-          {nextSteps.map((step, index) => (
-            <div
-              key={step.title}
-              className="flex items-start gap-4"
+          <div className="flex min-h-full items-center justify-center">
+            <motion.div
+              initial={
+                reducedMotion
+                  ? false
+                  : { opacity: 0, y: 20, scale: 0.97 }
+              }
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{
+                duration: 0.4,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="success-title"
+              aria-describedby="success-description"
+              onClick={(event) => event.stopPropagation()}
+              className="relative my-auto w-full max-w-2xl rounded-3xl bg-white p-7 shadow-2xl sm:p-10"
             >
-              <span className="font-display shrink-0 text-2xl text-gold-600">
-                {String(index + 1).padStart(2, "0")}
-              </span>
+              <button
+                type="button"
+                onClick={() => setSuccess(false)}
+                aria-label="Close confirmation"
+                className="focus-ring absolute right-5 top-5 rounded-full p-2 text-stone-500 transition hover:bg-stone-100 hover:text-forest-950"
+              >
+                <X className="size-5" />
+              </button>
 
-              <div>
-                <h3 className="text-sm font-semibold text-forest-950">
-                  {step.title}
-                </h3>
-
-                <p className="mt-2 text-sm leading-7 text-stone-600">
-                  {step.description}
-                </p>
+              <div className="flex size-14 items-center justify-center rounded-full bg-emerald-50">
+                <CheckCircle2 className="size-8 text-emerald-700" />
               </div>
-            </div>
-          ))}
+
+              <p className="mt-6 text-xs font-semibold uppercase tracking-[0.18em] text-gold-700">
+                Enquiry sent successfully
+              </p>
+
+              <h2
+                id="success-title"
+                className="font-display mt-3 text-3xl font-medium text-forest-950 sm:text-4xl"
+              >
+                What happens next?
+              </h2>
+
+              <p
+                id="success-description"
+                className="mt-4 text-sm leading-7 text-stone-600"
+              >
+                Thank you for your interest in a Tevuah
+                Reserve event. Your registration enquiry
+                has been submitted to our events team.
+                Here is what you can expect next.
+              </p>
+
+              <div className="mt-8 space-y-5 border-t border-forest-900/10 pt-7">
+                {nextSteps.map((step, index) => (
+                  <div
+                    key={step.title}
+                    className="flex items-start gap-4"
+                  >
+                    <span className="font-display shrink-0 text-2xl text-gold-600">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <div>
+                      <h3 className="text-sm font-semibold text-forest-950">
+                        {step.title}
+                      </h3>
+
+                      <p className="mt-2 text-sm leading-7 text-stone-600">
+                        {step.description}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-9 flex flex-wrap items-center gap-4 border-t border-forest-900/10 pt-7">
+                <button
+                  type="button"
+                  onClick={() => setSuccess(false)}
+                  className="focus-ring inline-flex min-h-12 items-center justify-center rounded-full border border-forest-900/15 bg-white px-7 text-sm font-semibold text-forest-950 transition hover:bg-ivory-100"
+                >
+                  Close
+                </button>
+
+                <Link
+                  href="/events"
+                  className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-forest-950 px-7 text-sm font-semibold text-white transition hover:bg-forest-800"
+                >
+                  Return to events
+                  <ArrowUpRight className="size-4" />
+                </Link>
+              </div>
+            </motion.div>
+          </div>
         </div>
-
-        {/* ACTION BUTTONS */}
-
-        <div className="mt-9 flex flex-wrap items-center gap-4 border-t border-forest-900/10 pt-7">
-          <button
-            type="button"
-            onClick={() => setSuccess(false)}
-            className="focus-ring inline-flex min-h-12 items-center justify-center rounded-full border border-forest-900/15 bg-white px-7 text-sm font-semibold text-forest-950 transition hover:bg-ivory-100"
-          >
-            Close
-          </button>
-
-          <Link
-            href="/events"
-            className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-forest-950 px-7 text-sm font-semibold text-white transition hover:bg-forest-800"
-          >
-            Return to events
-            <ArrowUpRight className="size-4" />
-          </Link>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
+      )}
     </main>
   );
 }

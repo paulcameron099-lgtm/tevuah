@@ -22,7 +22,7 @@ export const investmentCategories: InvestmentCategory[] = [
     description:
       "Participate in professionally managed olive estates and premium olive-oil production projects.",
     href: "/investments?category=olive",
-    image: "/images/categories/olive-estate.PNG",
+    image: "/images/categories/olive-estate.jpeg",
     highlights: [
       "Established or developing groves",
       "Production-backed operations",
@@ -36,7 +36,7 @@ export const investmentCategories: InvestmentCategory[] = [
     description:
       "Support technologies that improve irrigation, crop monitoring, farm automation and agricultural productivity.",
     href: "/investments?category=agtech",
-    image: "/images/categories/agtech.PNG",
+    image: "/images/categories/agtech.jpeg",
     highlights: [
       "Precision agriculture",
       "Water-management systems",
@@ -50,7 +50,7 @@ export const investmentCategories: InvestmentCategory[] = [
     description:
       "Discover professionally selected wine opportunities supported by provenance checks, specialist storage and portfolio reporting.",
     href: "/investments?category=fine-wine",
-    image: "/images/categories/fine-wine-cellar.PNG",
+    image: "/images/categories/fine-wine-cellar.jpeg",
     highlights: [
       "Provenance verification",
       "Professional storage",

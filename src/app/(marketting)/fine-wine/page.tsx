@@ -506,56 +506,12 @@ export default async function FineWinePage() {
             <FineWinePortfolioReveal className="relative">
               <div className="relative min-h-235 overflow-hidden rounded-4xl border border-white/10 bg-burgundy-800 shadow-[0_30px_100px_rgba(20,4,9,0.45)] sm:min-h-190">
                 <Image
-                  src="/images/wine/fine-wine-cellar-corridor.jpg"
+                  src="/images/wine/fine-wine-cellar-corridor.jpeg"
                   alt="Fine-wine cellar portfolio interface"
                   fill
                   sizes="(max-width: 1024px) 100vw, 60vw"
                   className="object-cover"
-                />
-
-                <div className="absolute inset-0 bg-linear-to-t from-burgundy-900 via-burgundy-900/75 to-burgundy-900/20" />
-
-                <div className="absolute inset-x-0 top-0 flex items-center justify-between border-b border-white/10 bg-burgundy-900/50 px-5 py-4 backdrop-blur-md sm:px-7">
-                  <div className="flex items-center gap-3">
-                    <span className="flex size-10 items-center justify-center rounded-full bg-gold-500/15 text-gold-400">
-                      <Wine className="size-4" />
-                    </span>
-
-                    <div>
-                      <p className="text-sm font-semibold">
-                        Fine-Wine Reserve
-                      </p>
-
-                      <p className="mt-0.5 text-[0.62rem] uppercase tracking-[0.14em] text-white/40">
-                        Demonstration portfolio
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">
-                  <FineWineStagger className="grid gap-4 sm:grid-cols-2">
-                    {winePortfolioMetrics.map(
-                      (metric) => (
-                        <FineWineStaggerItem
-                          key={metric.id}
-                        >
-                          <WinePortfolioMetricCard
-                            metric={metric}
-                          />
-                        </FineWineStaggerItem>
-                      ),
-                    )}
-                  </FineWineStagger>
-
-                  <FineWineRevealSoft className="mt-5">
-                    <WineHoldingsTable
-                      holdings={
-                        wineCollectionHoldings
-                      }
-                    />
-                  </FineWineRevealSoft>
-                </div>
+                />            
               </div>
             </FineWinePortfolioReveal>
           </div>
@@ -770,19 +726,6 @@ export default async function FineWinePage() {
                   </FineWineListItem>
                 ))}
               </FineWineStagger>
-
-              <FineWineRevealSoft delay={0.08}>
-                <div className="mt-9 rounded-3xl border border-white/10 bg-white/5 p-6">
-                  <p className="text-xs leading-6 text-white/45">
-                    No investment outcome, future
-                    valuation or resale value
-                    should be guaranteed. Genuine
-                    offering materials must contain
-                    project-specific risk
-                    disclosures.
-                  </p>
-                </div>
-              </FineWineRevealSoft>
             </FineWineReveal>
           </div>
         </Container>

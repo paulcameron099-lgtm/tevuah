@@ -346,7 +346,7 @@ export default function FaqPage() {
       <section className="relative flex min-h-155 items-end overflow-hidden bg-forest-950 pt-19 text-white lg:pt-22">
         <FaqHeroImage className="absolute inset-0">
           <Image
-            src="/images/hero/estates-page-hero.jpg"
+            src="/images/hero/faq-page-hero.jpeg"
             alt=""
             fill
             priority

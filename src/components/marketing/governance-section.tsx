@@ -169,7 +169,7 @@ export function GovernanceSection() {
               }}
             >
               <Image
-                src="/images/sections/governance-estate-review.PNG"
+                src="/images/sections/governance-estate-review.jpeg"
                 alt="Professional estate review representing Tevuah Reserve governance and due diligence"
                 fill
                 sizes="(max-width: 1024px) 100vw, 48vw"

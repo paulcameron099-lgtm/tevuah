@@ -33,7 +33,7 @@ export function HomeHero() {
         }}
       >
         <Image
-          src="/images/hero/tevuah-vineyard-hero.PNG"
+          src="/images/hero/tevuah-vineyard-hero.jpeg"
           alt="A vineyard estate representing Tevuah Reserve investments"
           fill
           priority
