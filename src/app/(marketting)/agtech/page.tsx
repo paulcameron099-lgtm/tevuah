@@ -190,16 +190,19 @@ export default function AgTechPage() {
 
 {/* ESTATE INTELLIGENCE */}
 
+
 <section
   id="estate-intelligence"
   className="overflow-hidden bg-forest-950 py-16 text-white sm:py-20 lg:py-28"
 >
   <Container>
-    <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center lg:gap-12 xl:gap-16">
-      {/* LEFT: INTRODUCTION */}
+    <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14 xl:gap-20">
+      {/* LEFT: ESTATE INTELLIGENCE CONTENT */}
 
       <AgTechReveal>
         <div className="max-w-2xl">
+          {/* SECTION LABEL */}
+
           <div className="flex items-center gap-3">
             <span className="h-px w-9 shrink-0 bg-gold-400" />
 
@@ -208,9 +211,13 @@ export default function AgTechPage() {
             </p>
           </div>
 
+          {/* HEADING */}
+
           <h2 className="font-display mt-6 text-balance text-[clamp(2.25rem,4vw,4.25rem)] leading-[1.08] font-medium tracking-[-0.035em]">
             Turning field information into investor visibility.
           </h2>
+
+          {/* DESCRIPTION */}
 
           <p className="mt-6 max-w-xl text-sm leading-7 text-white/65 sm:text-base sm:leading-8">
             Agricultural data becomes more useful when it is
@@ -219,6 +226,8 @@ export default function AgTechPage() {
             investors can better understand estate conditions,
             activity and progress.
           </p>
+
+          {/* REPORTING PRINCIPLES */}
 
           <AgTechStagger
             className="mt-7 space-y-4 sm:mt-8"
@@ -238,6 +247,8 @@ export default function AgTechPage() {
             ))}
           </AgTechStagger>
 
+          {/* CTA */}
+
           <AgTechRevealSoft delay={0.08}>
             <Button
               href="/estates"
@@ -251,128 +262,29 @@ export default function AgTechPage() {
         </div>
       </AgTechReveal>
 
-      {/* INTELLIGENCE CONSOLE */}
+      {/* RIGHT: ESTATE MONITORING IMAGE */}
 
       <AgTechConsole className="relative min-w-0">
-        <div className="relative isolate overflow-hidden rounded-[1.5rem] border border-white/10 bg-forest-900 shadow-[0_30px_100px_rgba(0,0,0,0.3)] sm:rounded-[2rem]">
-          {/* IMAGE BACKGROUND */}
+        <div className="group relative isolate min-h-90 overflow-hidden rounded-[1.5rem] border border-white/10 bg-forest-900 shadow-[0_30px_100px_rgba(0,0,0,0.3)] sm:min-h-125 sm:rounded-[2rem] lg:min-h-145 xl:min-h-155">
+          {/* BACKGROUND IMAGE */}
 
-          <div className="absolute inset-0 -z-10">
-            <Image
-              src="/images/hero/agtech-field-monitoring.jpeg"
-              alt="Agricultural estate monitoring interface"
-              fill
-              sizes="(max-width: 1024px) 100vw, 60vw"
-              className="object-cover object-center"
-            />
+          <Image
+            src="/images/hero/agtech-field-monitoring.jpeg"
+            alt="Agricultural estate monitoring and field operations"
+            fill
+            sizes="(max-width: 1024px) 100vw, 55vw"
+            className="object-cover object-center transition-transform duration-1000 group-hover:scale-[1.04] motion-reduce:transform-none"
+          />
 
-            <div className="absolute inset-0 bg-linear-to-b from-forest-950/65 via-forest-950/75 to-forest-950/95" />
-          </div>
+          {/* GRADIENT OVERLAY */}
 
-          {/* CONSOLE HEADER */}
-
-          <div className="flex flex-col gap-4 border-b border-white/10 bg-forest-950/35 px-5 py-5 backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gold-500/15 text-gold-400">
-                <Satellite className="size-4" />
-              </span>
-
-              <div className="min-w-0">
-                <p className="text-sm font-semibold leading-5">
-                  Estate intelligence console
-                </p>
-
-                <p className="mt-1 text-[0.6rem] uppercase tracking-[0.12em] text-white/45">
-                  Demonstration dashboard
-                </p>
-              </div>
-            </div>
-
-            <span className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-[0.7rem] text-white/65">
-              <span className="size-2 rounded-full bg-emerald-400" />
-              Illustrative data
-            </span>
-          </div>
-
-          {/* IMAGE SHOWCASE */}
-
-          <div className="relative flex min-h-44 items-end px-5 pb-5 pt-12 sm:min-h-56 sm:px-7 sm:pb-7 lg:min-h-52 xl:min-h-64">
-            <div>
-              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold-400">
-                Estate overview
-              </p>
-
-              <p className="font-display mt-2 max-w-sm text-2xl font-medium leading-tight sm:text-3xl">
-                Intelligence across every growing season.
-              </p>
-            </div>
-          </div>
-
-          {/* DASHBOARD CONTENT */}
-
-          <div className="relative space-y-4 border-t border-white/10 bg-forest-950/35 p-4 backdrop-blur-[3px] sm:p-6">
-            {/* ESTATE SUMMARY */}
-
-            <AgTechStagger
-              className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-4"
-              stagger={0.08}
-            >
-              <AgTechStaggerItem>
-                <div className="flex h-full min-h-32 flex-col justify-between rounded-2xl border border-white/10 bg-forest-950/75 p-4 backdrop-blur-md sm:p-5">
-                  <p className="text-[0.65rem] uppercase tracking-[0.14em] text-white/45">
-                    Estate
-                  </p>
-
-                  <div className="mt-4">
-                    <p className="font-display text-xl font-semibold sm:text-2xl">
-                      Val d’Orcia
-                    </p>
-
-                    <p className="mt-2 text-xs leading-5 text-white/50">
-                      Tuscany · Vineyard estate
-                    </p>
-                  </div>
-                </div>
-              </AgTechStaggerItem>
-
-              <AgTechStaggerItem>
-                <div className="flex h-full min-h-32 flex-col justify-between rounded-2xl border border-white/10 bg-forest-950/75 p-4 backdrop-blur-md sm:p-5">
-                  <p className="text-[0.65rem] uppercase tracking-[0.14em] text-white/45">
-                    Overall status
-                  </p>
-
-                  <div className="mt-4">
-                    <p className="font-display text-2xl font-semibold text-gold-400 sm:text-3xl">
-                      86%
-                    </p>
-
-                    <p className="mt-2 text-xs text-white/50">
-                      Estate health
-                    </p>
-                  </div>
-                </div>
-              </AgTechStaggerItem>
-            </AgTechStagger>
-
-            {/* INTELLIGENCE METRICS */}
-
-            <AgTechStagger
-              className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:gap-4"
-              delay={0.08}
-              stagger={0.08}
-            >
-              {intelligenceMetrics.map((metric) => (
-                <AgTechStaggerItem key={metric.id}>
-                  <IntelligenceMetricCard metric={metric} />
-                </AgTechStaggerItem>
-              ))}
-            </AgTechStagger>
-          </div>
+          <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-forest-950/85 via-forest-950/15 to-transparent" />
         </div>
       </AgTechConsole>
     </div>
   </Container>
 </section>
+
 
 
       {/* MONITORING WORKFLOW */}
@@ -406,7 +318,7 @@ export default function AgTechPage() {
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
             <AgTechImageReveal className="relative min-h-130 overflow-hidden rounded-4xl">
               <Image
-                src="/images/agtech/agtech-irrigation-control.jpeg"
+                src="/images/agtech/agtech-irrigation.jpeg"
                 alt="Agricultural irrigation technology"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

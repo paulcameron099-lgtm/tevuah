@@ -386,9 +386,9 @@ export default function HowItWorksPage() {
       <section className="border-b border-forest-900/10 bg-white py-16 sm:py-20 lg:py-24">
         <Container>
           <div className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-20">
-            <HowImageReveal className="relative min-h-135 overflow-hidden rounded-4xl">
+            <HowImageReveal className="relative min-h-190 overflow-hidden rounded-4xl">
               <Image
-                src="/images/how-it-works/portfolio-monitoring.jpeg"
+                src="/images/how-it-works/portfolio-monitor.jpeg"
                 alt="Investor portfolio monitoring"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

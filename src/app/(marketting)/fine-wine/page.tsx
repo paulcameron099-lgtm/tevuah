@@ -506,7 +506,7 @@ export default async function FineWinePage() {
             <FineWinePortfolioReveal className="relative">
               <div className="relative min-h-235 overflow-hidden rounded-4xl border border-white/10 bg-burgundy-800 shadow-[0_30px_100px_rgba(20,4,9,0.45)] sm:min-h-190">
                 <Image
-                  src="/images/wine/fine-wine-cellar-corridor.jpeg"
+                  src="/images/wine/fine-wine-cellar.jpeg"
                   alt="Fine-wine cellar portfolio interface"
                   fill
                   sizes="(max-width: 1024px) 100vw, 60vw"

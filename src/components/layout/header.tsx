@@ -20,6 +20,9 @@ import {
   useState,
 } from "react";
 
+import Image from "next/image";
+import { siteConfig } from "@/src/config/site";
+
 import {
   usePathname,
 } from "next/navigation";
@@ -193,13 +196,33 @@ export function Header() {
       >
         <HeaderEntrance>
           <Container className="flex h-19 items-center justify-between lg:h-22">
-            <Logo
-              variant={
-                transparent
-                  ? "light"
-                  : "dark"
-              }
-            />
+            
+          <Link
+            href="/"
+            aria-label="Tevuah Reserve home"
+            className="focus-ring group inline-flex shrink-0 items-center gap-3 rounded-full"
+          >
+            <div className="relative size-12 shrink-0 overflow-hidden rounded-full border border-gold-500/40 bg-[#071F13] shadow-[0_4px_18px_rgba(0,0,0,0.12)] transition-all duration-300 group-hover:border-gold-400 sm:size-14">
+              <Image
+                src="/images/logo/tevuah-reserve-logo.jpeg"
+                alt="Tevuah Reserve logo"
+                fill
+                priority
+                sizes="(max-width: 640px) 48px, 56px"
+                className="rounded-full object-cover"
+              />
+            </div>
+
+            <span
+              className={cn(
+                "font-display hidden text-lg font-semibold tracking-tight sm:inline xl:text-xl",
+                transparent ? "text-white" : "text-forest-950",
+              )}
+            >
+              {siteConfig.shortName}
+            </span>
+          </Link>
+
 
             {/* ======================================
                 DESKTOP NAVIGATION

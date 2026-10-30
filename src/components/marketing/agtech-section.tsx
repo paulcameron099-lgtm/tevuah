@@ -251,7 +251,7 @@ export function AgTechSection() {
                 }}
               >
                 <Image
-                  src="/images/agtech/agtech-field-monitoring.jpeg"
+                  src="/images/agtech/agtech-field-monitor.jpeg"
                   alt="Agricultural field monitoring representing Tevuah Reserve reporting technology"
                   fill
                   sizes="(max-width: 1024px) 100vw, 60vw"
