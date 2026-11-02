@@ -117,25 +117,8 @@ export function Footer() {
                 </div>
               </div>
 
-              {/* OFFICE ADDRESS */}
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/5 text-gold-400">
-                  <MapPin className="size-4" />
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-white/40">
-                    Our office
-                  </p>
-
-                  <address className="mt-1 max-w-xs text-sm leading-7 not-italic text-white/70">
-                    20 Castle Terrace, Edinburgh EH1 2EE,
-                    <span className="block">
-                      United Kingdom
-                    </span>
-                  </address>
-                </div>
-              </div>
+              
+              
             </div>
           </FooterReveal>
 
@@ -187,9 +170,6 @@ export function Footer() {
                   </span>
 
                   <div>
-                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-gold-400">
-                      Important information
-                    </p>
 
                     <h2
                       id="footer-disclosure-heading"
@@ -216,13 +196,7 @@ export function Footer() {
 
               {/* COMPANY REGISTRATION */}
               <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-5 sm:p-6">
-                <div className="flex items-center gap-3">
-                  <Building2 className="size-5 text-gold-400" />
-
-                  <h3 className="text-sm font-semibold text-white">
-                    Company information
-                  </h3>
-                </div>
+                
 
                 <p className="mt-5 text-sm leading-7 text-white/65">
                   Tevuah Reserve® is registered in Scotland
@@ -231,6 +205,19 @@ export function Footer() {
                     SC164835
                   </span>.
                 </p>
+
+                <div className="mt-5 border-t border-white/10 pt-5">
+                  <p className="text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-gold-400">
+                    Registered Office
+                  </p>
+
+                  <address className="mt-2 text-sm leading-7 not-italic text-white/65">
+                    20 Castle Terrace,
+                    Edinburgh EH1 2EE,
+                    <br />
+                    United Kingdom.
+                  </address>
+                </div>
               </div>
             </div>
           </FooterRevealSoft>
