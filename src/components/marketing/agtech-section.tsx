@@ -209,87 +209,93 @@ export function AgTechSection() {
             </motion.div>
           </motion.div>
 
-          {/* Estate intelligence dashboard */}
+         
+        {/* Estate intelligence dashboard */}
+        <motion.div
+          className="relative min-w-0"
+          initial={
+            reduceMotion
+              ? false
+              : {
+                  opacity: 0,
+                  y: 38,
+                  scale: 0.985,
+                }
+          }
+          whileInView={{
+            opacity: 1,
+            y: 0,
+            scale: 1,
+          }}
+          viewport={{
+            once: true,
+            amount: 0.12,
+          }}
+          transition={{
+            duration: 1,
+            ease: premiumEase,
+          }}
+        >
+          {/* ESTATE IMAGE CONTAINER */}
+          <div className="relative z-10 h-80 overflow-hidden rounded-3xl border border-white/10 bg-forest-900 shadow-[0_30px_100px_rgba(0,0,0,0.35)] sm:h-100 lg:h-140 lg:rounded-4xl">
+            {/* BACKGROUND ESTATE IMAGE */}
+            <motion.div
+              className="absolute inset-0"
+              initial={reduceMotion ? false : { scale: 1.075 }}
+              whileInView={{ scale: 1 }}
+              viewport={{
+                once: true,
+                amount: 0.15,
+              }}
+              transition={{
+                duration: 1.6,
+                ease: premiumEase,
+              }}
+            >
+              <Image
+                src="/images/agtech/agtech-field-monitor.jpeg"
+                alt="Agricultural field monitoring representing Tevuah Reserve reporting technology"
+                fill
+                sizes="(max-width: 1024px) 100vw, 60vw"
+                className="object-cover object-center"
+              />
+            </motion.div>
+
+            {/* SUBTLE IMAGE GRADIENT */}
+            <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-forest-950/25 via-transparent to-transparent" />
+          </div>
+
+          {/* AMBIENT DEPTH — DECORATIVE */}
           <motion.div
-            className="relative"
-            initial={
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-16 -top-16 z-0 size-40 rounded-full bg-gold-500/10 blur-3xl sm:size-64"
+            animate={
               reduceMotion
-                ? false
+                ? undefined
                 : {
-                    opacity: 0,
-                    y: 38,
-                    scale: 0.985,
+                    scale: [1, 1.08, 1],
+                    opacity: [0.55, 0.9, 0.55],
+                    x: [0, -8, 0],
+                    y: [0, 8, 0],
                   }
             }
-            whileInView={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-            }}
-            viewport={{
-              once: true,
-              amount: 0.12,
-            }}
-            transition={{
-              duration: 1,
-              ease: premiumEase,
-            }}
-          >
-            <div className="relative z-10 min-h-235 overflow-hidden rounded-4xl border border-white/10 bg-forest-900 shadow-[0_30px_100px_rgba(0,0,0,0.35)] sm:min-h-190">
-              {/* Background estate image */}
-              <motion.div
-                className="absolute inset-0"
-                initial={reduceMotion ? false : { scale: 1.075 }}
-                whileInView={{ scale: 1 }}
-                viewport={{
-                  once: true,
-                  amount: 0.15,
-                }}
-                transition={{
-                  duration: 1.6,
-                  ease: premiumEase,
-                }}
-              >
-                <Image
-                  src="/images/agtech/agtech-field-monitor.jpeg"
-                  alt="Agricultural field monitoring representing Tevuah Reserve reporting technology"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                  className="object-cover"
-                />
-              </motion.div> 
-            </div>
-
-            {/* Ambient depth */}
-            <motion.div
-              aria-hidden="true"
-              className="absolute -right-24 -top-24 z-0 size-64 rounded-full bg-gold-500/10 blur-3xl"
-              animate={
-                reduceMotion
-                  ? undefined
-                  : {
-                      scale: [1, 1.08, 1],
-                      opacity: [0.55, 0.9, 0.55],
-                      x: [0, -8, 0],
-                      y: [0, 8, 0],
-                    }
-              }
-              transition={
-                reduceMotion
-                  ? undefined
-                  : {
-                      duration: 9,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }
-              }
-            />
+            transition={
+              reduceMotion
+                ? undefined
+                : {
+                    duration: 9,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }
+            }
+          />
 
           <div
-          aria-hidden="true"
-          className="absolute -bottom-20 -left-16 z-0 size-64 rounded-full bg-olive-500/10 blur-3xl"
-        />
-          </motion.div>
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-16 -left-12 z-0 size-40 rounded-full bg-olive-500/10 blur-3xl sm:size-64"
+          />
+        </motion.div>
+
         </div>
       </Container>
     </Section>
