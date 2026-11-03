@@ -617,7 +617,7 @@ export function EventRegistrationForm({
 
               <div className="mt-6 flex flex-wrap items-center gap-x-20 gap-y-5">
                 <Link
-                  href="/privacy-policy"
+                  href="/privacy"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="focus-ring inline-flex min-h-12 items-center gap-2 text-sm font-semibold text-forest-950 underline underline-offset-4"
