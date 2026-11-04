@@ -19,6 +19,51 @@ import {
 
 type ScreeningOption = { meetingDate: string; meetingTime: string; timezone: string };
 
+const TIMEZONES = [
+  ["US Eastern — New York", "America/New_York"],
+  ["US Central — Chicago", "America/Chicago"],
+  ["US Mountain — Denver", "America/Denver"],
+  ["US Pacific — Los Angeles / California", "America/Los_Angeles"],
+  ["US Arizona — Phoenix", "America/Phoenix"],
+  ["US Alaska — Anchorage", "America/Anchorage"],
+  ["US Hawaii — Honolulu", "Pacific/Honolulu"],
+  ["Canada — Toronto", "America/Toronto"],
+  ["Canada — Vancouver", "America/Vancouver"],
+  ["UK — London", "Europe/London"],
+  ["Nigeria — Lagos", "Africa/Lagos"],
+  ["Ghana — Accra", "Africa/Accra"],
+  ["South Africa — Johannesburg", "Africa/Johannesburg"],
+  ["France — Paris", "Europe/Paris"],
+  ["Germany — Berlin", "Europe/Berlin"],
+  ["Spain — Madrid", "Europe/Madrid"],
+  ["UAE — Dubai", "Asia/Dubai"],
+  ["India — Kolkata", "Asia/Kolkata"],
+  ["China — Shanghai", "Asia/Shanghai"],
+  ["Japan — Tokyo", "Asia/Tokyo"],
+  ["Singapore", "Asia/Singapore"],
+  ["Australia — Sydney", "Australia/Sydney"],
+  ["New Zealand — Auckland", "Pacific/Auckland"],
+  ["Brazil — São Paulo", "America/Sao_Paulo"],
+  ["Mexico — Mexico City", "America/Mexico_City"],
+] as const;
+
+function TimezoneSelect({ value, onChange, className }: {
+  value: string;
+  onChange: (value: string) => void;
+  className: string;
+}) {
+  return (
+    <select className={className} value={value} onChange={(event) => onChange(event.target.value)}>
+      {value && !TIMEZONES.some(([, zone]) => zone === value) && (
+        <option value={value}>{value} (existing)</option>
+      )}
+      {TIMEZONES.map(([name, zone]) => (
+        <option key={zone} value={zone}>{name} ({zone})</option>
+      ))}
+    </select>
+  );
+}
+
 type Registration = {
   id: string;
   event_title: string;
@@ -172,8 +217,7 @@ export function EventRegistrationDetails({
 
   const [screeningOptions, setScreeningOptions] = useState<ScreeningOption[]>(
     registration.screening_options?.length ? registration.screening_options : [
-      { meetingDate: "", meetingTime: "", timezone: "Europe/London" },
-      { meetingDate: "", meetingTime: "", timezone: "Europe/London" },
+      { meetingDate: "", meetingTime: "", timezone: "America/Los_Angeles" },
     ],
   );
   const [screeningDirty, setScreeningDirty] = useState(false);
@@ -441,7 +485,7 @@ export function EventRegistrationDetails({
               <h2 className="font-display text-xl font-semibold text-forest-950">Proposed Zoom screening options</h2>
             </div>
             <p className="mt-4 text-sm leading-7 text-stone-600">
-              Add two to five available dates and times. Save your options first, then email the applicant.
+              Add screening dates and times (one or more). Drafts may be incomplete, and dates or times may repeat. Save your options first, then email the applicant.
               They will reply with their preferred option. No Zoom link is sent at this stage.
             </p>
             <div className="mt-5 space-y-4">
@@ -449,7 +493,7 @@ export function EventRegistrationDetails({
                 <div key={index} className="rounded-xl border border-forest-900/10 bg-ivory-100 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold text-forest-950">Option {index + 1}</p>
-                    {screeningOptions.length > 2 && (
+                    {screeningOptions.length > 1 && (
                       <button type="button" disabled={disabled} className="text-xs font-semibold text-red-700"
                         onClick={() => { setScreeningOptions((items) => items.filter((_, i) => i !== index)); setScreeningDirty(true); }}>
                         Remove
@@ -465,15 +509,15 @@ export function EventRegistrationDetails({
                       <input type="time" className={inputClass} value={option.meetingTime}
                         onChange={(e) => updateScreeningOption(index, "meetingTime", e.target.value)} />
                     </label>
-                    <label className="text-sm font-semibold text-forest-950 sm:col-span-2">Timezone (IANA)
-                      <input type="text" className={inputClass} value={option.timezone} placeholder="Europe/London"
-                        onChange={(e) => updateScreeningOption(index, "timezone", e.target.value)} />
+                    <label className="text-sm font-semibold text-forest-950 sm:col-span-2">Timezone
+                      <TimezoneSelect className={inputClass} value={option.timezone}
+                        onChange={(value) => updateScreeningOption(index, "timezone", value)} />
                     </label>
                   </div>
                 </div>
               ))}
             </div>
-            {screeningOptions.length < 5 && (
+            {screeningOptions.length < 10 && (
               <button type="button" disabled={disabled} className={`${secondaryButton} mt-4`}
                 onClick={() => { setScreeningOptions((items) => [...items, { meetingDate: "", meetingTime: "", timezone: items[0]?.timezone || "Europe/London" }]); setScreeningDirty(true); }}>
                 Add Another Option
@@ -537,13 +581,7 @@ export function EventRegistrationDetails({
 
               <label className="text-sm font-semibold text-forest-950">
                 Timezone
-                <input
-                  type="text"
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  placeholder="Europe/London"
-                  className={inputClass}
-                />
+                <TimezoneSelect value={timezone} onChange={setTimezone} className={inputClass} />
               </label>
 
               <label className="text-sm font-semibold text-forest-950">

@@ -215,7 +215,7 @@ type ScreeningOption = { meetingDate: string; meetingTime: string; timezone: str
 
 // Drafts may be incomplete. The strict parser below is used only before emailing.
 function parseScreeningDraft(value: unknown): ScreeningOption[] | null {
-  if (!Array.isArray(value) || value.length < 2 || value.length > 5) return null;
+  if (!Array.isArray(value) || value.length < 1 || value.length > 10) return null;
   const options: ScreeningOption[] = [];
   for (const item of value) {
     if (!item || typeof item !== "object" || Array.isArray(item)) return null;
@@ -240,11 +240,15 @@ function parseScreeningDraft(value: unknown): ScreeningOption[] | null {
   return options;
 }
 
+// Only complete options are included in an outgoing email. Drafts may have blanks,
+// repeated dates/times, or past dates; no distinct/future-date rule is enforced.
 function parseScreeningOptions(value: unknown): ScreeningOption[] | null {
-  const options = parseScreeningDraft(value);
-  if (!options) return null;
-  const unique = new Set<string>();
-  for (const option of options) {
+  const draft = parseScreeningDraft(value);
+  if (!draft) return null;
+  const complete: ScreeningOption[] = [];
+  for (const option of draft) {
+    // Ignore incomplete draft slots instead of blocking the whole email.
+    if (!option.meetingDate || !option.meetingTime) continue;
     if (!/^\d{4}-\d{2}-\d{2}$/.test(option.meetingDate)) return null;
     const day = new Date(`${option.meetingDate}T00:00:00Z`);
     if (Number.isNaN(day.getTime()) || day.toISOString().slice(0, 10) !== option.meetingDate) return null;
@@ -254,17 +258,9 @@ function parseScreeningOptions(value: unknown): ScreeningOption[] | null {
     try {
       new Intl.DateTimeFormat("en-GB", { timeZone: option.timezone });
     } catch { return null; }
-    const parts = new Intl.DateTimeFormat("en-GB", {
-      timeZone: option.timezone, year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", hourCycle: "h23",
-    }).formatToParts(new Date());
-    const current = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-    if (`${option.meetingDate}T${option.meetingTime}` <= `${current.year}-${current.month}-${current.day}T${current.hour}:${current.minute}`) return null;
-    const key = `${option.meetingDate}|${option.meetingTime}|${option.timezone}`;
-    if (unique.has(key)) return null;
-    unique.add(key);
+    complete.push(option);
   }
-  return options;
+  return complete.length ? complete : null;
 }
 
 export async function POST(
@@ -291,8 +287,35 @@ export async function POST(
   // 2. Validate request origin and JSON body.
   const origin = request.headers.get("origin");
 
-  if (origin && origin !== new URL(request.url).origin) {
-    return fail("Cross-origin request rejected.", 403);
+  // A reverse proxy may give request.url an internal origin. Compare against
+  // the public host as well, and optionally an explicitly configured site URL.
+  // Do not allow arbitrary origins or disable the CSRF origin check.
+  if (origin) {
+    let originUrl: URL;
+    try { originUrl = new URL(origin); }
+    catch { return fail("Invalid request origin.", 403); }
+
+    const configuredOrigins = [
+      process.env.APP_URL,
+      process.env.NEXT_PUBLIC_SITE_URL,
+      process.env.NEXT_PUBLIC_APP_URL,
+    ].filter((value): value is string => Boolean(value));
+    const allowedOrigins = new Set([new URL(request.url).origin]);
+    for (const value of configuredOrigins) {
+      try { allowedOrigins.add(new URL(value).origin); } catch { /* Ignore invalid configuration. */ }
+    }
+    // `Host` is the public host for normal Next.js requests. A reverse proxy
+    // should be configured to pass the original Host header through.
+    const host = request.headers.get("host");
+    if (host) {
+      const protocol = originUrl.protocol;
+      if (protocol === "https:" || (protocol === "http:" && /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(host))) {
+        allowedOrigins.add(`${protocol}//${host}`);
+      }
+    }
+    if (!allowedOrigins.has(originUrl.origin)) {
+      return fail("Cross-origin request rejected. Verify APP_URL and reverse-proxy Host configuration.", 403);
+    }
   }
 
   if (
@@ -475,11 +498,11 @@ export async function POST(
     return success("Participation & Commitment Details accepted by SMTP.");
   }
 
-  // Save 2–5 proposed screening options without emailing the applicant.
+  // Save 1–10 proposed screening options without emailing the applicant.
   if (action === "save_screening_options") {
     const options = parseScreeningDraft(body.screeningOptions);
     if (!options) {
-      return fail("Provide 2–5 screening draft slots. Dates and times may be completed later.");
+      return fail("Provide 1–10 screening draft slots. Dates and times may be completed later.");
     }
     const { error } = await admin.from("event_registrations")
       .update({ screening_options: options }).eq("id", id);
@@ -487,7 +510,7 @@ export async function POST(
       console.error("[EVENTS] Save screening options:", error);
       return fail("Could not save proposed screening options.", 500);
     }
-    return success("Screening options draft saved. Complete all dates, times and timezones before sending the invitation.");
+    return success("Screening options saved. At least one complete date, time and timezone is needed to send an invitation.");
   }
 
   // 5. Load existing meeting.
@@ -621,7 +644,7 @@ export async function POST(
     : null;
 
   if (isAvailability && !screeningOptions) {
-    return fail("Before emailing, complete 2–5 distinct future screening dates and times with valid IANA timezones.", 400);
+    return fail("Before emailing, provide at least one complete screening date, time and valid timezone.", 400);
   }
 
   const message = isInvitation && meeting
