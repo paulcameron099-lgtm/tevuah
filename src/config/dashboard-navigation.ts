@@ -6,6 +6,7 @@ import {
   FileText,
   LayoutDashboard,
   Settings,
+  CalendarDays,
   ShieldCheck,
   UserRound,
   Users,
@@ -113,6 +114,11 @@ export const adminDashboardNavigation: DashboardNavigationItem[] = [
     icon: BriefcaseBusiness,
   },
   {
+  label: "Events Management",
+  href: "/admin/events",
+  icon: CalendarDays,
+},
+  {
     label: "Subscriptions",
     href: "/admin/subscriptions",
     icon: ClipboardCheck,
@@ -175,6 +181,11 @@ export const superAdminDashboardNavigation: DashboardNavigationItem[] = [
     href: "/admin/compliance",
     icon: ShieldCheck,
   },
+  {
+  label: "Events Management",
+  href: "/admin/events",
+  icon: CalendarDays,
+},
   {
     label: "Users",
     href: "/admin/users",
