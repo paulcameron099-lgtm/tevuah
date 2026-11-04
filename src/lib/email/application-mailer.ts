@@ -73,23 +73,48 @@ function smtpConfig() {
   };
 }
 
+
 function transporter() {
   const config = smtpConfig();
 
+  console.info("[TEVUAH SMTP CONFIG]", {
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    requireTLS: config.port === 587,
+    nodeEnv: process.env.NODE_ENV,
+    nodeVersion: process.version,
+  });
+
+  const transport = nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+
+    requireTLS: config.port === 587,
+
+    auth: {
+      user: config.user,
+      pass: config.pass,
+    },
+
+    connectionTimeout: 20000,
+    greetingTimeout: 20000,
+    socketTimeout: 30000,
+
+    tls: {
+      servername: config.host,
+      minVersion: "TLSv1.2",
+      rejectUnauthorized: true,
+    },
+  });
+
   return {
     config,
-    transport: nodemailer.createTransport({
-      host: config.host,
-      port: config.port,
-      secure: config.secure,
-      auth: {
-        user: config.user,
-        pass: config.pass,
-      },
-      requireTLS: config.port === 587,
-    }),
+    transport,
   };
 }
+
 
 export function getComplianceRecipient() {
   return (

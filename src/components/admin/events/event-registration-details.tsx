@@ -46,6 +46,8 @@ type Meeting = {
   timezone: string | null;
   platform: string | null;
   meeting_url: string | null;
+  meeting_id: string | null;
+  meeting_passcode: string | null;
   status: string;
   invitation_sent_at: string | null;
 } | null;
@@ -62,10 +64,23 @@ type EmailLog = {
   created_at: string;
 };
 
+type Commitment = {
+  commitment_amount_btc: number | string | null;
+  refundable_commitment_amount: number | string | null;
+  refundable_commitment_currency: string | null;
+  payment_deadline: string | null;
+  bitcoin_address: string | null;
+  bitcoin_payment_link: string | null;
+  screening_completed: boolean;
+  status: string;
+  email_sent_at: string | null;
+};
+
 type Props = {
   registration: Registration;
   meeting: Meeting;
   emailLogs: EmailLog[];
+  commitment: Commitment | null;
 };
 
 type Action =
@@ -74,7 +89,10 @@ type Action =
   | "save_screening_options"
   | "save_meeting"
   | "send_invitation"
-  | "resend_invitation";
+  | "resend_invitation"
+  | "save_participation_commitment"
+  | "send_participation_commitment"
+  | "resend_participation_commitment";
 
 function display(value: string | null | undefined) {
   return value?.trim() || "Not provided";
@@ -133,9 +151,24 @@ export function EventRegistrationDetails({
   registration,
   meeting,
   emailLogs,
+  commitment,
 }: Props) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+
+  const [refundableAmount, setRefundableAmount] = useState(String(commitment?.refundable_commitment_amount ?? ""));
+  const [refundableCurrency, setRefundableCurrency] = useState(commitment?.refundable_commitment_currency ?? "USD");
+  const [amountBtc, setAmountBtc] = useState(String(commitment?.commitment_amount_btc ?? ""));
+  const [paymentDeadline, setPaymentDeadline] = useState(commitment?.payment_deadline ?? "");
+  const [bitcoinAddress, setBitcoinAddress] = useState(commitment?.bitcoin_address ?? "");
+  const [bitcoinPaymentLink, setBitcoinPaymentLink] = useState(commitment?.bitcoin_payment_link ?? "");
+  const [screeningCompleted, setScreeningCompleted] = useState(commitment?.screening_completed ?? false);
+  const [commitmentDirty, setCommitmentDirty] = useState(false);
+  const [showCommitmentPreview, setShowCommitmentPreview] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState("");
+  const [previewError, setPreviewError] = useState("");
+  const hasCommitmentEmail = emailLogs.some(log => log.email_type === "participation_commitment" && log.delivery_status === "sent");
+  const hasActiveCommitmentEmail = emailLogs.some(log => log.email_type === "participation_commitment" && log.delivery_status === "sending");
 
   const [screeningOptions, setScreeningOptions] = useState<ScreeningOption[]>(
     registration.screening_options?.length ? registration.screening_options : [
@@ -158,9 +191,11 @@ export function EventRegistrationDetails({
   );
 
   const [platform, setPlatform] = useState(
-    meeting?.platform ?? "Google Meet",
+    meeting?.platform ?? "Zoom",
   );
 
+  const [meetingId, setMeetingId] = useState(meeting?.meeting_id ?? "");
+  const [meetingPasscode, setMeetingPasscode] = useState(meeting?.meeting_passcode ?? "");
   const [meetingUrl, setMeetingUrl] = useState(
     meeting?.meeting_url ?? "",
   );
@@ -204,6 +239,8 @@ export function EventRegistrationDetails({
     timezone,
     platform,
     meetingUrl,
+    meetingId,
+    passcode: meetingPasscode,
   };
 
   function updateScreeningOption(index: number, field: keyof ScreeningOption, value: string) {
@@ -211,6 +248,25 @@ export function EventRegistrationDetails({
       i === index ? { ...option, [field]: value } : option,
     ));
     setScreeningDirty(true);
+  }
+
+  async function openCommitmentPreview() {
+    setPreviewError("");
+    setPreviewHtml("");
+    setShowCommitmentPreview(true);
+    try {
+      const response = await fetch(`/api/admin/events/${registration.id}`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "preview_participation_commitment", commitment: {
+          commitment_amount_btc: amountBtc, refundable_commitment_amount: refundableAmount, refundable_commitment_currency: refundableCurrency, payment_deadline: paymentDeadline,
+          bitcoin_address: bitcoinAddress, bitcoin_payment_link: bitcoinPaymentLink,
+          screening_completed: screeningCompleted,
+        } }),
+      });
+      const result: { ok?: boolean; html?: string; error?: string } = await response.json();
+      if (!response.ok || !result.ok || !result.html) throw new Error(result.error ?? "Preview unavailable.");
+      setPreviewHtml(result.html);
+    } catch (error) { setPreviewError(error instanceof Error ? error.message : "Preview unavailable."); }
   }
 
   async function performAction(action: Action) {
@@ -230,6 +286,7 @@ export function EventRegistrationDetails({
               action,
               meeting: meetingInput,
               screeningOptions,
+              commitment: { commitment_amount_btc: amountBtc, refundable_commitment_amount: refundableAmount, refundable_commitment_currency: refundableCurrency, payment_deadline: paymentDeadline, bitcoin_address: bitcoinAddress, bitcoin_payment_link: bitcoinPaymentLink, screening_completed: screeningCompleted },
             }),
           },
         );
@@ -252,7 +309,13 @@ export function EventRegistrationDetails({
           return;
         }
 
-        if (action === "save_screening_options") setScreeningDirty(false);
+        if (action === "save_screening_options") {
+          setScreeningDirty(false);
+        }
+
+        if (action === "save_participation_commitment") {
+          setCommitmentDirty(false);
+        }
 
         setFeedback({
           ok: true,
@@ -281,7 +344,7 @@ export function EventRegistrationDetails({
   const secondaryButton =
     "inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-forest-900/15 bg-white px-5 text-sm font-semibold text-forest-950 transition hover:bg-ivory-100 disabled:cursor-not-allowed disabled:opacity-50";
 
-  const disabled = pending || closed || hasActiveEmail;
+  const disabled = pending || closed || hasActiveEmail || hasActiveCommitmentEmail;
 
   return (
     <div className="space-y-8">
@@ -421,11 +484,11 @@ export function EventRegistrationDetails({
               <button type="button" disabled={disabled} onClick={() => performAction("save_screening_options")} className={secondaryButton}>
                 Save Proposed Options
               </button>
-              <button type="button" disabled={disabled || screeningDirty || hasAvailabilityEmail || registration.status === "meeting_scheduled"}
+              <button type="button" disabled={disabled || screeningDirty || hasAvailabilityEmail}
                 onClick={() => setConfirmAction("request_availability")} className={primaryButton}>
                 <Mail className="size-4" /> Send Screening Invitation
               </button>
-              <button type="button" disabled={disabled || screeningDirty || !hasAvailabilityEmail || registration.status === "meeting_scheduled"}
+              <button type="button" disabled={disabled || screeningDirty || !hasAvailabilityEmail}
                 onClick={() => setConfirmAction("resend_availability")} className={secondaryButton}>
                 <RefreshCw className="size-4" /> Resend Screening Options
               </button>
@@ -441,10 +504,16 @@ export function EventRegistrationDetails({
             </div>
 
             <p className="mt-4 text-sm leading-7 text-stone-600">
-              Enter the agreed meeting details. You can save
+              Select the agreed screening option and enter the Zoom details. You can save
               them as a draft or send an invitation.
             </p>
 
+            <label className="mt-5 block text-sm font-semibold text-forest-950">Agreed screening option
+              <select className={inputClass} value={screeningOptions.findIndex(o => o.meetingDate === meetingDate && o.meetingTime.slice(0,5) === meetingTime && o.timezone === timezone)} onChange={e => { const option = screeningOptions[Number(e.target.value)]; if (option) { setMeetingDate(option.meetingDate); setMeetingTime(option.meetingTime.slice(0,5)); setTimezone(option.timezone); } }}>
+                <option value={-1}>Custom date and time / select an option</option>
+                {screeningOptions.map((option, i) => <option key={i} value={i} disabled={!option.meetingDate || !option.meetingTime}>Option {i+1}: {option.meetingDate} {option.meetingTime} ({option.timezone})</option>)}
+              </select>
+            </label>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
               <label className="text-sm font-semibold text-forest-950">
                 Meeting date
@@ -484,25 +553,30 @@ export function EventRegistrationDetails({
                   onChange={(e) => setPlatform(e.target.value)}
                   className={inputClass}
                 >
-                  <option value="Google Meet">Google Meet</option>
                   <option value="Zoom">Zoom</option>
-                  <option value="Microsoft Teams">Microsoft Teams</option>
-                  <option value="Other">Other</option>
                 </select>
               </label>
             </div>
 
             <label className="mt-5 block text-sm font-semibold text-forest-950">
-              Meeting URL
+              Zoom meeting link
               <input
                 type="url"
                 value={meetingUrl}
                 onChange={(e) => setMeetingUrl(e.target.value)}
-                placeholder="https://meet.google.com/..."
+                placeholder="https://us02web.zoom.us/j/..."
                 className={inputClass}
               />
             </label>
 
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <label className="text-sm font-semibold text-forest-950">Zoom Meeting ID
+                <input type="text" value={meetingId} onChange={e => setMeetingId(e.target.value)} className={inputClass} placeholder="Meeting ID" />
+              </label>
+              <label className="text-sm font-semibold text-forest-950">Zoom passcode
+                <input type="text" value={meetingPasscode} onChange={e => setMeetingPasscode(e.target.value)} className={inputClass} placeholder="Passcode" />
+              </label>
+            </div>
             <p className="mt-3 text-xs leading-5 text-stone-500">
               Use an HTTPS meeting link. Time is interpreted
               in the timezone entered above.
@@ -549,6 +623,64 @@ export function EventRegistrationDetails({
           </section>
         </div>
       </div>
+
+
+      <section className="rounded-2xl border border-forest-900/10 bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex items-center gap-3"><Mail className="size-5 text-gold-700" />
+          <h2 className="font-display text-xl font-semibold text-forest-950">Participation & Commitment Details</h2>
+        </div>
+        <p className="mt-3 text-sm leading-7 text-stone-600">After the Zoom screening, confirm completion and enter the Bitcoin commitment details. Review the email before sending. Sending does not verify a payment.</p>
+        <div className="mt-5 rounded-xl bg-ivory-100 p-4 text-sm text-forest-950">
+          <p><strong>Applicant:</strong> {registration.first_name} {registration.last_name} ({registration.email})</p>
+          <p><strong>Event:</strong> {registration.event_title}</p>
+          <p><strong>Date:</strong> {display(registration.event_date)}</p>
+          <p><strong>Location:</strong> {display(registration.event_location)}</p>
+        </div>
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <label className="text-sm font-semibold text-forest-950">Refundable commitment amount
+            <input type="text" inputMode="decimal" placeholder="2500.00" className={inputClass} value={refundableAmount} disabled={disabled} onChange={e => {setRefundableAmount(e.target.value);setCommitmentDirty(true);}} />
+          </label>
+          <label className="text-sm font-semibold text-forest-950">Commitment currency
+            <select className={inputClass} value={refundableCurrency} disabled={disabled} onChange={e => {setRefundableCurrency(e.target.value);setCommitmentDirty(true);}}><option value="USD">USD</option><option value="GBP">GBP</option><option value="EUR">EUR</option></select>
+          </label>
+          <label className="text-sm font-semibold text-forest-950">Amount in BTC
+            <input type="text" inputMode="decimal" placeholder="0.01000000" className={inputClass} value={amountBtc} disabled={disabled} onChange={e => {setAmountBtc(e.target.value);setCommitmentDirty(true);}} />
+          </label>
+          <label className="text-sm font-semibold text-forest-950">Payment deadline
+            <input type="date" className={inputClass} value={paymentDeadline} disabled={disabled} onChange={e => {setPaymentDeadline(e.target.value);setCommitmentDirty(true);}} />
+          </label>
+          <label className="text-sm font-semibold text-forest-950 sm:col-span-2">Bitcoin receiving address
+            <input type="text" spellCheck={false} autoComplete="off" className={inputClass} value={bitcoinAddress} disabled={disabled} onChange={e => {setBitcoinAddress(e.target.value);setCommitmentDirty(true);}} />
+          </label>
+          <label className="text-sm font-semibold text-forest-950 sm:col-span-2">Bitcoin payment URL (HTTPS)
+            <input type="url" spellCheck={false} autoComplete="off" className={inputClass} value={bitcoinPaymentLink} disabled={disabled} onChange={e => {setBitcoinPaymentLink(e.target.value);setCommitmentDirty(true);}} />
+          </label>
+        </div>
+        <label className="mt-5 flex items-start gap-3 text-sm font-semibold text-forest-950">
+          <input type="checkbox" checked={screeningCompleted} disabled={disabled || commitment?.screening_completed === true} onChange={e => {setScreeningCompleted(e.target.checked);setCommitmentDirty(true);}} className="mt-1 size-4" />
+          I confirm that the applicant's Zoom screening has been completed.
+        </label>
+        {commitmentDirty && <p className="mt-3 text-xs font-semibold text-amber-800">Unsaved changes. Save before sending.</p>}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button type="button" className={secondaryButton} disabled={disabled} onClick={() => performAction("save_participation_commitment")}>Save Commitment Draft</button>
+          <button type="button" className={secondaryButton} onClick={openCommitmentPreview}>Preview Full Email</button>
+          <button type="button" className={primaryButton} disabled={disabled || commitmentDirty || !screeningCompleted || !refundableAmount || !amountBtc || !paymentDeadline || !bitcoinAddress || !bitcoinPaymentLink || hasCommitmentEmail} onClick={() => setConfirmAction("send_participation_commitment")}><Send className="size-4"/> Send Participation & Commitment Details</button>
+          <button type="button" className={secondaryButton} disabled={disabled || commitmentDirty || !hasCommitmentEmail || !screeningCompleted} onClick={() => setConfirmAction("resend_participation_commitment")}><RefreshCw className="size-4"/> Resend Commitment Email</button>
+        </div>
+        {commitment?.email_sent_at && <p className="mt-4 text-xs text-forest-900">Last SMTP acceptance: {dateTime(commitment.email_sent_at)}</p>}
+      </section>
+
+      {showCommitmentPreview && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-forest-950/70 p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="commitment-preview-title" className="max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-7 shadow-xl">
+            <h3 id="commitment-preview-title" className="font-display text-2xl font-semibold text-forest-950">Participation email — payment details preview</h3>
+            {previewError && <p role="alert" className="mt-4 text-sm text-red-700">{previewError}</p>}
+            {!previewHtml && !previewError && <p className="mt-4 text-sm text-stone-600">Loading email preview…</p>}
+            {previewHtml && <iframe title="Full participation commitment email preview" sandbox="" srcDoc={previewHtml} className="mt-4 h-[55vh] w-full rounded-xl border border-forest-900/10" />}
+            <button type="button" className={`${secondaryButton} mt-5`} onClick={() => setShowCommitmentPreview(false)}>Close preview</button>
+          </div>
+        </div>
+      )}
 
       <section className="overflow-hidden rounded-2xl border border-forest-900/10 bg-white shadow-sm">
         <div className="flex items-center gap-3 border-b border-forest-900/10 p-6 sm:p-8">

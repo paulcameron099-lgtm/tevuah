@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/src/lib/auth/get-current-user";
 import { createAdminClient } from "@/src/lib/supabase/admin";
 import { sendApplicationMail } from "@/src/lib/email/application-mailer";
+import { buildParticipationCommitmentEmail } from "@/src/lib/email/event-participation-email";
 
 import {
   buildMeetingAvailabilityEmail,
@@ -24,7 +25,11 @@ type Action =
   | "save_screening_options"
   | "save_meeting"
   | "send_invitation"
-  | "resend_invitation";
+  | "resend_invitation"
+  | "preview_participation_commitment"
+  | "save_participation_commitment"
+  | "send_participation_commitment"
+  | "resend_participation_commitment";
 
 type EmailType = "meeting_request" | "meeting_invitation";
 
@@ -34,6 +39,8 @@ type MeetingInput = {
   timezone: string;
   platform: string;
   meetingUrl: string;
+  meetingId: string;
+  passcode: string;
 };
 
 function fail(message: string, status = 400) {
@@ -66,7 +73,11 @@ function isAction(value: unknown): value is Action {
     value === "save_screening_options" ||
     value === "save_meeting" ||
     value === "send_invitation" ||
-    value === "resend_invitation"
+    value === "resend_invitation" ||
+    value === "preview_participation_commitment" ||
+    value === "save_participation_commitment" ||
+    value === "send_participation_commitment" ||
+    value === "resend_participation_commitment"
   );
 }
 
@@ -87,6 +98,8 @@ function parseMeeting(value: unknown): MeetingInput | null {
     "timezone",
     "platform",
     "meetingUrl",
+    "meetingId",
+    "passcode",
   ] as const;
 
   for (const field of fields) {
@@ -101,6 +114,8 @@ function parseMeeting(value: unknown): MeetingInput | null {
     timezone: (record.timezone as string).trim(),
     platform: (record.platform as string).trim(),
     meetingUrl: (record.meetingUrl as string).trim(),
+    meetingId: (record.meetingId as string).trim(),
+    passcode: (record.passcode as string).trim(),
   };
 }
 
@@ -146,6 +161,9 @@ function validateMeeting(meeting: MeetingInput): string | null {
     return "Enter a valid timezone, such as Europe/London.";
   }
 
+  if (meeting.platform !== "Zoom") return "This confirmation requires Zoom as the meeting platform.";
+  if (!meeting.meetingId || meeting.meetingId.length > 100) return "Enter the Zoom meeting ID.";
+  if (!meeting.passcode || meeting.passcode.length > 100) return "Enter the Zoom meeting passcode.";
   if (meeting.meetingUrl.length > 2000) {
     return "Meeting URL is too long.";
   }
@@ -326,7 +344,7 @@ export async function POST(
     error: registrationError,
   } = await admin
     .from("event_registrations")
-    .select("id,first_name,last_name,email,event_title,status,screening_options")
+    .select("id,first_name,last_name,email,event_slug,event_title,event_date,event_location,status,screening_options")
     .eq("id", id)
     .maybeSingle();
 
@@ -346,11 +364,119 @@ export async function POST(
     return fail("This registration is closed.", 409);
   }
 
+
+  // Participation commitment: independent of the existing screening/meeting email flow.
+  if (action === "preview_participation_commitment" ||
+      action === "save_participation_commitment" ||
+      action === "send_participation_commitment" ||
+      action === "resend_participation_commitment") {
+    const raw = body.commitment;
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fail("Commitment details are required.");
+    const fields = raw as Record<string, unknown>;
+    const refundable = typeof fields.refundable_commitment_amount === "string" ? fields.refundable_commitment_amount.trim() : "";
+    const currency = typeof fields.refundable_commitment_currency === "string" ? fields.refundable_commitment_currency.trim() : "";
+    const amount = typeof fields.commitment_amount_btc === "string" ? fields.commitment_amount_btc.trim() : "";
+    const deadline = typeof fields.payment_deadline === "string" ? fields.payment_deadline.trim() : "";
+    const address = typeof fields.bitcoin_address === "string" ? fields.bitcoin_address.trim() : "";
+    const paymentLink = typeof fields.bitcoin_payment_link === "string" ? fields.bitcoin_payment_link.trim() : "";
+    const completed = fields.screening_completed === true;
+    if (refundable && (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(refundable) || Number(refundable) <= 0 || Number(refundable) > 999999999999)) return fail("Enter a positive refundable commitment amount (up to two decimals).");
+    if (!(["USD", "GBP", "EUR"].includes(currency))) return fail("Select a valid commitment currency.");
+    if (amount.length > 40 || deadline.length > 10 || address.length > 200 || paymentLink.length > 2000) return fail("Commitment details exceed the permitted length.");
+    if (amount && (!/^(?:0|[1-9]\d*)(?:\.\d{1,8})?$/.test(amount) || Number(amount) <= 0 || Number(amount) > 999999999999)) return fail("Enter a positive BTC amount with up to 8 decimal places.");
+    if (deadline) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) || Number.isNaN(Date.parse(`${deadline}T00:00:00Z`)) || new Date(`${deadline}T00:00:00Z`).toISOString().slice(0,10) !== deadline) return fail("Enter a valid payment deadline.");
+    }
+    if (paymentLink) {
+      try {
+        const url = new URL(paymentLink);
+        if (url.protocol !== "https:" || url.username || url.password || !url.hostname.includes(".")) return fail("Enter a valid HTTPS payment link.");
+      } catch { return fail("Enter a valid HTTPS payment link."); }
+    }
+    const isPreview = action === "preview_participation_commitment";
+    const isSending = action !== "save_participation_commitment" && !isPreview;
+    if (isSending && (!completed || !refundable || !amount || !deadline || !address || !paymentLink)) return fail("Confirm screening completion and complete all commitment and payment details.");
+    if (isSending && deadline < new Date().toISOString().slice(0, 10)) return fail("Payment deadline must not be in the past.");
+    if (isPreview) {
+      const message = buildParticipationCommitmentEmail({
+        firstName: registration.first_name, eventName: registration.event_title,
+        eventDate: registration.event_date ?? "", eventLocation: registration.event_location ?? "",
+        refundableCommitment: refundable ? `${currency} ${refundable}` : "[Refundable Commitment]",
+        amountBtc: amount || "[BTC Amount]", paymentDeadline: deadline || "[Payment Deadline]",
+        bitcoinAddress: address || "[Bitcoin Address]", bitcoinPaymentLink: paymentLink || "[Bitcoin Payment URL]",
+      });
+      return NextResponse.json({ ok: true, html: message.html }, { headers: { "Cache-Control": "no-store" } });
+    }
+    const { data: existing, error: existingError } = await admin.from("event_participation_commitments")
+      .select("id,commitment_amount_btc,refundable_commitment_amount,refundable_commitment_currency,payment_deadline,bitcoin_address,bitcoin_payment_link,screening_completed,status")
+      .eq("registration_id", id).maybeSingle();
+    if (existingError) return fail("Could not load commitment record.", 500);
+    if (existing?.screening_completed && !completed) return fail("Screening completion cannot be reversed from this form.", 409);
+    const { data: previous, error: previousError } = await admin.from("event_email_logs")
+      .select("id").eq("registration_id", id).eq("email_type", "participation_commitment")
+      .eq("delivery_status", "sent").limit(1);
+    if (previousError) return fail("Could not verify previous commitment emails.", 500);
+    const alreadySent = (previous?.length ?? 0) > 0;
+    if (isSending && action === "send_participation_commitment" && alreadySent) return fail("Already sent. Use the resend action.", 409);
+    if (isSending && action === "resend_participation_commitment" && !alreadySent) return fail("No previously sent commitment email exists to resend.", 409);
+    if (isSending && !registration.event_title?.trim()) return fail("Event name is missing from this registration.");
+    if (isSending && (!registration.event_date?.trim() || !registration.event_location?.trim())) return fail("Event date or location is missing from this registration.");
+    if (isSending && !registration.first_name?.trim()) return fail("Applicant first name is missing.");
+    // Do not change payment instructions after an accepted email without explicit resend.
+    const { error: saveError } = await admin.from("event_participation_commitments").upsert({
+      registration_id: id,
+      commitment_amount_btc: amount || null,
+      refundable_commitment_amount: refundable || null,
+      refundable_commitment_currency: currency,
+      payment_deadline: deadline || null,
+      bitcoin_address: address || null,
+      bitcoin_payment_link: paymentLink || null,
+      screening_completed: completed,
+      screening_completed_at: completed ? new Date().toISOString() : null,
+      status: alreadySent ? "sent" : isSending ? "ready" : "draft",
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "registration_id" });
+    if (saveError) { console.error("[EVENTS] Save commitment:", saveError); return fail("Could not save commitment details.", 500); }
+    if (!isSending) return success("Participation commitment draft saved.");
+    const message = buildParticipationCommitmentEmail({
+      firstName: registration.first_name,
+      eventName: registration.event_title,
+      eventDate: registration.event_date,
+      eventLocation: registration.event_location,
+      refundableCommitment: `${currency} ${refundable}`,
+      amountBtc: amount,
+      paymentDeadline: deadline,
+      bitcoinAddress: address,
+      bitcoinPaymentLink: paymentLink,
+    });
+    const { data: history, error: historyError } = await admin.from("event_email_logs")
+      .select("attempt_number").eq("registration_id", id).eq("email_type", "participation_commitment")
+      .order("attempt_number", { ascending: false }).limit(1);
+    if (historyError) return fail("Could not read commitment email history.", 500);
+    const { data: log, error: logError } = await admin.from("event_email_logs").insert({
+      registration_id: id, email_type: "participation_commitment", recipient_email: registration.email,
+      subject: message.subject, delivery_status: "sending",
+      attempt_number: (history?.[0]?.attempt_number ?? 0) + 1, sent_by: user.id,
+    }).select("id").single();
+    if (logError || !log) return fail("Another email may be sending. Check history before retrying.", 409);
+    let delivery: { sent: boolean; messageId?: string; error?: string };
+    try { delivery = await sendApplicationMail({ to: registration.email, ...message }); }
+    catch (error) { delivery = { sent: false, error: error instanceof Error ? error.message : "SMTP error." }; }
+    const sentAt = delivery.sent ? new Date().toISOString() : null;
+    const { error: updateLogError } = await admin.from("event_email_logs").update({
+      delivery_status: delivery.sent ? "sent" : "failed", provider_message_id: delivery.messageId ?? null,
+      error_message: delivery.sent ? null : delivery.error ?? "SMTP send failed.", sent_at: sentAt,
+    }).eq("id", log.id);
+    if (updateLogError) return fail("SMTP completed but the log update failed. Verify delivery before retrying.", 500);
+    if (!delivery.sent) return fail("SMTP did not accept the commitment email. Failure was logged.", 502);
+    const { error: updateCommitmentError } = await admin.from("event_participation_commitments")
+      .update({ status: "sent", email_sent_at: sentAt, updated_at: sentAt }).eq("registration_id", id);
+    if (updateCommitmentError) return fail("SMTP accepted the email but commitment status update failed. Check history before retrying.", 500);
+    return success("Participation & Commitment Details accepted by SMTP.");
+  }
+
   // Save 2–5 proposed screening options without emailing the applicant.
   if (action === "save_screening_options") {
-    if (registration.status === "meeting_scheduled") {
-      return fail("A meeting is already scheduled; proposed options cannot be changed.", 409);
-    }
     const options = parseScreeningDraft(body.screeningOptions);
     if (!options) {
       return fail("Provide 2–5 screening draft slots. Dates and times may be completed later.");
@@ -424,6 +550,8 @@ export async function POST(
           timezone: meeting.timezone,
           platform: meeting.platform,
           meeting_url: meeting.meetingUrl,
+          meeting_id: meeting.meetingId,
+          meeting_passcode: meeting.passcode,
           status: existingMeeting?.status ?? "draft",
         },
         {
@@ -444,15 +572,6 @@ export async function POST(
     ? "meeting_invitation"
     : "meeting_request";
 
-  if (
-    isAvailability &&
-    registration.status === "meeting_scheduled"
-  ) {
-    return fail(
-      "A meeting is already scheduled. Review the meeting before requesting availability.",
-      409,
-    );
-  }
 
   // 9. Check previously accepted emails.
   const {
@@ -617,7 +736,7 @@ export async function POST(
   if (isAvailability) {
     const { error } = await admin
       .from("event_registrations")
-      .update({ status: "meeting_requested" })
+      .update({ status: registration.status === "meeting_scheduled" ? "meeting_scheduled" : "meeting_requested" })
       .eq("id", id);
 
     if (error) {
@@ -646,6 +765,8 @@ export async function POST(
           timezone: meeting.timezone,
           platform: meeting.platform,
           meeting_url: meeting.meetingUrl,
+          meeting_id: meeting.meetingId,
+          meeting_passcode: meeting.passcode,
           status: "invited",
           invitation_sent_at: sentAt,
         },

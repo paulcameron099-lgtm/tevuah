@@ -88,9 +88,6 @@ function emailLayout(
               <p style="margin:17px 0 0;font-size:11px;line-height:1.8;color:#c1cec6;">
                 20 Castle Terrace, Edinburgh EH1 2EE, United Kingdom
               </p>
-              <p style="margin:8px 0 0;font-size:11px;color:#c1cec6;">
-                team@tevuahreserve.com
-              </p>
             </td>
           </tr>
         </table>
@@ -108,7 +105,7 @@ export function buildEventAcknowledgement(
   const eventTitle = escapeHtml(details.eventTitle);
 
   const subject =
-    `We've received your interest | Tevuah Reserve`;
+    `We've received your interest`;
 
   const text = [
     `Dear ${details.firstName},`,
