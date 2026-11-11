@@ -266,7 +266,7 @@ export const events: TevuahEvent[] = [
   {
     slug: "beyond-the-vintage-bordeaux",
     title:
-      "Beyond the vintage: the fine wine perspective",
+      "Beyond the vintage: The fine wine perspective",
     date: "24 November 2026",
     dateISO: "2026-11-24",
     location: "Bordeaux, France",

@@ -151,7 +151,7 @@ export function HomeHero() {
             }}
           >
             <Button href="/investments" size="lg">
-              Explore investments
+              Explore opportunities
               <ArrowUpRight className="size-4" />
             </Button>
 
