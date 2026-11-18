@@ -251,7 +251,7 @@ export async function verifyApplicationEmailTransport(): Promise<void> {
 export async function sendApplicationMail(
   input: MailInput,
 ): Promise<MailDeliveryResult> {
-  const maxAttempts = 3;
+  const maxAttempts = 1;
 
   for (
     let attempt = 1;

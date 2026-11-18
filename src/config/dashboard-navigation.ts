@@ -20,6 +20,7 @@ import {
   Banknote,
   PiggyBank,
   BanknoteArrowUp,
+  UserRoundPlus,
   type LucideIcon,
 } from "lucide-react";
 
@@ -118,6 +119,11 @@ export const adminDashboardNavigation: DashboardNavigationItem[] = [
   href: "/admin/events",
   icon: CalendarDays,
 },
+{
+  label: "Staff Management",
+  href: "/admin/staff",
+  icon: UserRoundPlus,
+},
   {
     label: "Subscriptions",
     href: "/admin/subscriptions",
@@ -185,6 +191,11 @@ export const superAdminDashboardNavigation: DashboardNavigationItem[] = [
   label: "Events Management",
   href: "/admin/events",
   icon: CalendarDays,
+},
+{
+  label: "Staff Management",
+  href: "/admin/staff",
+  icon: UserRoundPlus,
 },
   {
     label: "Users",
