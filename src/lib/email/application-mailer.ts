@@ -3,11 +3,18 @@ import "server-only";
 
 import nodemailer from "nodemailer";
 
+type MailAttachment = {
+  filename: string;
+  content: Buffer;
+  contentType: string;
+};
+
 type MailInput = {
   to: string;
   subject: string;
   text: string;
   html: string;
+  attachments?: MailAttachment[];
 };
 
 export type MailDeliveryResult = {
@@ -42,7 +49,7 @@ function smtpConfig() {
 
   const portRaw =
     env("SMTP_PORT", "EMAIL_SMTP_PORT") ||
-    "587";
+    "465";
 
   const port = Number(portRaw);
 
@@ -99,7 +106,6 @@ function smtpConfig() {
   };
 }
 
-// Let TypeScript infer the exact SMTP pool transporter type.
 function createMailer() {
   const config = smtpConfig();
 
@@ -123,7 +129,6 @@ function createMailer() {
     requireTLS,
     ignoreTLS: false,
 
-    // SMTP connection pooling
     pool: true,
     maxConnections: 2,
     maxMessages: 50,
@@ -194,12 +199,10 @@ function isSafeConnectionRetry(
   const command = details.command ?? "";
   const message = details.message.toLowerCase();
 
-  // Never retry an SMTP response failure.
   if (details.responseCode !== undefined) {
     return false;
   }
 
-  // Only retry failures before SMTP message submission.
   if (
     command &&
     command !== "CONN" &&
@@ -208,9 +211,7 @@ function isSafeConnectionRetry(
     return false;
   }
 
-  if (
-    message.includes("greeting never received")
-  ) {
+  if (message.includes("greeting never received")) {
     return true;
   }
 
@@ -251,6 +252,8 @@ export async function verifyApplicationEmailTransport(): Promise<void> {
 export async function sendApplicationMail(
   input: MailInput,
 ): Promise<MailDeliveryResult> {
+  // One attempt avoids accidentally duplicating
+  // employment offers or onboarding emails.
   const maxAttempts = 1;
 
   for (
@@ -269,12 +272,15 @@ export async function sendApplicationMail(
         subject: input.subject,
         text: input.text,
         html: input.html,
+        attachments: input.attachments ?? [],
       });
 
       console.info("[TEVUAH EMAIL SENT]", {
         to: input.to,
         subject: input.subject,
         messageId: info.messageId,
+        attachmentCount:
+          input.attachments?.length ?? 0,
         attempt,
         durationMs: Date.now() - startedAt,
       });
@@ -308,7 +314,6 @@ export async function sendApplicationMail(
         };
       }
 
-      // Retry transient connection failures only.
       await delay(attempt * 2000);
     }
   }

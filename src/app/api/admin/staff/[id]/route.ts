@@ -14,6 +14,7 @@ import {
 } from "@/src/lib/email/staff-recruitment-email";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 type Context = {
   params: Promise<{ id: string }>;
@@ -27,9 +28,11 @@ const EMAIL_TYPES: StaffEmailType[] = [
   "interview_invitation",
   "interview_confirmation",
   "interview_reminder",
+  "employment_offer",
+  "welcome_onboarding",
 ];
 
-const STATUS_BY_EMAIL: Record<StaffEmailType, string> = {
+const STATUS_BY_EMAIL: Partial<Record<StaffEmailType, string>> = {
   application_received: "application_acknowledged",
   interview_invitation: "interview_invited",
   interview_confirmation: "interview_scheduled",
@@ -165,6 +168,17 @@ export async function PATCH(
     }
 
     const updates: Record<string, unknown> = {};
+    if ("offerAccepted" in body) {
+      if (typeof body.offerAccepted !== "boolean") throw new Error("Invalid offer acceptance value.");
+      if (body.offerAccepted) {
+        const adminCheck = createAdminClient();
+        const { data: sentOffer } = await adminCheck.from("staff_recruitment_email_logs")
+          .select("id").eq("applicant_id", id).eq("email_type", "employment_offer")
+          .eq("delivery_status", "sent").limit(1).maybeSingle();
+        if (!sentOffer) throw new Error("Send the employment offer before recording acceptance.");
+      }
+      updates.offer_accepted_at = body.offerAccepted ? new Date().toISOString() : null;
+    }
 
     if ("interviewOptions" in body) {
       updates.interview_options = parseOptions(
@@ -179,6 +193,11 @@ export async function PATCH(
       ["meetingUrl", "meeting_url", 2000],
       ["meetingId", "meeting_id", 150],
       ["meetingPasscode", "meeting_passcode", 150],
+      ["offerStartDate", "offer_start_date", 10],
+      ["offerDepartment", "offer_department", 200],
+      ["offerEmploymentType", "offer_employment_type", 100],
+      ["offerWorkingArrangement", "offer_working_arrangement", 200],
+      ["offerCompensation", "offer_compensation", 200],
     ] as const;
 
     for (const [inputKey, column, maxLength] of fields) {
@@ -202,6 +221,10 @@ export async function PATCH(
       !validTime(updates.interview_time as string)
     ) {
       throw new Error("Invalid interview time.");
+    }
+
+    if (updates.offer_start_date && !validDate(updates.offer_start_date as string)) {
+      throw new Error("Invalid offer start date.");
     }
 
     if (updates.meeting_url) {
@@ -240,7 +263,7 @@ export async function PATCH(
       console.error("[STAFF PATCH]", error);
 
       return NextResponse.json(
-        { error: "Unable to save interview details." },
+        { error: "Unable to save staff details." },
         { status: 500 },
       );
     }
@@ -351,6 +374,27 @@ export async function POST(
       );
     }
 
+    // Onboarding is only sent after an administrator records offer acceptance.
+    if (type === "welcome_onboarding" && !applicant.offer_accepted_at) {
+      return NextResponse.json({ error: "Record the applicant's offer acceptance before onboarding." }, { status: 400 });
+    }
+
+    let attachments: { filename: string; content: Buffer; contentType: string }[] = [];
+    if (type === "welcome_onboarding") {
+      if (!applicant.handbook_storage_path || !applicant.handbook_file_name || !applicant.handbook_content_type) {
+        return NextResponse.json({ error: "Upload a handbook before sending onboarding." }, { status: 400 });
+      }
+      const { data: handbook, error: handbookError } = await admin.storage
+        .from("staff-handbooks").download(applicant.handbook_storage_path);
+      if (handbookError || !handbook) {
+        return NextResponse.json({ error: "Unable to retrieve the handbook attachment." }, { status: 500 });
+      }
+      if (handbook.size > 10 * 1024 * 1024) {
+        return NextResponse.json({ error: "Handbook exceeds 10 MB." }, { status: 400 });
+      }
+      attachments = [{ filename: applicant.handbook_file_name, content: Buffer.from(await handbook.arrayBuffer()), contentType: applicant.handbook_content_type }];
+    }
+
     // Record the attempt before contacting SMTP.
     const { data: log, error: logError } = await admin
       .from("staff_recruitment_email_logs")
@@ -383,6 +427,7 @@ export async function POST(
         subject: message.subject,
         text: message.text,
         html: message.html,
+        attachments,
       });
     } catch (error) {
       delivery = {
@@ -449,6 +494,7 @@ export async function POST(
     const currentStatus = applicant.recruitment_status;
 
     if (
+      nextStatus &&
       currentStatus !== "hired" &&
       currentStatus !== "not_selected" &&
       (statusRank[nextStatus] ?? 0) >
