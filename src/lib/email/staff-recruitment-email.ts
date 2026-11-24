@@ -1,4 +1,3 @@
-
 import "server-only";
 
 export type InterviewOption = {
@@ -13,7 +12,8 @@ export type StaffEmailType =
   | "interview_confirmation"
   | "interview_reminder"
   | "employment_offer"
-  | "welcome_onboarding";
+  | "welcome_onboarding"
+  | "payroll_id_onboarding";
 
 export type StaffEmailApplicant = {
   first_name: string;
@@ -206,7 +206,7 @@ function offerDetails(
   return lines.join("\n");
 }
 
-function roleOverview(position: string): string {
+function roleOverview(): string {
   return `In this position, you will support Tevuah Reserve's events and guest-facing activities, helping ensure that every guest receives a welcoming, organized and thoughtful experience.
 
 Your responsibilities will include:
@@ -249,7 +249,7 @@ ${offerDetails(applicant)}
 
 ROLE OVERVIEW
 
-${roleOverview(position)}
+${roleOverview()}
 
 WORKING ARRANGEMENTS
 
@@ -337,70 +337,81 @@ Human Resources Manager
 Tevuah Reserve`;
 }
 
-function buildHtml(
-  subject: string,
-  text: string,
-): string {
+// All dynamic content is escaped before insertion into HTML.
+function renderBody(text: string): string {
+  const paragraph = (value: string) =>
+    `<p style="margin:0 0 18px;font-size:15px;line-height:1.75;color:#34463e;">${escapeHtml(value).replace(/\n/g, "<br />")}</p>`;
+
+  return text.split(/\n\s*\n/).map((block) => {
+    const value = block.trim();
+    if (!value) return "";
+    const lines = value.split("\n");
+
+    if (/^(Best|Kind|Warm) regards,/.test(value)) {
+      return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top:1px solid #ded9ca;margin-top:24px;"><tr><td style="padding-top:22px;font-size:14px;line-height:1.8;color:#153c30;">${lines.map((line, i) => i === 1 ? `<strong>${escapeHtml(line)}</strong>` : escapeHtml(line)).join("<br />")}</td></tr></table>`;
+    }
+
+    if (lines.length === 1 && /^[0-9A-Z][0-9A-Z &–—:.,'-]+$/.test(value)) {
+      return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:26px 0 14px;"><tr><td style="border-left:3px solid #b49a61;background:#f5f3eb;padding:12px 16px;color:#153c30;font-size:13px;font-weight:bold;letter-spacing:0.7px;">${escapeHtml(value)}</td></tr></table>`;
+    }
+
+    if (lines.every((line) => /^•\s|^\d+\.\s/.test(line))) {
+      return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:20px;">${lines.map((line) => {
+        const match = /^(•|\d+\.)\s+(.*)$/.exec(line);
+        const marker = match?.[1] ?? "•";
+        const item = match?.[2] ?? line;
+        const colon = item.indexOf(":");
+        const content = colon > 0 && colon < 45 ? `<strong>${escapeHtml(item.slice(0, colon + 1))}</strong>${escapeHtml(item.slice(colon + 1))}` : escapeHtml(item);
+        return `<tr><td valign="top" width="25" style="padding:6px 0;color:#967b42;font-weight:bold;">${escapeHtml(marker)}</td><td style="padding:6px 0;font-size:15px;line-height:1.65;color:#34463e;">${content}</td></tr>`;
+      }).join("")}</table>`;
+    }
+
+    if (lines.every((line) => /^(Job Title|Department|Employment Type|Working Arrangement|Start Date|Compensation|Date|Time|Duration|Platform|Meeting Link|Meeting ID|Passcode|Option \d+):/.test(line))) {
+      return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#faf9f5;border:1px solid #e5e0d4;margin-bottom:20px;">${lines.map((line) => {
+        const index = line.indexOf(":");
+        return `<tr><td style="padding:11px 14px;border-bottom:1px solid #e5e0d4;font-size:14px;line-height:1.6;color:#34463e;word-break:break-word;"><strong style="color:#153c30;">${escapeHtml(line.slice(0,index+1))}</strong> ${escapeHtml(line.slice(index+1).trim())}</td></tr>`;
+      }).join("")}</table>`;
+    }
+
+    if (value.startsWith("Please do not send bank account details")) {
+      return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:20px;background:#f8f4e7;"><tr><td style="padding:16px;border-left:3px solid #b49a61;font-size:14px;line-height:1.7;color:#51482f;">${escapeHtml(value)}</td></tr></table>`;
+    }
+
+    return paragraph(value);
+  }).join("");
+}
+
+function buildHtml(subject: string, text: string, type: StaffEmailType): string {
+  const category = type === "welcome_onboarding" || type === "payroll_id_onboarding"
+    ? "EMPLOYEE ONBOARDING" : "RECRUITMENT & HUMAN RESOURCES";
   return `<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport"
-    content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>${escapeHtml(subject)}</title>
 </head>
-<body style="
-  margin:0;
-  padding:32px 16px;
-  background:#f7f5ef;
-  font-family:Arial,Helvetica,sans-serif;
-  color:#26352e;
-">
-  <div style="
-    max-width:640px;
-    margin:0 auto;
-    background:#ffffff;
-    border:1px solid #e8e5dc;
-    border-radius:12px;
-    overflow:hidden;
-  ">
-    <div style="
-      background:#153c30;
-      padding:24px 32px;
-      color:#ffffff;
-      font-size:22px;
-      font-weight:bold;
-    ">
-      Tevuah Reserve
-    </div>
-
-    <div style="padding:32px;">
-      <h1 style="
-        font-size:22px;
-        line-height:1.4;
-        margin:0 0 24px;
-        color:#153c30;
-      ">
-        ${escapeHtml(subject)}
-      </h1>
-
-      <div style="
-        white-space:pre-wrap;
-        font-size:15px;
-        line-height:1.85;
-      ">${escapeHtml(text)}</div>
-    </div>
-
-    <div style="
-      padding:20px 32px;
-      background:#f7f5ef;
-      color:#777777;
-      font-size:12px;
-    ">
-      Tevuah Reserve · Recruitment Communications
-    </div>
-  </div>
-</body>
-</html>`;
+<body style="margin:0;padding:0;background:#f4f2eb;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#f4f2eb">
+<tr><td align="center" style="padding:24px 12px;">
+<!--[if mso]><table role="presentation" width="640" align="center"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e3dfd3;">
+<tr><td bgcolor="#153c30" style="padding:32px 28px;text-align:center;border-bottom:4px solid #b49a61;">
+<div style="font-family:Georgia,serif;font-size:30px;letter-spacing:1px;color:#ffffff;">Tevuah Reserve</div>
+<div style="margin-top:12px;font-size:10px;letter-spacing:2px;color:#e3d2a5;">${category}</div>
+</td></tr>
+<tr><td style="padding:30px 26px 8px;">
+<h1 style="margin:0 0 18px;font-family:Georgia,serif;font-size:27px;font-weight:normal;line-height:1.3;color:#153c30;">${escapeHtml(subject)}</h1>
+<div style="width:48px;height:3px;background:#b49a61;margin-bottom:20px;"></div>
+</td></tr>
+<tr><td style="padding:0 26px 32px;">${renderBody(text)}</td></tr>
+<tr><td bgcolor="#153c30" style="padding:24px;text-align:center;color:#e6e9e2;font-size:12px;line-height:1.7;">
+<strong style="color:#ffffff;">Tevuah Reserve</strong><br />Human Resources &amp; Recruitment<br />Official employee communications
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr></table>
+</body></html>`;
 }
 
 export function buildStaffRecruitmentEmail(
@@ -571,13 +582,56 @@ Tevuah Reserve`;
       );
       break;
 
+    case "payroll_id_onboarding":
+      subject = "Employee Onboarding";
+      text = `${greeting}
+
+Congratulations once again on joining the Tevuah Reserve team. We’re pleased to welcome you and look forward to working with you.
+
+As part of your onboarding, we’d like to collect a few details to complete your payroll arrangements and prepare your official company identification card.
+
+1. PAYROLL PREFERENCES
+
+Please indicate your preferred method of payment:
+
+• Direct Deposit
+• Check
+• Other: Please specify
+
+Kindly reply with your selection. If you choose direct deposit, we’ll provide instructions for submitting your banking details through a secure channel.
+
+2. COMPANY IDENTIFICATION CARD
+
+To prepare your company ID card, please provide the following:
+
+• Recent Photograph: A clear, passport-style headshot with a plain background and professional appearance.
+• Full Legal Name: Your name as you would like it displayed on your ID card.
+• Job Title: ${position} (please confirm).
+• Emergency Contact (Optional): Full name and phone number of your designated contact, with their permission.
+
+3. SUBMISSION
+
+Please reply directly to this email with your payroll preference and requested identification details. For your photograph and optional emergency contact details, you may request a secure submission channel instead of sending them by email.
+
+Once we receive the information, we’ll proceed with the payroll setup and preparation of your company ID card. Any remaining onboarding instructions will be communicated separately.
+
+If you have any questions or need assistance, please feel free to get in touch.
+
+Thank you for your cooperation, and welcome once again to Tevuah Reserve. We look forward to having you as part of the team.
+
+Kind regards,
+Paul Vincenzo
+Human Resources Manager
+Tevuah Reserve`;
+      break;
+
     default:
       throw new Error(
         "Unsupported recruitment email type.",
       );
   }
 
-  const html = buildHtml(subject, text);
+  const html = buildHtml(subject, text, type);
 
   return {
     subject,

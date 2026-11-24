@@ -30,6 +30,7 @@ const EMAIL_TYPES: StaffEmailType[] = [
   "interview_reminder",
   "employment_offer",
   "welcome_onboarding",
+  "payroll_id_onboarding",
 ];
 
 const STATUS_BY_EMAIL: Partial<Record<StaffEmailType, string>> = {
@@ -375,7 +376,7 @@ export async function POST(
     }
 
     // Onboarding is only sent after an administrator records offer acceptance.
-    if (type === "welcome_onboarding" && !applicant.offer_accepted_at) {
+    if ((type === "welcome_onboarding" || type === "payroll_id_onboarding") && !applicant.offer_accepted_at) {
       return NextResponse.json({ error: "Record the applicant's offer acceptance before onboarding." }, { status: 400 });
     }
 

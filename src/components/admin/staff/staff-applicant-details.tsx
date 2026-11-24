@@ -27,7 +27,8 @@ type EmailType =
   | "interview_confirmation"
   | "interview_reminder"
   | "employment_offer"
-  | "welcome_onboarding";
+  | "welcome_onboarding"
+  | "payroll_id_onboarding";
 type Applicant = {
   id: string;
   first_name: string;
@@ -111,6 +112,10 @@ const EMAIL_ACTIONS: {
   {
     type: "welcome_onboarding", title: "Welcome & Onboarding",
     button: "Send Welcome & Onboarding Email", description: "Send welcome instructions with the saved handbook attached.",
+  },
+  {
+    type: "payroll_id_onboarding", title: "Employee Onboarding – Payroll & ID",
+    button: "Send Payroll & ID Setup Request", description: "Request payroll preference and company ID details after offer acceptance. No handbook attachment required.",
   },
 ];
 function normalizeOptions(value: InterviewOption[] | null) {
@@ -272,6 +277,24 @@ Paul Vincenzo
 Human Resources Manager
 Tevuah Reserve`;
   }
+  if (type === "payroll_id_onboarding") {
+    content = `Dear ${name},
+
+Congratulations once again on joining the Tevuah Reserve team.
+
+Please reply with your payroll preference (Direct Deposit, Check, or Other) and your company ID information:
+• Recent professional passport-style photograph
+• Full legal name
+• Job title: ${position}
+• Emergency contact (optional)
+
+Banking details will be collected separately through a secure channel.
+
+Kind regards,
+Paul Vincenzo
+Human Resources Manager
+Tevuah Reserve`;
+  }
   if (type === "welcome_onboarding") {
     content = `Dear ${name},
 
@@ -418,125 +441,18 @@ export default function StaffApplicantDetails({
     } catch (error) { setError(error instanceof Error ? error.message : "Unable to update acceptance."); }
     finally { setBusy(null); }
   }
- 
-async function uploadHandbook() {
-  if (!handbookFile || busy) return;
-
-  setBusy("handbook");
-  setError(null);
-  setSuccess(null);
-
-  try {
-    const file = handbookFile;
-
-    const extension = file.name
-      .split(".")
-      .pop()
-      ?.toLowerCase();
-
-    if (
-      extension !== "pdf" &&
-      extension !== "docx"
-    ) {
-      throw new Error(
-        "Only PDF and DOCX handbooks are supported.",
-      );
-    }
-
-    if (
-      file.size === 0 ||
-      file.size > 10 * 1024 * 1024
-    ) {
-      throw new Error(
-        "The handbook must be between 1 byte and 10 MB.",
-      );
-    }
-
-    const formData = new FormData();
-    formData.append("file", file, file.name);
-
-    const endpoint =
-      `/api/admin/staff/${encodeURIComponent(
-        applicant.id,
-      )}/handbook`;
-
-    console.info("[HANDBOOK UPLOAD START]", {
-      endpoint,
-      filename: file.name,
-      size: file.size,
-      type: file.type,
-    });
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      body: formData,
-      credentials: "same-origin",
-    });
-
-    const rawResponse = await response.text();
-
-    let result: {
-      success?: boolean;
-      filename?: string;
-      error?: string;
-    };
-
+  async function uploadHandbook() {
+    if (!handbookFile || busy) return;
+    setBusy("handbook"); setError(null); setSuccess(null);
     try {
-      result = JSON.parse(rawResponse);
-    } catch {
-      console.error(
-        "[HANDBOOK INVALID RESPONSE]",
-        {
-          status: response.status,
-          body: rawResponse.slice(0, 1000),
-        },
-      );
-
-      throw new Error(
-        `The handbook server returned an invalid response (${response.status}).`,
-      );
-    }
-
-    console.info("[HANDBOOK UPLOAD RESPONSE]", {
-      status: response.status,
-      success: result.success,
-      error: result.error,
-    });
-
-    if (!response.ok || !result.success) {
-      throw new Error(
-        result.error ||
-          `Handbook upload failed (${response.status}).`,
-      );
-    }
-
-    setHandbookName(
-      result.filename || file.name,
-    );
-
-    setHandbookFile(null);
-
-    setSuccess(
-      "Employee handbook uploaded successfully.",
-    );
-
-    router.refresh();
-  } catch (caughtError) {
-    console.error(
-      "[HANDBOOK UPLOAD ERROR]",
-      caughtError,
-    );
-
-    setError(
-      caughtError instanceof Error
-        ? caughtError.message
-        : "Unable to upload handbook.",
-    );
-  } finally {
-    setBusy(null);
+      const form = new FormData(); form.set("file", handbookFile);
+      const response = await fetch(`/api/admin/staff/${applicant.id}/handbook`, { method: "POST", body: form });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Upload failed.");
+      setHandbookName(result.filename); setHandbookFile(null); setSuccess("Handbook saved."); router.refresh();
+    } catch (error) { setError(error instanceof Error ? error.message : "Upload failed."); }
+    finally { setBusy(null); }
   }
-}
-
   async function removeHandbook() {
     if (busy || !handbookName || !window.confirm("Remove the saved handbook?")) return;
     setBusy("handbook"); setError(null); setSuccess(null);
@@ -625,7 +541,8 @@ async function uploadHandbook() {
         type === "interview_reminder") &&
         !meetingReady) ||
       (type === "employment_offer" && offerDirty) ||
-      (type === "welcome_onboarding" && (!handbookName || !offerAccepted || offerDirty))
+      (type === "welcome_onboarding" && (!handbookName || !offerAccepted || offerDirty)) ||
+      (type === "payroll_id_onboarding" && !offerAccepted)
     ) {
       setError(
         "Save the required details, record offer acceptance and upload the handbook before sending.",
@@ -995,7 +912,8 @@ async function uploadHandbook() {
                 action.type === "interview_reminder") &&
                 !meetingReady) ||
             (action.type === "employment_offer" && offerDirty) ||
-            (action.type === "welcome_onboarding" && (!handbookName || !offerAccepted || offerDirty));
+            (action.type === "welcome_onboarding" && (!handbookName || !offerAccepted || offerDirty)) ||
+            (action.type === "payroll_id_onboarding" && !offerAccepted);
             return (
               <div
                 key={action.type}
