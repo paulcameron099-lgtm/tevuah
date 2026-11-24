@@ -182,9 +182,9 @@ export const events: TevuahEvent[] = [
   {
     slug: "mediterranean-harvest-grove-to-value",
     title: "The Mediterranean Harvest: From Grove to Value",
-    date: "19 December 2026",
-    dateISO: "2026-12-19",
-    location: "Jaén, Spain",
+    date: "03 December 2026",
+    dateISO: "2026-12-03",
+    location: "Santa Barbara, California",
     format: "Olive estate and production briefing",
     category: "Olive estates",
     eyebrow: "Olive Estates · Estate and Production Briefing",
